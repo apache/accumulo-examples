@@ -32,11 +32,11 @@ To run these example programs, create two tables like below.
 After creating the tables, index some files. The following command indexes all of the java files in the Accumulo source code.
 
     $ cd /local/username/workspace/accumulo/
-    $ find core/src server/src -name "*.java" | xargs ./bin/runex shard.Index -i instance -z zookeepers -t shard -u username -p password --partitions 30
+    $ find core/src server/src -name "*.java" | xargs ./bin/runex shard.Index -c ./examples.conf -t shard --partitions 30
 
 The following command queries the index to find all files containing 'foo' and 'bar'.
 
-    $ ./bin/runex shard.Query -i instance -z zookeepers -t shard -u username -p password foo bar
+    $ ./bin/runex shard.Query -c ./examples.conf -t shard foo bar
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/security/ColumnVisibilityTest.java
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/client/mock/MockConnectorTest.java
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/security/VisibilityEvaluatorTest.java
@@ -51,12 +51,12 @@ The following command queries the index to find all files containing 'foo' and '
 
 In order to run ContinuousQuery, we need to run Reverse.java to populate doc2term.
 
-    $ ./bin/runex shard.Reverse -i instance -z zookeepers --shardTable shard --doc2Term doc2term -u username -p password
+    $ ./bin/runex shard.Reverse -c ./examples.conf --shardTable shard --doc2Term doc2term
 
 Below ContinuousQuery is run using 5 terms. So it selects 5 random terms from each document, then it continually
 randomly selects one set of 5 terms and queries. It prints the number of matching documents and the time in seconds.
 
-    $ ./bin/runex shard.ContinuousQuery -i instance -z zookeepers --shardTable shard --doc2Term doc2term -u username -p password --terms 5
+    $ ./bin/runex shard.ContinuousQuery -c ./examples.conf --shardTable shard --doc2Term doc2term --terms 5
     [public, core, class, binarycomparable, b] 2  0.081
     [wordtodelete, unindexdocument, doctablename, putdelete, insert] 1  0.041
     [import, columnvisibilityinterpreterfactory, illegalstateexception, cv, columnvisibility] 1  0.049

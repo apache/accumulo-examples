@@ -14,31 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.accumulo.examples.filedata;
+package org.apache.accumulo.examples.cli;
 
-import org.apache.hadoop.io.Text;
+import com.beust.jcommander.Parameter;
 
-import junit.framework.TestCase;
-
-public class KeyUtilTest extends TestCase {
-  public static void checkSeps(String... s) {
-    Text t = KeyUtil.buildNullSepText(s);
-    String[] rets = KeyUtil.splitNullSepText(t);
-
-    int length = 0;
-    for (String str : s)
-      length += str.length();
-    assertEquals(t.getLength(), length + s.length - 1);
-    assertEquals(rets.length, s.length);
-    for (int i = 0; i < s.length; i++)
-      assertEquals(s[i], rets[i]);
-  }
-
-  public void testNullSep() {
-    checkSeps("abc", "d", "", "efgh");
-    checkSeps("ab", "");
-    checkSeps("abcde");
-    checkSeps("");
-    checkSeps("", "");
-  }
+public class ScannerOpts {
+  @Parameter(names = "--scanBatchSize", description = "the number of key-values to pull during a scan")
+  public int scanBatchSize = 1000;
 }

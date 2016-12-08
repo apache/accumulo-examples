@@ -19,9 +19,6 @@ package org.apache.accumulo.examples.dirlist;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
-import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -29,7 +26,11 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.examples.cli.BatchWriterOpts;
+import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
+import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -42,9 +43,12 @@ public class FileCount {
   private int entriesScanned;
   private int inserts;
 
-  private Opts opts;
   private ScannerOpts scanOpts;
   private BatchWriterOpts bwOpts;
+  private Connector conn;
+  private String tableName;
+  private Authorizations auths;
+  private ColumnVisibility visibility;
 
   private static class CountValue {
     int dirCount = 0;
@@ -171,7 +175,7 @@ public class FileCount {
 
   private Mutation createMutation(int depth, String dir, CountValue countVal) {
     Mutation m = new Mutation(String.format("%03d%s", depth, dir));
-    m.put(QueryUtil.DIR_COLF, QueryUtil.COUNTS_COLQ, opts.visibility, countVal.toValue());
+    m.put(QueryUtil.DIR_COLF, QueryUtil.COUNTS_COLQ, visibility, countVal.toValue());
     return m;
   }
 
@@ -214,7 +218,7 @@ public class FileCount {
           // in this case the higher depth will not insert anything if the
           // dir has no children, so insert something here
           Mutation m = new Mutation(key.getRow());
-          m.put(QueryUtil.DIR_COLF, QueryUtil.COUNTS_COLQ, opts.visibility, tmpCount.toValue());
+          m.put(QueryUtil.DIR_COLF, QueryUtil.COUNTS_COLQ, visibility, tmpCount.toValue());
           batchWriter.addMutation(m);
           inserts++;
         }
@@ -233,8 +237,11 @@ public class FileCount {
     }
   }
 
-  public FileCount(Opts opts, ScannerOpts scanOpts, BatchWriterOpts bwOpts) throws Exception {
-    this.opts = opts;
+  public FileCount(Connector conn, String tableName, Authorizations auths, ColumnVisibility cv, ScannerOpts scanOpts, BatchWriterOpts bwOpts) throws Exception {
+    this.conn = conn;
+    this.tableName = tableName;
+    this.auths = auths;
+    this.visibility = cv;
     this.scanOpts = scanOpts;
     this.bwOpts = bwOpts;
   }
@@ -244,10 +251,9 @@ public class FileCount {
     entriesScanned = 0;
     inserts = 0;
 
-    Connector conn = opts.getConnector();
-    Scanner scanner = conn.createScanner(opts.getTableName(), opts.auths);
+    Scanner scanner = conn.createScanner(tableName, auths);
     scanner.setBatchSize(scanOpts.scanBatchSize);
-    BatchWriter bw = conn.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
+    BatchWriter bw = conn.createBatchWriter(tableName, bwOpts.getBatchWriterConfig());
 
     long t1 = System.currentTimeMillis();
 
@@ -284,7 +290,7 @@ public class FileCount {
     String programName = FileCount.class.getName();
     opts.parseArgs(programName, args, scanOpts, bwOpts);
 
-    FileCount fileCount = new FileCount(opts, scanOpts, bwOpts);
+    FileCount fileCount = new FileCount(opts.getConnector(), opts.getTableName(), opts.auths, opts.visibility, scanOpts, bwOpts);
     fileCount.run();
   }
 }

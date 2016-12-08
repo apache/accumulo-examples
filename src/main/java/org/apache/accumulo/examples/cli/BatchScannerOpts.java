@@ -14,31 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.accumulo.examples.filedata;
+package org.apache.accumulo.examples.cli;
 
-import org.apache.hadoop.io.Text;
+import org.apache.accumulo.examples.cli.ClientOpts.TimeConverter;
 
-import junit.framework.TestCase;
+import com.beust.jcommander.Parameter;
 
-public class KeyUtilTest extends TestCase {
-  public static void checkSeps(String... s) {
-    Text t = KeyUtil.buildNullSepText(s);
-    String[] rets = KeyUtil.splitNullSepText(t);
+public class BatchScannerOpts {
+  @Parameter(names = "--scanThreads", description = "Number of threads to use when batch scanning")
+  public Integer scanThreads = 10;
 
-    int length = 0;
-    for (String str : s)
-      length += str.length();
-    assertEquals(t.getLength(), length + s.length - 1);
-    assertEquals(rets.length, s.length);
-    for (int i = 0; i < s.length; i++)
-      assertEquals(s[i], rets[i]);
-  }
+  @Parameter(names = "--scanTimeout", converter = TimeConverter.class, description = "timeout used to fail a batch scan")
+  public Long scanTimeout = Long.MAX_VALUE;
 
-  public void testNullSep() {
-    checkSeps("abc", "d", "", "efgh");
-    checkSeps("ab", "");
-    checkSeps("abcde");
-    checkSeps("");
-    checkSeps("", "");
-  }
 }

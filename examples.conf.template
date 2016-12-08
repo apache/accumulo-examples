@@ -1,5 +1,3 @@
-#! /usr/bin/env bash
-
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -15,11 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-main_class="$1"
-main_args="${*:2}"
+# Properties prefixed with accumulo.examples are not general Accumulo properties
+# and are only used by example code in this repository. All other properties are
+# general Accumulo properties parsed by Accumulo's ClientConfiguration
 
-if command -v accumulo > /dev/null 2>&1 ; then
-  av_arg="-Daccumulo.version=`accumulo version`"
-fi
+instance.zookeeper.host=localhost:2181
+instance.name=your-instance-name
+accumulo.examples.principal=root
+accumulo.examples.password=secret
 
-mvn -q exec:java -Dexec.mainClass="org.apache.accumulo.examples.$main_class" $av_arg -Dexec.args="$main_args"
+# Currently the examples only support authentication via username and password.
+# Kerberos authentication is currently not supported in the utility code used
+# by all of the examples.

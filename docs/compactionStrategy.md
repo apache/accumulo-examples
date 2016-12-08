@@ -44,13 +44,13 @@ The commands below will configure the TwoTierCompactionStrategy to use gz compre
 
 Generate some data and files in order to test the strategy:
 
-    $ ./bin/runex client.SequentialBatchWriter -i instance17 -z localhost:2181 -u root -p secret -t test1 --start 0 --num 10000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+    $ ./bin/runex client.SequentialBatchWriter -c ./examples.conf -t test1 --start 0 --num 10000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
     $ accumulo shell -u root -p secret -e "flush -t test1"
-    $ ./bin/runex client.SequentialBatchWriter -i instance17 -z localhost:2181 -u root -p secret -t test1 --start 0 --num 11000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+    $ ./bin/runex client.SequentialBatchWriter -c ./examples.conf -t test1 --start 0 --num 11000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
     $ accumulo shell -u root -p secret -e "flush -t test1"
-    $ ./bin/runex client.SequentialBatchWriter -i instance17 -z localhost:2181 -u root -p secret -t test1 --start 0 --num 12000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+    $ ./bin/runex client.SequentialBatchWriter -c ./examples.conf -t test1 --start 0 --num 12000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
     $ accumulo shell -u root -p secret -e "flush -t test1"
-    $ ./bin/runex client.SequentialBatchWriter -i instance17 -z localhost:2181 -u root -p secret -t test1 --start 0 --num 13000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+    $ ./bin/runex client.SequentialBatchWriter -c ./examples.conf -t test1 --start 0 --num 13000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
     $ accumulo shell -u root -p secret -e "flush -t test1"
 
 View the tserver log in <accumulo_home>/logs for the compaction and find the name of the <rfile> that was compacted for your table. Print info about this file using the PrintInfo tool:

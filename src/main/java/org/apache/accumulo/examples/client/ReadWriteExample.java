@@ -20,8 +20,6 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
-import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Connector;
@@ -34,6 +32,8 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.util.ByteArraySet;
+import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
+import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.IStringConverter;
@@ -54,15 +54,15 @@ public class ReadWriteExample {
   }
 
   static class Opts extends ClientOnDefaultTable {
-    @Parameter(names = {"-C", "--createtable"}, description = "create table before doing anything")
+    @Parameter(names = {"--createtable"}, description = "create table before doing anything")
     boolean createtable = false;
-    @Parameter(names = {"-D", "--deletetable"}, description = "delete table when finished")
+    @Parameter(names = {"--deletetable"}, description = "delete table when finished")
     boolean deletetable = false;
-    @Parameter(names = {"-c", "--create"}, description = "create entries before any deletes")
+    @Parameter(names = {"--create"}, description = "create entries before any deletes")
     boolean createEntries = false;
-    @Parameter(names = {"-r", "--read"}, description = "read entries after any creates/deletes")
+    @Parameter(names = {"--read"}, description = "read entries after any creates/deletes")
     boolean readEntries = false;
-    @Parameter(names = {"-d", "--delete"}, description = "delete entries after any creates")
+    @Parameter(names = {"--delete"}, description = "delete entries after any creates")
     boolean deleteEntries = false;
     @Parameter(names = {"--durability"}, description = "durability used for writes (none, log, flush or sync)", converter = DurabilityConverter.class)
     Durability durability = Durability.DEFAULT;

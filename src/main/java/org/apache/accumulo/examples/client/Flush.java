@@ -16,8 +16,8 @@
  */
 package org.apache.accumulo.examples.client;
 
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 
 /**
  * Simple example for using tableOperations() (like create, delete, flush, etc).

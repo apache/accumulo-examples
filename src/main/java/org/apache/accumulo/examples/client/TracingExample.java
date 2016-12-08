@@ -21,8 +21,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
-import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -35,6 +33,8 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.trace.DistributedTrace;
+import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
+import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.htrace.Sampler;
 import org.apache.htrace.Trace;
 import org.apache.htrace.TraceScope;
@@ -52,13 +52,13 @@ public class TracingExample {
   private static final String DEFAULT_TABLE_NAME = "test";
 
   static class Opts extends ClientOnDefaultTable {
-    @Parameter(names = {"-C", "--createtable"}, description = "create table before doing anything")
+    @Parameter(names = {"--createtable"}, description = "create table before doing anything")
     boolean createtable = false;
-    @Parameter(names = {"-D", "--deletetable"}, description = "delete table when finished")
+    @Parameter(names = {"--deletetable"}, description = "delete table when finished")
     boolean deletetable = false;
-    @Parameter(names = {"-c", "--create"}, description = "create entries before any deletes")
+    @Parameter(names = {"--create"}, description = "create entries before any deletes")
     boolean createEntries = false;
-    @Parameter(names = {"-r", "--read"}, description = "read entries after any creates/deletes")
+    @Parameter(names = {"--read"}, description = "read entries after any creates/deletes")
     boolean readEntries = false;
 
     public Opts() {
