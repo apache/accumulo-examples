@@ -20,8 +20,6 @@ package org.apache.accumulo.examples.sample;
 import java.util.Collections;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.SampleNotPresentException;
@@ -34,6 +32,8 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.BatchWriterOpts;
+import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
 import org.apache.accumulo.examples.client.RandomBatchWriter;
 import org.apache.accumulo.examples.shard.CutoffIntersectingIterator;
 

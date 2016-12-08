@@ -23,12 +23,9 @@ import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientConfiguration;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -40,15 +37,12 @@ import org.apache.accumulo.core.util.PeekingIterator;
  * instructions.
  */
 public class FileDataQuery {
-  private Connector conn = null;
   List<Entry<Key,Value>> lastRefs;
   private ChunkInputStream cis;
   Scanner scanner;
 
-  public FileDataQuery(String instanceName, String zooKeepers, String user, AuthenticationToken token, String tableName, Authorizations auths)
+  public FileDataQuery(Connector conn, String tableName, Authorizations auths)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    ZooKeeperInstance instance = new ZooKeeperInstance(ClientConfiguration.loadDefault().withInstance(instanceName).withZkHosts(zooKeepers));
-    conn = instance.getConnector(user, token);
     lastRefs = new ArrayList<>();
     cis = new ChunkInputStream();
     scanner = conn.createScanner(tableName, auths);

@@ -18,4 +18,8 @@
 main_class="$1"
 main_args="${*:2}"
 
-mvn -q exec:java -Dexec.mainClass="org.apache.accumulo.examples.$main_class" -Dexec.args="$main_args"
+if command -v accumulo > /dev/null 2>&1 ; then
+  av_arg="-Daccumulo.version=`accumulo version`"
+fi
+
+mvn -q exec:java -Dexec.mainClass="org.apache.accumulo.examples.$main_class" $av_arg -Dexec.args="$main_args"

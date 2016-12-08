@@ -23,8 +23,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.cli.BatchScannerOpts;
-import org.apache.accumulo.core.cli.ClientOpts;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -33,6 +31,8 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.IntersectingIterator;
+import org.apache.accumulo.examples.cli.BatchScannerOpts;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;

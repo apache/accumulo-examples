@@ -38,6 +38,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.ExamplesIT;
 import org.apache.accumulo.minicluster.impl.MiniAccumuloClusterImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.io.Text;
@@ -61,10 +62,14 @@ public class MapReduceIT extends ConfigurableMacBase {
 
   @Test
   public void test() throws Exception {
-    runTest(getConnector(), getCluster());
+    String confFile = System.getProperty("user.dir")+"/target/examples.conf";
+    String instance = getConnector().getInstance().getInstanceName();
+    String keepers = getConnector().getInstance().getZooKeepers();
+    ExamplesIT.writeConnectionFile(confFile, instance, keepers, "root", ROOT_PASSWORD);
+    runTest(confFile, getConnector(), getCluster());
   }
 
-  static void runTest(Connector c, MiniAccumuloClusterImpl cluster) throws AccumuloException, AccumuloSecurityException, TableExistsException,
+  static void runTest(String confFile, Connector c, MiniAccumuloClusterImpl cluster) throws AccumuloException, AccumuloSecurityException, TableExistsException,
       TableNotFoundException, MutationsRejectedException, IOException, InterruptedException, NoSuchAlgorithmException {
     c.tableOperations().create(tablename);
     BatchWriter bw = c.createBatchWriter(tablename, new BatchWriterConfig());
@@ -74,8 +79,7 @@ public class MapReduceIT extends ConfigurableMacBase {
       bw.addMutation(m);
     }
     bw.close();
-    Process hash = cluster.exec(RowHash.class, Collections.singletonList(hadoopTmpDirArg), "-i", c.getInstance().getInstanceName(), "-z", c.getInstance()
-        .getZooKeepers(), "-u", "root", "-p", ROOT_PASSWORD, "-t", tablename, "--column", input_cfcq);
+    Process hash = cluster.exec(RowHash.class, Collections.singletonList(hadoopTmpDirArg), "-c", confFile, "-t", tablename, "--column", input_cfcq);
     assertEquals(0, hash.waitFor());
 
     Scanner s = c.createScanner(tablename, Authorizations.EMPTY);

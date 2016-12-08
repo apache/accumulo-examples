@@ -40,8 +40,8 @@ Before you run this, you must ensure that the user you are running has the
 You must also create the table, batchtest1, ahead of time. (In the shell, use "createtable batchtest1")
 
     $ accumulo shell -u username -e "createtable batchtest1"
-    $ ./bin/runex client.SequentialBatchWriter -i instance -z zookeepers -u username -p password -t batchtest1 --start 0 --num 10000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20 --vis exampleVis
-    $ ./bin/runex client.RandomBatchScanner -i instance -z zookeepers -u username -p password -t batchtest1 --num 100 --min 0 --max 10000 --size 50 --scanThreads 20 --auths exampleVis
+    $ ./bin/runex client.SequentialBatchWriter -c ./examples.conf -t batchtest1 --start 0 --num 10000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20 --vis exampleVis
+    $ ./bin/runex client.RandomBatchScanner -c ./examples.conf -t batchtest1 --num 100 --min 0 --max 10000 --size 50 --scanThreads 20 --auths exampleVis
     07 11:33:11,103 [client.CountingVerifyingReceiver] INFO : Generating 100 random queries...
     07 11:33:11,112 [client.CountingVerifyingReceiver] INFO : finished
     07 11:33:11,260 [client.CountingVerifyingReceiver] INFO : 694.44 lookups/sec   0.14 secs

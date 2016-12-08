@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;

@@ -16,8 +16,6 @@
  */
 package org.apache.accumulo.examples.client;
 
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
-import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -25,6 +23,8 @@ import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.security.TablePermission;
+import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
+import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.accumulo.tracer.TraceDump;
 import org.apache.accumulo.tracer.TraceDump.Printer;
 import org.apache.hadoop.io.Text;

@@ -22,13 +22,13 @@ import java.io.PrintStream;
 import java.util.Base64;
 import java.util.Collection;
 
-import org.apache.accumulo.core.cli.MapReduceClientOnRequiredTable;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat;
 import org.apache.accumulo.core.client.mapreduce.lib.partition.RangePartitioner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.TextUtil;
+import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;

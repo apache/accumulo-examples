@@ -28,13 +28,12 @@ Using the accumulo command, you can run the simple client examples by providing 
 class name, and enough arguments to find your accumulo instance. For example,
 the Flush class will flush a table:
 
-    $ PACKAGE=org.apache.accumulo.examples.client
-    $ bin/accumulo $PACKAGE.Flush -u root -p mypassword -i instance -z zookeeper -t trace
+    $ ./bin/runex client.Flush -c ./examples.conf -t trace
 
 The very simple RowOperations class demonstrates how to read and write rows using the BatchWriter
 and Scanner:
 
-    $ bin/accumulo $PACKAGE.RowOperations -u root -p mypassword -i instance -z zookeeper
+    $ ./bin/runex client.RowOperations -c ./examples.conf
     2013-01-14 14:45:24,738 [client.RowOperations] INFO : This is everything
     2013-01-14 14:45:24,744 [client.RowOperations] INFO : Key: row1 column:1 [] 1358192724640 false Value: This is the value for this key
     2013-01-14 14:45:24,744 [client.RowOperations] INFO : Key: row1 column:2 [] 1358192724642 false Value: This is the value for this key
@@ -65,7 +64,7 @@ and Scanner:
 
 To create a table, write to it and read from it:
 
-    $ bin/accumulo $PACKAGE.ReadWriteExample -u root -p mypassword -i instance -z zookeeper --createtable --create --read
+    $ ./bin/runex client.ReadWriteExample -c ./examples.conf --createtable --create --read
     hello%00; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
     hello%01; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
     hello%02; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world

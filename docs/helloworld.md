@@ -31,7 +31,7 @@ Create a table called 'hellotable':
 
 Launch a Java program that inserts data with a BatchWriter:
 
-    $ ./bin/runex helloworld.InsertWithBatchWriter -i instance -z zookeepers -u username -p password -t hellotable
+    $ ./bin/runex helloworld.InsertWithBatchWriter -c ./examples.conf -t hellotable
 
 On the accumulo status page at the URL below (where 'master' is replaced with the name or IP of your accumulo master), you should see 50K entries
 
@@ -44,4 +44,4 @@ To view the entries, use the shell to scan the table:
 
 You can also use a Java class to scan the table:
 
-    $ ./bin/runex helloworld.ReadData -i instance -z zookeepers -u username -p password -t hellotable --startKey row_0 --endKey row_1001
+    $ ./bin/runex helloworld.ReadData -c ./examples.conf -t hellotable --startKey row_0 --endKey row_1001

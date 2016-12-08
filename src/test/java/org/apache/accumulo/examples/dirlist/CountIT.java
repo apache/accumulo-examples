@@ -22,8 +22,6 @@ import static org.junit.Assert.assertFalse;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Connector;
@@ -33,10 +31,8 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.util.Pair;
-import org.apache.accumulo.examples.dirlist.FileCount;
-import org.apache.accumulo.examples.dirlist.FileCount.Opts;
-import org.apache.accumulo.examples.dirlist.Ingest;
-import org.apache.accumulo.examples.dirlist.QueryUtil;
+import org.apache.accumulo.examples.cli.BatchWriterOpts;
+import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.io.Text;
 import org.junit.Before;
@@ -73,15 +69,9 @@ public class CountIT extends ConfigurableMacBase {
     scanner.fetchColumn(new Text("dir"), new Text("counts"));
     assertFalse(scanner.iterator().hasNext());
 
-    Opts opts = new Opts();
     ScannerOpts scanOpts = new ScannerOpts();
     BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.instance = conn.getInstance().getInstanceName();
-    opts.zookeepers = conn.getInstance().getZooKeepers();
-    opts.setTableName(tableName);
-    opts.setPrincipal(conn.whoami());
-    opts.setPassword(new Opts.Password(ROOT_PASSWORD));
-    FileCount fc = new FileCount(opts, scanOpts, bwOpts);
+    FileCount fc = new FileCount(conn, tableName, Authorizations.EMPTY, new ColumnVisibility(), scanOpts, bwOpts);
     fc.run();
 
     ArrayList<Pair<String,String>> expected = new ArrayList<>();

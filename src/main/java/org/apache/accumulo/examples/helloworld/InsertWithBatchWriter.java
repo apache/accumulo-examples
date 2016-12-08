@@ -16,8 +16,6 @@
  */
 package org.apache.accumulo.examples.helloworld;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -28,6 +26,8 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.cli.BatchWriterOpts;
+import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 import org.apache.hadoop.io.Text;
 
 /**

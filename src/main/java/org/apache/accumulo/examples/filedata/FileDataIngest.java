@@ -24,8 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -35,6 +33,8 @@ import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.examples.cli.BatchWriterOpts;
+import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -197,6 +197,7 @@ public class FileDataIngest {
       fdi.insertFileData(filename, bw);
     }
     bw.close();
-    opts.stopTracing();
+    //TODO
+    //opts.stopTracing();
   }
 }

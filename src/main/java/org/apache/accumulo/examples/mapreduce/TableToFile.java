@@ -21,13 +21,13 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.apache.accumulo.core.cli.MapReduceClientOnRequiredTable;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.accumulo.core.util.format.DefaultFormatter;
+import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;

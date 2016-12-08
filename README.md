@@ -34,15 +34,20 @@ Before running any of the examples, the following steps must be performed.
         git clone https://github.com/apache/accumulo-examples.git
         mvn clean package
 
-4. Each Accumulo example has its own documentation and instructions for running the example which
+4. Specify connection information.  All examples read connection information from a properties 
+   file. Copy the template and edit it.
+
+        cd accumulo-examples
+        cp examples.conf.template examples.conf
+        nano examples.conf
+
+5. Each Accumulo example has its own documentation and instructions for running the example which
    are linked to below.
 
 When running the examples, remember the tips below:
 
 * Examples are run using the `runex` command which is located in the `bin/` directory of this repo.
   The `runex` command is a simple wrapper around the Maven Exec plugin.
-* Any command that references Accumulo settings such as `instance`, `zookeepers`, `username`, or 
-`password` should be updated for your instance.
 * Commands intended to be run in bash are prefixed by '$' and should be run from the root of this
   repository.
 * Several examples use the `accumulo` and `tool.sh` commands which are expected to be on your 

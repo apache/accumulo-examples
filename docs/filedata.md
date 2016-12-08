@@ -32,7 +32,7 @@ This example is coupled with the [dirlist example][dirlist].
 
 If you haven't already run the [dirlist example][dirlist], ingest a file with FileDataIngest.
 
-    $ ./bin/runex filedata.FileDataIngest -i instance -z zookeepers -u username -p password -t dataTable --auths exampleVis --chunk 1000 /path/to/accumulo/README.md
+    $ ./bin/runex filedata.FileDataIngest -c ./examples.conf -t dataTable --auths exampleVis --chunk 1000 /path/to/accumulo/README.md
 
 Open the accumulo shell and look at the data. The row is the MD5 hash of the file, which you can verify by running a command such as 'md5sum' on the file.
 
@@ -40,7 +40,7 @@ Open the accumulo shell and look at the data. The row is the MD5 hash of the fil
 
 Run the CharacterHistogram MapReduce to add some information about the file.
 
-    $ tool.sh target/accumulo-examples.jar org.apache.accumulo.examples.filedata.CharacterHistogram -i instance -z zookeepers -u username -p password -t dataTable --auths exampleVis --vis exampleVis
+    $ tool.sh target/accumulo-examples.jar org.apache.accumulo.examples.filedata.CharacterHistogram -c ./examples.conf -t dataTable --auths exampleVis --vis exampleVis
 
 Scan again to see the histogram stored in the 'info' column family.
 
