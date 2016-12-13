@@ -21,11 +21,3 @@ instance.zookeeper.host=localhost:2181
 instance.name=your-instance-name
 accumulo.examples.principal=root
 accumulo.examples.password=secret
-
-# The following can be set when using Kerberos.   When set the password propety
-# is ignored.
-
-# instance.rpc.sasl.enabled=true
-# rpc.sasl.qop=auth
-# kerberos.server.primary=accumulo
-# accumulo.examples.keytab=<keytab file location>

@@ -48,7 +48,6 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.core.client.security.tokens.KerberosToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Key;
@@ -134,19 +133,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
     String instance = c.getInstance().getInstanceName();
     String keepers = c.getInstance().getZooKeepers();
     AuthenticationToken token = getAdminToken();
-    if (token instanceof KerberosToken) {
-      String keytab = getAdminUser().getKeytab().getAbsolutePath();
-      try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(getConnectionFile()))) {
-        writer.write("instance.zookeeper.host=" + keepers + "\n");
-        writer.write("instance.name=" + instance + "\n");
-        writer.write("accumulo.examples.principal=" + user + "\n");
-        writer.write("instance.rpc.sasl.enabled=true\n");
-        writer.write("rpc.sasl.qop=auth\n");
-        writer.write("kerberos.server.primary=accumulo\n");
-        writer.write("accumulo.examples.keytab=" + keytab + "\n");
-
-      }
-    } else if (token instanceof PasswordToken) {
+    if (token instanceof PasswordToken) {
       String passwd = new String(((PasswordToken) getAdminToken()).getPassword(), UTF_8);
       writeConnectionFile(getConnectionFile(), instance, keepers, user, passwd);
     } else {

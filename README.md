@@ -34,8 +34,8 @@ Before running any of the examples, the following steps must be performed.
         git clone https://github.com/apache/accumulo-examples.git
         mvn clean package
 
-4. Specify connection information.  All examples read connection information from a properties 
-   file. Copy the template and edit it.
+4. Specify Accumulo connection information.  All examples read connection information from a 
+   properties file. Copy the template and edit it.
 
         cd accumulo-examples
         cp examples.conf.template examples.conf
@@ -86,6 +86,11 @@ Each example below highlights a feature of Apache Accumulo.
 | [tabletofile] | Using MapReduce to read a table and write one of its columns to a file in HDFS. |
 | [terasort] | Generating random data and sorting it using Accumulo. |
 | [visibility] | Using visibilities (or combinations of authorizations). Also shows user permissions. |
+
+## Release Testing
+
+This repository can be used to test Accumulo release candidates.  See
+[docs/release-testing.md](docs/release-testing.md).
 
 [manual]: https://accumulo.apache.org/latest/accumulo_user_manual/
 [INSTALL.md]: https://github.com/apache/accumulo/blob/master/INSTALL.md

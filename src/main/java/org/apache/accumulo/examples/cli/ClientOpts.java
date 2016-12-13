@@ -16,9 +16,6 @@
  */
 package org.apache.accumulo.examples.cli;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -27,7 +24,6 @@ import org.apache.accumulo.core.client.ClientConfiguration;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.core.client.security.tokens.KerberosToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
@@ -125,19 +121,6 @@ public class ClientOpts extends Help {
   }
 
   public AuthenticationToken getToken() {
-    if (config.containsKey("instance.rpc.sasl.enabled")) {
-      try {
-        if (config.containsKey("accumulo.examples.keytab")) {
-          String keytab = config.getString("accumulo.examples.keytab");
-          return new KerberosToken(getPrincipal(), new File(keytab));
-        } else {
-          return new KerberosToken(getPrincipal());
-        }
-      } catch (IOException ioe) {
-        throw new UncheckedIOException(ioe);
-      }
-    } else {
-      return new PasswordToken(config.getString("accumulo.examples.password", "secret"));
-    }
+    return new PasswordToken(config.getString("accumulo.examples.password", "secret"));
   }
 }
