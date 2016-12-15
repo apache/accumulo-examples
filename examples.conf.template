@@ -21,3 +21,7 @@ instance.zookeeper.host=localhost:2181
 instance.name=your-instance-name
 accumulo.examples.principal=root
 accumulo.examples.password=secret
+
+# Currently the examples only support authentication via username and password.
+# Kerberos authentication is currently not supported in the utility code used
+# by all of the examples.
