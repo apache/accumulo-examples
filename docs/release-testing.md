@@ -19,7 +19,7 @@ limitations under the License.
 This repository contains an integration test (IT) that runs all of the
 examples.  This can be used for testing Accumulo release candidates (RC). To
 run the IT against a RC add the following to `~/.m2/settings.xml` changing
-`XXXX` to the proper id.  
+`XXXX` to the proper id for a given RC.
 
 ```xml
  <profiles>
