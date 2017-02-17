@@ -41,7 +41,12 @@ Before running any of the examples, the following steps must be performed.
         cp examples.conf.template examples.conf
         nano examples.conf
 
-5. Each Accumulo example has its own documentation and instructions for running the example which
+5. The examples have some custom iterators that need to be executed by Accumulo tablet servers.
+   Make them available by copying the accumulo-examples.jar to Accumulo's `lib/ext` directory.
+
+        cp target/accumulo-examples-X.Y.Z.jar /path/accumulo/lib/ext/
+
+6. Each Accumulo example has its own documentation and instructions for running the example which
    are linked to below.
 
 When running the examples, remember the tips below:
@@ -50,9 +55,8 @@ When running the examples, remember the tips below:
   The `runex` command is a simple wrapper around the Maven Exec plugin.
 * Commands intended to be run in bash are prefixed by '$' and should be run from the root of this
   repository.
-* Several examples use the `accumulo` and `tool.sh` commands which are expected to be on your 
-  `PATH`. These commands are found in the `bin/` and `contrib/` directories of your Accumulo
-  installation.
+* Several examples use the `accumulo` and `accumulo-util` commands which are expected to be on your 
+  `PATH`. These commands are found in the `bin/` directory of your Accumulo installation.
 * Commands intended to be run in the Accumulo shell are prefixed by '>'.
 
 ## Available Examples

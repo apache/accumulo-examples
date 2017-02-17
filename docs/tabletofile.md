@@ -40,7 +40,7 @@ write the key/value pairs to a file in HDFS.
 
 The following will extract the rows containing the column "cf:cq":
 
-    $ tool.sh target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.TableToFile -c ./examples.conf -t input --columns cf:cq --output /tmp/output
+    $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.TableToFile -c ./examples.conf -t input --columns cf:cq --output /tmp/output
 
     $ hadoop fs -ls /tmp/output
     -rw-r--r--   1 username supergroup          0 2013-01-10 14:44 /tmp/output/_SUCCESS

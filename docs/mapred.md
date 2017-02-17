@@ -50,7 +50,7 @@ for the column family count.
 
 After creating the table, run the word count map reduce job.
 
-    $ tool.sh target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.WordCount -i instance -z zookeepers  --input /user/username/wc -t wordCount -u username -p password
+    $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.WordCount -i instance -z zookeepers  --input /user/username/wc -t wordCount -u username -p password
 
     11/02/07 18:20:11 INFO input.FileInputFormat: Total input paths to process : 1
     11/02/07 18:20:12 INFO mapred.JobClient: Running job: job_201102071740_0003
@@ -134,14 +134,14 @@ Because the basic WordCount example uses Opts to parse its arguments
 the basic WordCount example by calling the same command as explained above
 except replacing the password with the token file (rather than -p, use -tf).
 
-  $ tool.sh target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.WordCount -i instance -z zookeepers  --input /user/username/wc -t wordCount -u username -tf tokenfile
+  $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.WordCount -i instance -z zookeepers  --input /user/username/wc -t wordCount -u username -tf tokenfile
 
 In the above examples, username was 'root' and tokenfile was 'root.pw'
 
 However, if you don't want to use the Opts class to parse arguments,
 the TokenFileWordCount is an example of using the token file manually.
 
-  $ tool.sh target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.TokenFileWordCount instance zookeepers username tokenfile /user/username/wc wordCount
+  $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.TokenFileWordCount instance zookeepers username tokenfile /user/username/wc wordCount
 
 The results should be the same as the WordCount example except that the
 authentication token was not stored in the configuration. It was instead
