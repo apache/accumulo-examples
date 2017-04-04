@@ -292,6 +292,8 @@ public class ExamplesIT extends AccumuloClusterHarness {
     c.tableOperations().create(table);
     is = new IteratorSetting(10, StatsCombiner.class);
     StatsCombiner.setCombineAllColumns(is, true);
+    StatsCombiner.setRadix(is, 10);
+    assertTrue(is.getOptions().containsKey(StatsCombiner.RADIX_OPTION));
 
     c.tableOperations().attachIterator(table, is);
     bw = c.createBatchWriter(table, bwc);
