@@ -390,7 +390,7 @@ public class TeraSortIngest extends Configured implements Tool {
     conf.setInt("cloudgen.maxvaluelength", opts.maxValueLength);
     conf.set("cloudgen.tablename", opts.getTableName());
 
-    if (args.length > 10)
+    if (opts.splits != 0)
       conf.setInt(NUMSPLITS, opts.splits);
 
     job.waitForCompletion(true);
