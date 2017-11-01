@@ -113,6 +113,17 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <!-- This was added to ensure project only uses public API. Run with the following:
+              mvn checkstyle:checkstyle
+         -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <configLocation>checkstyle.xml</configLocation>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
