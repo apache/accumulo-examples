@@ -16,32 +16,31 @@ limitations under the License.
 -->
 # Apache Accumulo Batch Writing and Scanning Example
 
-This tutorial uses the following Java classes, which can be found in org.apache.accumulo.examples.client:
+This tutorial uses the following Java classes:
 
- * SequentialBatchWriter.java - writes mutations with sequential rows and random values
- * RandomBatchWriter.java - used by SequentialBatchWriter to generate random values
- * RandomBatchScanner.java - reads random rows and verifies their values
+ * [SequentialBatchWriter.java] - writes mutations with sequential rows and random values
+ * [RandomBatchWriter.java] - used by SequentialBatchWriter to generate random values
+ * [RandomBatchScanner.java] - reads random rows and verifies their values
 
-This is an example of how to use the batch writer and batch scanner. To compile
-the example, run maven and copy the produced jar into the accumulo lib dir.
-This is already done in the tar distribution.
+This is an example of how to use the BatchWriter and BatchScanner.
 
-Below are commands that add 10000 entries to accumulo and then do 100 random
-queries. The write command generates random 50 byte values.
+First, you must ensure that the user you are running with (i.e `myuser` below) has the
+`exampleVis` authorization.
 
-Be sure to use the name of your instance (given as instance here) and the appropriate
-list of zookeeper nodes (given as zookeepers here).
+    $ accumulo shell -u root -e "setauths -u myuser -s exampleVis"
 
-Before you run this, you must ensure that the user you are running has the
-"exampleVis" authorization. (you can set this in the shell with "setauths -u username -s exampleVis")
+Second, you must create the table, batchtest1, ahead of time.
 
-    $ accumulo shell -u root -e "setauths -u username -s exampleVis"
+    $ accumulo shell -u root -e "createtable batchtest1"
 
-You must also create the table, batchtest1, ahead of time. (In the shell, use "createtable batchtest1")
+The command below adds 10000 entries with random 50 bytes values to Accumulo.
 
-    $ accumulo shell -u username -e "createtable batchtest1"
     $ ./bin/runex client.SequentialBatchWriter -c ./examples.conf -t batchtest1 --start 0 --num 10000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20 --vis exampleVis
+
+The command below will do 100 random queries.
+
     $ ./bin/runex client.RandomBatchScanner -c ./examples.conf -t batchtest1 --num 100 --min 0 --max 10000 --size 50 --scanThreads 20 --auths exampleVis
+
     07 11:33:11,103 [client.CountingVerifyingReceiver] INFO : Generating 100 random queries...
     07 11:33:11,112 [client.CountingVerifyingReceiver] INFO : finished
     07 11:33:11,260 [client.CountingVerifyingReceiver] INFO : 694.44 lookups/sec   0.14 secs
@@ -53,3 +52,7 @@ You must also create the table, batchtest1, ahead of time. (In the shell, use "c
     07 11:33:11,416 [client.CountingVerifyingReceiver] INFO : 2173.91 lookups/sec   0.05 secs
 
     07 11:33:11,416 [client.CountingVerifyingReceiver] INFO : num results : 100
+
+[SequentialBatchWriter.java]: ../src/main/java/org/apache/accumulo/examples/client/SequentialBatchWriter.java
+[RandomBatchWriter.java]:  ../src/main/java/org/apache/accumulo/examples/client/RandomBatchWriter.java
+[RandomBatchScanner.java]: ../src/main/java/org/apache/accumulo/examples/client/RandomBatchScanner.java

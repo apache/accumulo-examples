@@ -16,22 +16,17 @@ limitations under the License.
 -->
 # Apache Accumulo Client Examples
 
-This documents how you run the simplest java examples.
+The following Java classes are examples of the Accumulo client API:
 
-This tutorial uses the following Java classes, which can be found in org.apache.accumulo.examples.client:
+ * [Flush.java] - flushes a table
+ * [RowOperations.java] - reads and writes rows
+ * [ReadWriteExample.java] - creates a table, writes to it, and reads from it
 
- * Flush.java - flushes a table
- * RowOperations.java - reads and writes rows
- * ReadWriteExample.java - creates a table, writes to it, and reads from it
-
-Using the accumulo command, you can run the simple client examples by providing their
-class name, and enough arguments to find your accumulo instance. For example,
-the Flush class will flush a table:
+The Flush class will flush a table:
 
     $ ./bin/runex client.Flush -c ./examples.conf -t trace
 
-The very simple RowOperations class demonstrates how to read and write rows using the BatchWriter
-and Scanner:
+The RowOperations class demonstrates how to read and write rows using the BatchWriter and Scanner:
 
     $ ./bin/runex client.RowOperations -c ./examples.conf
     2013-01-14 14:45:24,738 [client.RowOperations] INFO : This is everything
@@ -76,3 +71,6 @@ To create a table, write to it and read from it:
     hello%08; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
     hello%09; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
 
+[Flush.java]: ../src/main/java/org/apache/accumulo/examples/client/Flush.java
+[RowOperations.java]: ../src/main/java/org/apache/accumulo/examples/client/RowOperations.java
+[ReadWriteExample.java]: ../src/main/java/org/apache/accumulo/examples/client/ReadWriteExample.java
