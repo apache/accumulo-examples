@@ -124,6 +124,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
   public void configureMiniCluster(MiniAccumuloConfigImpl cfg, Configuration hadoopConf) {
     // 128MB * 3
     cfg.setDefaultMemory(cfg.getDefaultMemory() * 3, MemoryUnit.BYTE);
+    cfg.setProperty(Property.TSERV_NATIVEMAP_ENABLED, "false");
   }
 
   @Before

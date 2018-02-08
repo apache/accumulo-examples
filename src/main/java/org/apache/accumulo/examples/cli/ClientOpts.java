@@ -16,6 +16,7 @@
  */
 package org.apache.accumulo.examples.cli;
 
+import java.io.File;
 import java.time.Duration;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -85,12 +86,12 @@ public class ClientOpts extends Help {
     }
   }
 
-  public static class PropertiesConverter implements IStringConverter<Configuration> {
+  public static class PropertiesConverter implements IStringConverter<File> {
     @Override
-    public Configuration convert(String filename) {
+    public File convert(String filename) {
       try {
-        return new PropertiesConfiguration(filename);
-      } catch (ConfigurationException e) {
+        return new File(filename);
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
@@ -98,14 +99,14 @@ public class ClientOpts extends Help {
 
   @Parameter(names = {"-c", "--conf"}, required = true, converter = PropertiesConverter.class,
       description = "Config file for connecting to Accumulo.  See README.md for details.")
-  private Configuration config = null;
+  private File config = null;
 
   @Parameter(names = {"-auths", "--auths"}, converter = AuthConverter.class, description = "the authorizations to use when reading or writing")
   public Authorizations auths = Authorizations.EMPTY;
 
   public Connector getConnector() {
     try {
-      ZooKeeperInstance zki = new ZooKeeperInstance(config);
+      ZooKeeperInstance zki = new ZooKeeperInstance(getClientConfiguration());
       return zki.getConnector(getPrincipal(), getToken());
     } catch (AccumuloException | AccumuloSecurityException e) {
       throw new RuntimeException(e);
@@ -113,14 +114,24 @@ public class ClientOpts extends Help {
   }
 
   public ClientConfiguration getClientConfiguration() {
-    return new ClientConfiguration(config);
+    return ClientConfiguration.fromFile(config);
   }
 
   public String getPrincipal() {
-    return config.getString("accumulo.examples.principal", "root");
+    String user = getClientConfiguration().getString("accumulo.examples.principal");
+    if(user != null)
+      return user;
+
+    return "root";
   }
 
   public AuthenticationToken getToken() {
-    return new PasswordToken(config.getString("accumulo.examples.password", "secret"));
+    AuthenticationToken token = new PasswordToken("secret");
+    String password = getClientConfiguration().getString("accumulo.examples.password");
+    if(password != null){
+      token = new PasswordToken(password);
+    }
+
+    return token;
   }
 }
