@@ -18,7 +18,7 @@ limitations under the License.
 
 This tutorial uses the following Java class, which can be found in org.apache.accumulo.examples.combiner:
 
- * StatsCombiner.java - a combiner that calculates max, min, sum, and count
+ * [StatsCombiner.java] - a combiner that calculates max, min, sum, and count
 
 This is a simple combiner example. To build this example run maven and then
 copy the produced jar into the accumulo lib dir. This is already done in the
@@ -68,3 +68,5 @@ the column family stat and hstat. The stats combiner computes min,max,sum, and
 count. It can be configured to use a different base or radix. In the example
 above the column family stat is configured for base 10 and the column family
 hstat is configured for base 16.
+
+[StatsCombiner.java]: ../src/main/java/org/apache/accumulo/examples/combiner/StatsCombiner.java

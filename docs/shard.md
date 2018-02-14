@@ -19,10 +19,10 @@ limitations under the License.
 Accumulo has an iterator called the intersecting iterator which supports querying a term index that is partitioned by
 document, or "sharded". This example shows how to use the intersecting iterator through these four programs:
 
- * Index.java - Indexes a set of text files into an Accumulo table
- * Query.java - Finds documents containing a given set of terms.
- * Reverse.java - Reads the index table and writes a map of documents to terms into another table.
- * ContinuousQuery.java  Uses the table populated by Reverse.java to select N random terms per document. Then it continuously and randomly queries those terms.
+ * [Index.java] - Indexes a set of text files into an Accumulo table
+ * [Query.java] - Finds documents containing a given set of terms.
+ * [Reverse.java] - Reads the index table and writes a map of documents to terms into another table.
+ * [ContinuousQuery.java] - Uses the table populated by Reverse.java to select N random terms per document. Then it continuously and randomly queries those terms.
 
 To run these example programs, create two tables like below.
 
@@ -64,3 +64,8 @@ randomly selects one set of 5 terms and queries. It prints the number of matchin
     [for, static, println, public, the] 55  0.211
     [sleeptime, wrappingiterator, options, long, utilwaitthread] 1  0.057
     [string, public, long, 0, wait] 12  0.132
+
+[Index.java]: ../src/main/java/org/apache/accumulo/examples/shard/Index.java
+[Query.java]: ../src/main/java/org/apache/accumulo/examples/shard/Query.java
+[Reverse.java]: ../src/main/java/org/apache/accumulo/examples/shard/Reverse.java
+[ContinuousQuery.java]: ../src/main/java/org/apache/accumulo/examples/shard/ContinuousQuery.java

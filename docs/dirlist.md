@@ -24,10 +24,10 @@ This example stores filesystem information in accumulo. The example stores the i
 
 This example shows how to use Accumulo to store a file system history. It has the following classes:
 
- * Ingest.java - Recursively lists the files and directories under a given path, ingests their names and file info into one Accumulo table, indexes the file names in a separate table, and the file data into a third table.
- * QueryUtil.java - Provides utility methods for getting the info for a file, listing the contents of a directory, and performing single wild card searches on file or directory names.
- * Viewer.java - Provides a GUI for browsing the file system information stored in Accumulo.
- * FileCount.java - Computes recursive counts over file system information and stores them back into the same Accumulo table.
+ * [Ingest.java] - Recursively lists the files and directories under a given path, ingests their names and file info into one Accumulo table, indexes the file names in a separate table, and the file data into a third table.
+ * [QueryUtil.java] - Provides utility methods for getting the info for a file, listing the contents of a directory, and performing single wild card searches on file or directory names.
+ * [Viewer.java] - Provides a GUI for browsing the file system information stored in Accumulo.
+ * [FileCount.java] - Computes recursive counts over file system information and stores them back into the same Accumulo table.
 
 To begin, ingest some data with Ingest.java.
 
@@ -114,3 +114,7 @@ Other column family : column qualifier pairs are "~chunk" : chunk size in bytes 
 There may exist multiple copies of the same file (with the same md5 hash) with different chunk sizes or different visibilities. There is an iterator that can be set on the data table that combines these copies into a single copy with a visibility taken from the visibilities of the file references, e.g. (vis from ref1)|(vis from ref2).
 
 [vis]: visibility.md
+[Ingest.java]: ../src/main/java/org/apache/accumulo/examples/dirlist/Ingest.java
+[FileCount.java]: ../src/main/java/org/apache/accumulo/examples/dirlist/FileCount.java
+[QueryUtil.java]: ../src/main/java/org/apache/accumulo/examples/dirlist/QueryUtil.java
+[Viewer.java]: ../src/main/java/org/apache/accumulo/examples/dirlist/Viewer.java
