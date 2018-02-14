@@ -24,10 +24,10 @@ test data are created in HDFS. After that the 1000 rows are ingested into
 accumulo. Then we verify the 1000 rows are in accumulo.
 
     $ PKG=org.apache.accumulo.examples.mapreduce.bulk
-    $ ARGS="-i instance -z zookeepers -u username -p password"
+    $ ARGS="-c examples.conf"
     $ accumulo $PKG.SetupTable $ARGS -t test_bulk row_00000333 row_00000666
     $ accumulo $PKG.GenerateTestData --start-row 0 --count 1000 --output bulk/test_1.txt
-    $ accumulo-util hadoop-jar target/accumulo-examples.jar $PKG.BulkIngestExample $ARGS -t test_bulk --inputDir bulk --workDir tmp/bulkWork
+    $ accumulo-util hadoop-jar target/accumulo-examples-X.Y.Z.jar $PKG.BulkIngestExample $ARGS -t test_bulk --inputDir bulk --workDir tmp/bulkWork
     $ accumulo $PKG.VerifyIngest $ARGS -t test_bulk --start-row 0 --count 1000
 
 For a high level discussion of bulk ingest, see the docs dir.
