@@ -27,7 +27,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +44,8 @@ public class ReadData {
     try (Scanner scan = connector.createScanner("hellotable", Authorizations.EMPTY)) {
       scan.setRange(new Range(new Key("row_0"), new Key("row_1002")));
       for (Entry<Key, Value> e : scan) {
-        Text colf = e.getKey().getColumnFamily();
-        Text colq = e.getKey().getColumnQualifier();
-        log.trace(e.getKey().getRow() + " " + colf + " " + colq + " " + e.getValue());
+        Key key = e.getKey();
+        log.trace(key.getRow() + " " + key.getColumnFamily() + " " + key.getColumnQualifier() + " " + e.getValue());
       }
     }
   }
