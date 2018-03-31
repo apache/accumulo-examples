@@ -24,7 +24,6 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,26 +34,26 @@ public class InsertWithBatchWriter {
 
   private static final Logger log = LoggerFactory.getLogger(InsertWithBatchWriter.class);
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableExistsException,
-      TableNotFoundException {
+  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
 
     Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
-
-    if (!connector.tableOperations().exists("hellotable")) {
+    try {
       connector.tableOperations().create("hellotable");
+    } catch (TableExistsException e) {
+      // ignore
     }
 
     try (BatchWriter bw = connector.createBatchWriter("hellotable")) {
-      Text colf = new Text("colfam");
       log.trace("writing ...");
       for (int i = 0; i < 10000; i++) {
-        Mutation m = new Mutation(new Text(String.format("row_%d", i)));
+        Mutation m = new Mutation(String.format("row_%d", i));
         for (int j = 0; j < 5; j++) {
-          m.put(colf, new Text(String.format("colqual_%d", j)), new Value((String.format("value_%d_%d", i, j)).getBytes()));
+          m.put("colfam", String.format("colqual_%d", j), new Value((String.format("value_%d_%d", i, j)).getBytes()));
         }
         bw.addMutation(m);
-        if (i % 100 == 0)
+        if (i % 100 == 0) {
           log.trace(String.valueOf(i));
+        }
       }
     }
   }
