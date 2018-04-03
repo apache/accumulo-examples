@@ -20,46 +20,41 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.BatchWriterOpts;
-import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
-import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Inserts 10K rows (50K entries) into accumulo with each row having 5 entries.
  */
 public class InsertWithBatchWriter {
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, MutationsRejectedException, TableExistsException,
-      TableNotFoundException {
-    ClientOnRequiredTable opts = new ClientOnRequiredTable();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs(InsertWithBatchWriter.class.getName(), args, bwOpts);
+  private static final Logger log = LoggerFactory.getLogger(InsertWithBatchWriter.class);
 
-    Connector connector = opts.getConnector();
-    MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(bwOpts.getBatchWriterConfig());
+  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
 
-    if (!connector.tableOperations().exists(opts.getTableName()))
-      connector.tableOperations().create(opts.getTableName());
-    BatchWriter bw = mtbw.getBatchWriter(opts.getTableName());
-
-    Text colf = new Text("colfam");
-    System.out.println("writing ...");
-    for (int i = 0; i < 10000; i++) {
-      Mutation m = new Mutation(new Text(String.format("row_%d", i)));
-      for (int j = 0; j < 5; j++) {
-        m.put(colf, new Text(String.format("colqual_%d", j)), new Value((String.format("value_%d_%d", i, j)).getBytes()));
-      }
-      bw.addMutation(m);
-      if (i % 100 == 0)
-        System.out.println(i);
+    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    try {
+      connector.tableOperations().create("hellotable");
+    } catch (TableExistsException e) {
+      // ignore
     }
-    mtbw.close();
-  }
 
+    try (BatchWriter bw = connector.createBatchWriter("hellotable")) {
+      log.trace("writing ...");
+      for (int i = 0; i < 10000; i++) {
+        Mutation m = new Mutation(String.format("row_%d", i));
+        for (int j = 0; j < 5; j++) {
+          m.put("colfam", String.format("colqual_%d", j), new Value((String.format("value_%d_%d", i, j)).getBytes()));
+        }
+        bw.addMutation(m);
+        if (i % 100 == 0) {
+          log.trace(String.valueOf(i));
+        }
+      }
+    }
+  }
 }

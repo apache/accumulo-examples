@@ -19,32 +19,24 @@ limitations under the License.
 This tutorial uses the following Java classes:
 
  * [InsertWithBatchWriter.java] - Inserts 10K rows (50K entries) into accumulo with each row having 5 entries
- * [ReadData.java] - Reads all data between two rows
+ * [ReadData.java] - Reads data between two rows
 
-Log into the accumulo shell:
+Inserts data with a BatchWriter:
 
-    $ accumulo shell -u username -p password
-
-Create a table called 'hellotable':
-
-    username@instance> createtable hellotable
-
-Launch a Java program that inserts data with a BatchWriter:
-
-    $ ./bin/runex helloworld.InsertWithBatchWriter -c ./examples.conf -t hellotable
+    $ ./bin/runex helloworld.InsertWithBatchWriter
 
 On the accumulo status page at the URL below (where 'master' is replaced with the name or IP of your accumulo master), you should see 50K entries
 
     http://master:9995/
 
-To view the entries, use the shell to scan the table:
+To view the entries, use the shell (run `accumulo shell -u username -p password` to access it) to scan the table:
 
     username@instance> table hellotable
     username@instance hellotable> scan
 
 You can also use a Java class to scan the table:
 
-    $ ./bin/runex helloworld.ReadData -c ./examples.conf -t hellotable --startKey row_0 --endKey row_1001
+    $ ./bin/runex helloworld.ReadData
 
 [InsertWithBatchWriter.java]: ../src/main/java/org/apache/accumulo/examples/helloworld/InsertWithBatchWriter.java
 [ReadData.java]: ../src/main/java/org/apache/accumulo/examples/helloworld/ReadData.java
