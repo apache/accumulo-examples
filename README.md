@@ -34,10 +34,11 @@ Before running any of the examples, the following steps must be performed.
         git clone https://github.com/apache/accumulo-examples.git
         mvn clean package
 
-4. Specify Accumulo connection information.  All examples read connection information from a 
-   properties file. Copy the template and edit it.
+4. Specify Accumulo connection information in `conf/accumulo-client.properties`.  Some old examples
+   still read connection information from an examples.conf file so that should also be configured.
 
         cd accumulo-examples
+        nano conf/accumulo-client.properties
         cp examples.conf.template examples.conf
         nano examples.conf
 

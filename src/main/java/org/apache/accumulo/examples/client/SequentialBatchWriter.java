@@ -16,53 +16,63 @@
  */
 package org.apache.accumulo.examples.client;
 
+import java.util.Random;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.examples.cli.BatchWriterOpts;
-import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
+import org.apache.accumulo.core.data.Value;
 
-import com.beust.jcommander.Parameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple example for writing random data in sequential order to Accumulo.
  */
 public class SequentialBatchWriter {
 
-  static class Opts extends ClientOnRequiredTable {
-    @Parameter(names = "--start")
-    long start = 0;
-    @Parameter(names = "--num", required = true)
-    long num = 0;
-    @Parameter(names = "--size", required = true, description = "size of the value to write")
-    int valueSize = 0;
-    @Parameter(names = "--vis", converter = VisibilityConverter.class)
-    ColumnVisibility vis = new ColumnVisibility();
+  private static final Logger log = LoggerFactory.getLogger(SequentialBatchWriter.class);
+
+  public static Value createValue(long rowId) {
+    Random r = new Random(rowId);
+    byte value[] = new byte[50];
+
+    r.nextBytes(value);
+
+    // transform to printable chars
+    for (int j = 0; j < value.length; j++) {
+      value[j] = (byte) (((0xff & value[j]) % 92) + ' ');
+    }
+
+    return new Value(value);
   }
 
   /**
-   * Writes a specified number of entries to Accumulo using a {@link BatchWriter}. The rows of the entries will be sequential starting at a specified number.
-   * The column families will be "foo" and column qualifiers will be "1". The values will be random byte arrays of a specified size.
+   * Writes 1000 entries to Accumulo using a {@link BatchWriter}. The rows of the entries will be sequential starting from 0.
+   * The column families will be "foo" and column qualifiers will be "1". The values will be random 50 byte arrays.
    */
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, MutationsRejectedException {
-    Opts opts = new Opts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs(SequentialBatchWriter.class.getName(), args, bwOpts);
-    Connector connector = opts.getConnector();
-    BatchWriter bw = connector.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
-
-    long end = opts.start + opts.num;
-
-    for (long i = opts.start; i < end; i++) {
-      Mutation m = RandomBatchWriter.createMutation(i, opts.valueSize, opts.vis);
-      bw.addMutation(m);
+  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    try {
+      connector.tableOperations().create("batch");
+    } catch (TableExistsException e) {
+      // ignore
     }
 
-    bw.close();
+    try (BatchWriter bw = connector.createBatchWriter("batch")) {
+      for (int i = 0; i < 10000; i++) {
+        Mutation m = new Mutation(String.format("row_%010d", i));
+        // create a random value that is a function of row id for verification purposes
+        m.put("foo", "1", createValue(i));
+        bw.addMutation(m);
+        if (i % 1000 == 0) {
+          log.trace("wrote {} entries", i);
+        }
+      }
+    }
   }
 }
