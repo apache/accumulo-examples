@@ -35,9 +35,9 @@ class CountingVerifyingReceiver {
 
   long count = 0;
   int expectedValueSize = 0;
-  HashMap<Text,Boolean> expectedRows;
+  HashMap<String,Boolean> expectedRows;
 
-  CountingVerifyingReceiver(HashMap<Text,Boolean> expectedRows, int expectedValueSize) {
+  CountingVerifyingReceiver(HashMap<String,Boolean> expectedRows, int expectedValueSize) {
     this.expectedRows = expectedRows;
     this.expectedValueSize = expectedValueSize;
   }
@@ -56,7 +56,7 @@ class CountingVerifyingReceiver {
     if (!expectedRows.containsKey(key.getRow())) {
       log.error("Got unexpected key " + key);
     } else {
-      expectedRows.put(key.getRow(), true);
+      expectedRows.put(key.getRow().toString(), true);
     }
 
     count++;

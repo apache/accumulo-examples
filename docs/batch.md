@@ -16,42 +16,40 @@ limitations under the License.
 -->
 # Apache Accumulo Batch Writing and Scanning Example
 
-This tutorial uses the following Java classes:
-
- * [SequentialBatchWriter.java] - writes mutations with sequential rows and random values
- * [RandomBatchWriter.java] - used by SequentialBatchWriter to generate random values
- * [RandomBatchScanner.java] - reads random rows and verifies their values
-
 This is an example of how to use the BatchWriter and BatchScanner.
 
-First, you must ensure that the user you are running with (i.e `myuser` below) has the
-`exampleVis` authorization.
+This tutorial uses the following Java classes.
 
-    $ accumulo shell -u root -e "setauths -u myuser -s exampleVis"
+ * [SequentialBatchWriter.java] - writes mutations with sequential rows and random values
+ * [RandomBatchScanner.java] - reads random rows and verifies their values
 
-Second, you must create the table, batchtest1, ahead of time.
+Run `SequentialBatchWriter` to add 10000 entries with random 50 bytes values to Accumulo.
 
-    $ accumulo shell -u root -e "createtable batchtest1"
+    $ ./bin/runex client.SequentialBatchWriter
 
-The command below adds 10000 entries with random 50 bytes values to Accumulo.
+Verify data was ingested by scanning the table using the Accumulo shell:
 
-    $ ./bin/runex client.SequentialBatchWriter -c ./examples.conf -t batchtest1 --start 0 --num 10000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20 --vis exampleVis
+    $ accumulo shell
+    root@instance> table batch
+    root@instance batch> scan
 
-The command below will do 100 random queries.
+Run `RandomBatchScanner` to perform 1000 random queries and verify the results.
 
-    $ ./bin/runex client.RandomBatchScanner -c ./examples.conf -t batchtest1 --num 100 --min 0 --max 10000 --size 50 --scanThreads 20 --auths exampleVis
-
-    07 11:33:11,103 [client.CountingVerifyingReceiver] INFO : Generating 100 random queries...
-    07 11:33:11,112 [client.CountingVerifyingReceiver] INFO : finished
-    07 11:33:11,260 [client.CountingVerifyingReceiver] INFO : 694.44 lookups/sec   0.14 secs
-
-    07 11:33:11,260 [client.CountingVerifyingReceiver] INFO : num results : 100
-
-    07 11:33:11,364 [client.CountingVerifyingReceiver] INFO : Generating 100 random queries...
-    07 11:33:11,370 [client.CountingVerifyingReceiver] INFO : finished
-    07 11:33:11,416 [client.CountingVerifyingReceiver] INFO : 2173.91 lookups/sec   0.05 secs
-
-    07 11:33:11,416 [client.CountingVerifyingReceiver] INFO : num results : 100
+    $ ./bin/runex client.RandomBatchScanner
+    16:04:05,950 [examples.client.RandomBatchScanner] INFO : Generating 1000 random ranges for BatchScanner to read
+    16:04:06,020 [examples.client.RandomBatchScanner] INFO : Reading ranges using BatchScanner
+    16:04:06,283 [examples.client.RandomBatchScanner] TRACE: 100 lookups
+    16:04:06,290 [examples.client.RandomBatchScanner] TRACE: 200 lookups
+    16:04:06,294 [examples.client.RandomBatchScanner] TRACE: 300 lookups
+    16:04:06,297 [examples.client.RandomBatchScanner] TRACE: 400 lookups
+    16:04:06,301 [examples.client.RandomBatchScanner] TRACE: 500 lookups
+    16:04:06,304 [examples.client.RandomBatchScanner] TRACE: 600 lookups
+    16:04:06,307 [examples.client.RandomBatchScanner] TRACE: 700 lookups
+    16:04:06,309 [examples.client.RandomBatchScanner] TRACE: 800 lookups
+    16:04:06,316 [examples.client.RandomBatchScanner] TRACE: 900 lookups
+    16:04:06,320 [examples.client.RandomBatchScanner] TRACE: 1000 lookups
+    16:04:06,330 [examples.client.RandomBatchScanner] INFO : Scan finished! 3246.75 lookups/sec, 0.31 secs, 1000 results
+    16:04:06,331 [examples.client.RandomBatchScanner] INFO : All expected rows were scanned
 
 [SequentialBatchWriter.java]: ../src/main/java/org/apache/accumulo/examples/client/SequentialBatchWriter.java
 [RandomBatchWriter.java]:  ../src/main/java/org/apache/accumulo/examples/client/RandomBatchWriter.java
