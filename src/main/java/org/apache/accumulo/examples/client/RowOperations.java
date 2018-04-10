@@ -23,6 +23,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -40,6 +41,8 @@ import org.slf4j.LoggerFactory;
 public class RowOperations {
 
   private static final Logger log = LoggerFactory.getLogger(RowOperations.class);
+  private static final String namespace = "examples";
+  private static final String table = namespace + ".rowops";
 
   private static void printAll(Connector connector) throws TableNotFoundException {
     try (Scanner scanner = connector.createScanner("rowops", Authorizations.EMPTY)) {
@@ -73,7 +76,12 @@ public class RowOperations {
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
     try {
-      connector.tableOperations().create("rowops");
+      connector.namespaceOperations().create(namespace);
+    } catch (NamespaceExistsException e) {
+      // ignore
+    }
+    try {
+      connector.tableOperations().create(table);
     } catch (TableExistsException e) {
       // ignore
     }
@@ -96,7 +104,7 @@ public class RowOperations {
     mut3.put("col", "3", "v3");
 
     // Now we'll make a Batch Writer
-    try (BatchWriter bw = connector.createBatchWriter("rowops")) {
+    try (BatchWriter bw = connector.createBatchWriter(table)) {
 
       // And add the mutations
       bw.addMutation(mut1);
@@ -123,6 +131,6 @@ public class RowOperations {
     log.info("This is just row3");
     printAll(connector);
 
-    connector.tableOperations().delete("rowops");
+    connector.tableOperations().delete(table);
   }
 }
