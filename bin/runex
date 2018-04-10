@@ -16,10 +16,24 @@
 # limitations under the License.
 
 main_class="$1"
-main_args="${*:2}"
+mvn_opts="-q"
+main_args=()
+
+shift
+while [[ $# -gt 0 ]] ; do
+  case $1 in
+    -d|--debug)
+    mvn_opts="-X"
+    ;;
+    *)
+    main_args+=("$1")
+    ;;
+  esac
+  shift
+done
 
 if command -v accumulo > /dev/null 2>&1 ; then
   av_arg="-Daccumulo.version=`accumulo version | tail -n 1`"
 fi
 
-mvn -q exec:java -Dlog4j.configuration="file:./conf/log4j.properties" -Dexec.mainClass="org.apache.accumulo.examples.$main_class" $av_arg -Dexec.args="$main_args"
+mvn $mvn_opts exec:java -Dlog4j.configuration="file:./conf/log4j.properties" -Dexec.mainClass="org.apache.accumulo.examples.$main_class" $av_arg -Dexec.args="${main_args[@]}"
