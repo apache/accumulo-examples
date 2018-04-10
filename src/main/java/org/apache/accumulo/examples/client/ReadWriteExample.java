@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.Key;
@@ -32,18 +33,26 @@ import org.slf4j.LoggerFactory;
 public class ReadWriteExample {
 
   private static final Logger log = LoggerFactory.getLogger(ReadWriteExample.class);
+  private static final String namespace = "examples";
+  private static final String table = namespace + ".readwrite";
 
   public static void main(String[] args) throws Exception {
 
     Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+
     try {
-      connector.tableOperations().create("readwrite");
+      connector.namespaceOperations().create(namespace);
+    } catch (NamespaceExistsException e) {
+      // ignore
+    }
+    try {
+      connector.tableOperations().create(table);
     } catch (TableExistsException e) {
       // ignore
     }
 
     // write data
-    try (BatchWriter writer = connector.createBatchWriter("readwrite")) {
+    try (BatchWriter writer = connector.createBatchWriter(table)) {
       for (int i = 0; i < 10; i++) {
         Mutation m = new Mutation("hello" + i);
         m.put("cf", "cq", new Value("world" + i));
@@ -52,13 +61,13 @@ public class ReadWriteExample {
     }
 
     // read data
-    try (Scanner scanner = connector.createScanner("readwrite", Authorizations.EMPTY)) {
+    try (Scanner scanner = connector.createScanner(table, Authorizations.EMPTY)) {
       for (Entry<Key, Value> entry : scanner) {
         log.info(entry.getKey().toString() + " -> " + entry.getValue().toString());
       }
     }
 
     // delete table
-    connector.tableOperations().delete("readwrite");
+    connector.tableOperations().delete(table);
   }
 }
