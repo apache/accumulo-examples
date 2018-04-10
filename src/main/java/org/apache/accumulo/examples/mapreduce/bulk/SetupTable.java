@@ -16,35 +16,46 @@
  */
 package org.apache.accumulo.examples.mapreduce.bulk;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.BufferedOutputStream;
+import java.io.PrintStream;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 
-import com.beust.jcommander.Parameter;
 
 public class SetupTable {
 
-  static class Opts extends ClientOnRequiredTable {
-    @Parameter(description = "<split> { <split> ... } ")
-    List<String> splits = new ArrayList<>();
-  }
+  static String[] splits = {"row_00000333", "row_00000666"};
+  static String tableName = "test_bulk";
+  static int numRows = 1000;
+  static String outputFile = "bulk/test_1.txt";
 
   public static void main(String[] args) throws Exception {
-    Opts opts = new Opts();
-    opts.parseArgs(SetupTable.class.getName(), args);
-    Connector conn = opts.getConnector();
-    conn.tableOperations().create(opts.getTableName());
-    if (!opts.splits.isEmpty()) {
-      // create a table with initial partitions
-      TreeSet<Text> intialPartitions = new TreeSet<>();
-      for (String split : opts.splits) {
-        intialPartitions.add(new Text(split));
+    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    try {
+      conn.tableOperations().create(tableName);
+    } catch (TableExistsException e) {
+      //ignore
+    }
+
+    // create a table with initial partitions
+    TreeSet<Text> intialPartitions = new TreeSet<>();
+    for (String split : splits) {
+      intialPartitions.add(new Text(split));
+    }
+    conn.tableOperations().addSplits(tableName, intialPartitions);
+
+    FileSystem fs = FileSystem.get(new Configuration());
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(outputFile))))) {
+      // create some data in outputFile
+      for (int i = 0; i < numRows; i++) {
+        out.println(String.format("row_%010d\tvalue_%010d", i, i));
       }
-      conn.tableOperations().addSplits(opts.getTableName(), intialPartitions);
     }
   }
 }

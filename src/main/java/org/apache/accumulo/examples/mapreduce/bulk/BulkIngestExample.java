@@ -22,11 +22,15 @@ import java.io.PrintStream;
 import java.util.Base64;
 import java.util.Collection;
 
+import org.apache.accumulo.core.client.ConnectionInfo;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat;
+import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.mapreduce.lib.partition.RangePartitioner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.TextUtil;
 import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
 import org.apache.hadoop.conf.Configuration;
@@ -48,7 +52,11 @@ import com.beust.jcommander.Parameter;
 /**
  * Example map reduce job that bulk ingest data into an accumulo table. The expected input is text files containing tab separated key value pairs on each line.
  */
+
 public class BulkIngestExample extends Configured implements Tool {
+  static String workDir = "tmp/bulkWork";
+  static String inputDir = "bulk";
+
   public static class MapClass extends Mapper<LongWritable,Text,Text,Text> {
     private Text outputKey = new Text();
     private Text outputValue = new Text();
@@ -94,18 +102,8 @@ public class BulkIngestExample extends Configured implements Tool {
     }
   }
 
-  static class Opts extends MapReduceClientOnRequiredTable {
-    @Parameter(names = "--inputDir", required = true)
-    String inputDir;
-    @Parameter(names = "--workDir", required = true)
-    String workDir;
-  }
-
   @Override
   public int run(String[] args) {
-    Opts opts = new Opts();
-    opts.parseArgs(BulkIngestExample.class.getName(), args);
-
     Configuration conf = getConf();
     PrintStream out = null;
     try {
@@ -121,17 +119,22 @@ public class BulkIngestExample extends Configured implements Tool {
 
       job.setReducerClass(ReduceClass.class);
       job.setOutputFormatClass(AccumuloFileOutputFormat.class);
-      opts.setAccumuloConfigs(job);
 
-      Connector connector = opts.getConnector();
+      Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+      ConnectionInfo connectionInfo = Connector.builder().usingProperties("conf/accumulo-client.properties").info();
+      AccumuloInputFormat.setConnectionInfo(job, connectionInfo);
+      AccumuloInputFormat.setInputTableName(job, SetupTable.tableName);
+      AccumuloInputFormat.setScanAuthorizations(job, Authorizations.EMPTY);
+      AccumuloOutputFormat.setCreateTables(job, true);
+      AccumuloOutputFormat.setDefaultTableName(job, SetupTable.tableName);
 
-      TextInputFormat.setInputPaths(job, new Path(opts.inputDir));
-      AccumuloFileOutputFormat.setOutputPath(job, new Path(opts.workDir + "/files"));
+      TextInputFormat.setInputPaths(job, new Path(inputDir));
+      AccumuloFileOutputFormat.setOutputPath(job, new Path(workDir + "/files"));
 
       FileSystem fs = FileSystem.get(conf);
-      out = new PrintStream(new BufferedOutputStream(fs.create(new Path(opts.workDir + "/splits.txt"))));
+      out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))));
 
-      Collection<Text> splits = connector.tableOperations().listSplits(opts.getTableName(), 100);
+      Collection<Text> splits = connector.tableOperations().listSplits(SetupTable.tableName, 100);
       for (Text split : splits)
         out.println(Base64.getEncoder().encodeToString(TextUtil.getBytes(split)));
 
@@ -139,16 +142,16 @@ public class BulkIngestExample extends Configured implements Tool {
       out.close();
 
       job.setPartitionerClass(RangePartitioner.class);
-      RangePartitioner.setSplitFile(job, opts.workDir + "/splits.txt");
+      RangePartitioner.setSplitFile(job, workDir + "/splits.txt");
 
       job.waitForCompletion(true);
-      Path failures = new Path(opts.workDir, "failures");
+      Path failures = new Path(workDir, "failures");
       fs.delete(failures, true);
-      fs.mkdirs(new Path(opts.workDir, "failures"));
+      fs.mkdirs(new Path(workDir, "failures"));
       // With HDFS permissions on, we need to make sure the Accumulo user can read/move the rfiles
       FsShell fsShell = new FsShell(conf);
-      fsShell.run(new String[] {"-chmod", "-R", "777", opts.workDir});
-      connector.tableOperations().importDirectory(opts.getTableName(), opts.workDir + "/files", opts.workDir + "/failures", false);
+      fsShell.run(new String[] {"-chmod", "-R", "777", workDir});
+      connector.tableOperations().importDirectory(SetupTable.tableName, workDir + "/files", workDir + "/failures", false);
 
     } catch (Exception e) {
       throw new RuntimeException(e);
