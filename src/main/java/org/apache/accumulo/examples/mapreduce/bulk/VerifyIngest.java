@@ -39,7 +39,7 @@ public class VerifyIngest {
     Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
     Scanner scanner = connector.createScanner(SetupTable.tableName, Authorizations.EMPTY);
 
-    scanner.setRange(new Range(new Text(String.format("row_%010d", 0)), null));
+    scanner.setRange(new Range(String.format("row_%010d", 0), null));
 
     Iterator<Entry<Key,Value>> si = scanner.iterator();
 
