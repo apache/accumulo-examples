@@ -15,6 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# For debugging run this script like so:
+# RUNEX_MVN_ARG="-X" ./bin/runex client.RandomBatchScanner
+mvn_arg="${RUNEX_MVN_ARG:--q}"
+
 main_class="$1"
 main_args="${*:2}"
 
@@ -22,4 +26,4 @@ if command -v accumulo > /dev/null 2>&1 ; then
   av_arg="-Daccumulo.version=`accumulo version | tail -n 1`"
 fi
 
-mvn -q exec:java -Dlog4j.configuration="file:./conf/log4j.properties" -Dexec.mainClass="org.apache.accumulo.examples.$main_class" $av_arg -Dexec.args="$main_args"
+mvn $mvn_arg exec:java -Dlog4j.configuration="file:./conf/log4j.properties" -Dexec.mainClass="org.apache.accumulo.examples.$main_class" $av_arg -Dexec.args="$main_args"
