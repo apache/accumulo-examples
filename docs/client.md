@@ -18,58 +18,51 @@ limitations under the License.
 
 The following Java classes are examples of the Accumulo client API:
 
- * [Flush.java] - flushes a table
  * [RowOperations.java] - reads and writes rows
  * [ReadWriteExample.java] - creates a table, writes to it, and reads from it
 
-The Flush class will flush a table:
+[RowOperations.java] demonstrates how to read, write and delete rows using the BatchWriter and Scanner:
 
-    $ ./bin/runex client.Flush -c ./examples.conf -t trace
-
-The RowOperations class demonstrates how to read and write rows using the BatchWriter and Scanner:
-
-    $ ./bin/runex client.RowOperations -c ./examples.conf
-    2013-01-14 14:45:24,738 [client.RowOperations] INFO : This is everything
-    2013-01-14 14:45:24,744 [client.RowOperations] INFO : Key: row1 column:1 [] 1358192724640 false Value: This is the value for this key
-    2013-01-14 14:45:24,744 [client.RowOperations] INFO : Key: row1 column:2 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,744 [client.RowOperations] INFO : Key: row1 column:3 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,744 [client.RowOperations] INFO : Key: row1 column:4 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,746 [client.RowOperations] INFO : Key: row2 column:1 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,746 [client.RowOperations] INFO : Key: row2 column:2 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,746 [client.RowOperations] INFO : Key: row2 column:3 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,746 [client.RowOperations] INFO : Key: row2 column:4 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,747 [client.RowOperations] INFO : Key: row3 column:1 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,747 [client.RowOperations] INFO : Key: row3 column:2 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,747 [client.RowOperations] INFO : Key: row3 column:3 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,747 [client.RowOperations] INFO : Key: row3 column:4 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,756 [client.RowOperations] INFO : This is row1 and row3
-    2013-01-14 14:45:24,757 [client.RowOperations] INFO : Key: row1 column:1 [] 1358192724640 false Value: This is the value for this key
-    2013-01-14 14:45:24,757 [client.RowOperations] INFO : Key: row1 column:2 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,757 [client.RowOperations] INFO : Key: row1 column:3 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,757 [client.RowOperations] INFO : Key: row1 column:4 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,761 [client.RowOperations] INFO : Key: row3 column:1 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,761 [client.RowOperations] INFO : Key: row3 column:2 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,761 [client.RowOperations] INFO : Key: row3 column:3 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,761 [client.RowOperations] INFO : Key: row3 column:4 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,765 [client.RowOperations] INFO : This is just row3
-    2013-01-14 14:45:24,769 [client.RowOperations] INFO : Key: row3 column:1 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,770 [client.RowOperations] INFO : Key: row3 column:2 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,770 [client.RowOperations] INFO : Key: row3 column:3 [] 1358192724642 false Value: This is the value for this key
-    2013-01-14 14:45:24,770 [client.RowOperations] INFO : Key: row3 column:4 [] 1358192724642 false Value: This is the value for this key
+    $ ./bin/runex client.RowOperations
+    [examples.client.RowOperations] INFO : This is only row2
+    [examples.client.RowOperations] INFO : Key: row2 col:1 [] 1523301597006 false Value: v1
+    [examples.client.RowOperations] INFO : Key: row2 col:2 [] 1523301597006 false Value: v2
+    [examples.client.RowOperations] INFO : Key: row2 col:3 [] 1523301597006 false Value: v3
+    [examples.client.RowOperations] INFO : This is everything
+    [examples.client.RowOperations] INFO : Key: row1 col:1 [] 1523301597006 false Value: v1
+    [examples.client.RowOperations] INFO : Key: row1 col:2 [] 1523301597006 false Value: v2
+    [examples.client.RowOperations] INFO : Key: row1 col:3 [] 1523301597006 false Value: v3
+    [examples.client.RowOperations] INFO : Key: row2 col:1 [] 1523301597006 false Value: v1
+    [examples.client.RowOperations] INFO : Key: row2 col:2 [] 1523301597006 false Value: v2
+    [examples.client.RowOperations] INFO : Key: row2 col:3 [] 1523301597006 false Value: v3
+    [examples.client.RowOperations] INFO : Key: row3 col:1 [] 1523301597006 false Value: v1
+    [examples.client.RowOperations] INFO : Key: row3 col:2 [] 1523301597006 false Value: v2
+    [examples.client.RowOperations] INFO : Key: row3 col:3 [] 1523301597006 false Value: v3
+    [examples.client.RowOperations] INFO : This is row1 and row3
+    [examples.client.RowOperations] INFO : Key: row1 col:1 [] 1523301597006 false Value: v1
+    [examples.client.RowOperations] INFO : Key: row1 col:2 [] 1523301597006 false Value: v2
+    [examples.client.RowOperations] INFO : Key: row1 col:3 [] 1523301597006 false Value: v3
+    [examples.client.RowOperations] INFO : Key: row3 col:1 [] 1523301597006 false Value: v1
+    [examples.client.RowOperations] INFO : Key: row3 col:2 [] 1523301597006 false Value: v2
+    [examples.client.RowOperations] INFO : Key: row3 col:3 [] 1523301597006 false Value: v3
+    [examples.client.RowOperations] INFO : This is just row3
+    [examples.client.RowOperations] INFO : Key: row3 col:1 [] 1523301597006 false Value: v1
+    [examples.client.RowOperations] INFO : Key: row3 col:2 [] 1523301597006 false Value: v2
+    [examples.client.RowOperations] INFO : Key: row3 col:3 [] 1523301597006 false Value: v3
 
 To create a table, write to it and read from it:
 
-    $ ./bin/runex client.ReadWriteExample -c ./examples.conf --createtable --create --read
-    hello%00; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%01; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%02; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%03; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%04; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%05; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%06; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%07; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%08; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
-    hello%09; datatypes:xml [LEVEL1|GROUP1] 1358192329450 false -> world
+    $ ./bin/runex client.ReadWriteExample
+    [examples.client.ReadWriteExample] INFO : hello0 cf:cq [] 1523306675130 false -> world0
+    [examples.client.ReadWriteExample] INFO : hello1 cf:cq [] 1523306675130 false -> world1
+    [examples.client.ReadWriteExample] INFO : hello2 cf:cq [] 1523306675130 false -> world2
+    [examples.client.ReadWriteExample] INFO : hello3 cf:cq [] 1523306675130 false -> world3
+    [examples.client.ReadWriteExample] INFO : hello4 cf:cq [] 1523306675130 false -> world4
+    [examples.client.ReadWriteExample] INFO : hello5 cf:cq [] 1523306675130 false -> world5
+    [examples.client.ReadWriteExample] INFO : hello6 cf:cq [] 1523306675130 false -> world6
+    [examples.client.ReadWriteExample] INFO : hello7 cf:cq [] 1523306675130 false -> world7
+    [examples.client.ReadWriteExample] INFO : hello8 cf:cq [] 1523306675130 false -> world8
+    [examples.client.ReadWriteExample] INFO : hello9 cf:cq [] 1523306675130 false -> world9
 
 [Flush.java]: ../src/main/java/org/apache/accumulo/examples/client/Flush.java
 [RowOperations.java]: ../src/main/java/org/apache/accumulo/examples/client/RowOperations.java
