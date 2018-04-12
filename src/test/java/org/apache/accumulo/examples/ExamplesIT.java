@@ -77,7 +77,6 @@ import org.apache.accumulo.examples.mapreduce.TableToFile;
 import org.apache.accumulo.examples.mapreduce.TeraSortIngest;
 import org.apache.accumulo.examples.mapreduce.WordCount;
 import org.apache.accumulo.examples.mapreduce.bulk.BulkIngestExample;
-import org.apache.accumulo.examples.mapreduce.bulk.GenerateTestData;
 import org.apache.accumulo.examples.mapreduce.bulk.SetupTable;
 import org.apache.accumulo.examples.mapreduce.bulk.VerifyIngest;
 import org.apache.accumulo.examples.shard.ContinuousQuery;
@@ -401,32 +400,6 @@ public class ExamplesIT extends AccumuloClusterHarness {
     } catch (MutationsRejectedException ex) {
       assertEquals(1, ex.getConstraintViolationSummaries().size());
     }
-  }
-
-  @Test
-  public void testBulkIngest() throws Exception {
-    // TODO Figure out a way to run M/R with Kerberos
-    assumeTrue(getAdminToken() instanceof PasswordToken);
-    String tableName = getUniqueNames(1)[0];
-    FileSystem fs = getFileSystem();
-    Path p = new Path(dir, "tmp");
-    if (fs.exists(p)) {
-      fs.delete(p, true);
-    }
-    goodExec(GenerateTestData.class, "--start-row", "0", "--count", "10000", "--output", dir + "/tmp/input/data");
-
-    List<String> commonArgs = new ArrayList<>(Arrays.asList(new String[] {"-c", getConnectionFile(), "--table", tableName}));
-
-    List<String> args = new ArrayList<>(commonArgs);
-    goodExec(SetupTable.class, args.toArray(new String[0]));
-
-    args = new ArrayList<>(commonArgs);
-    args.addAll(Arrays.asList(new String[] {"--inputDir", dir + "/tmp/input", "--workDir", dir + "/tmp"}));
-    goodExec(BulkIngestExample.class, args.toArray(new String[0]));
-
-    args = new ArrayList<>(commonArgs);
-    args.addAll(Arrays.asList(new String[] {"--start-row", "0", "--count", "10000"}));
-    goodExec(VerifyIngest.class, args.toArray(new String[0]));
   }
 
   @Test

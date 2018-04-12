@@ -16,18 +16,28 @@ limitations under the License.
 -->
 # Apache Accumulo Bulk Ingest Example
 
-This is an example of how to bulk ingest data into accumulo using map reduce.
+This is an example of how to bulk ingest data into Accumulo using map reduce.
+
+This tutorial uses the following Java classes.
+
+ * [SetupTable.java] - creates the table and some data to ingest
+ * [BulkIngestExample.java] - ingest the data using map reduce
+ * [VerifyIngest.java] - checks that the data was ingested
+ 
+Remember to copy the accumulo-examples-\*.jar to Accumulo's 'lib/ext' directory.
+
+    $ cp target/accumulo-examples-*.jar /path/accumulo/lib/ext
 
 The following commands show how to run this example. This example creates a
 table called test_bulk which has two initial split points. Then 1000 rows of
 test data are created in HDFS. After that the 1000 rows are ingested into
-accumulo. Then we verify the 1000 rows are in accumulo.
+Accumulo. Then we verify the 1000 rows are in Accumulo. 
 
     $ PKG=org.apache.accumulo.examples.mapreduce.bulk
-    $ ARGS="-c examples.conf"
-    $ accumulo $PKG.SetupTable $ARGS -t test_bulk row_00000333 row_00000666
-    $ accumulo $PKG.GenerateTestData --start-row 0 --count 1000 --output bulk/test_1.txt
-    $ accumulo-util hadoop-jar target/accumulo-examples-X.Y.Z.jar $PKG.BulkIngestExample $ARGS -t test_bulk --inputDir bulk --workDir tmp/bulkWork
-    $ accumulo $PKG.VerifyIngest $ARGS -t test_bulk --start-row 0 --count 1000
+    $ accumulo $PKG.SetupTable
+    $ accumulo-util hadoop-jar target/accumulo-examples-*.jar $PKG.BulkIngestExample
+    $ ./bin/runex mapreduce.bulk.VerifyIngest
 
-For a high level discussion of bulk ingest, see the docs dir.
+[SetupTable.java]: ../src/main/java/org/apache/accumulo/examples/mapreduce/bulk/SetupTable.java
+[BulkIngestExample.java]:  ../src/main/java/org/apache/accumulo/examples/mapreduce/bulk/BulkIngestExample.java
+[VerifyIngest.java]: ../src/main/java/org/apache/accumulo/examples/mapreduce/bulk/VerifyIngest.java

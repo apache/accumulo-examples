@@ -27,37 +27,25 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.beust.jcommander.Parameter;
-
 public class VerifyIngest {
   private static final Logger log = LoggerFactory.getLogger(VerifyIngest.class);
 
-  static class Opts extends ClientOnRequiredTable {
-    @Parameter(names = "--start-row")
-    int startRow = 0;
-    @Parameter(names = "--count", required = true, description = "number of rows to verify")
-    int numRows = 0;
-  }
-
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Opts opts = new Opts();
-    opts.parseArgs(VerifyIngest.class.getName(), args);
+    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    Scanner scanner = connector.createScanner(SetupTable.tableName, Authorizations.EMPTY);
 
-    Connector connector = opts.getConnector();
-    Scanner scanner = connector.createScanner(opts.getTableName(), opts.auths);
-
-    scanner.setRange(new Range(new Text(String.format("row_%010d", opts.startRow)), null));
+    scanner.setRange(new Range(String.format("row_%010d", 0), null));
 
     Iterator<Entry<Key,Value>> si = scanner.iterator();
 
     boolean ok = true;
 
-    for (int i = opts.startRow; i < opts.numRows; i++) {
+    for (int i = 0; i < SetupTable.numRows; i++) {
 
       if (si.hasNext()) {
         Entry<Key,Value> entry = si.next();
