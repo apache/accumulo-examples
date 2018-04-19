@@ -21,9 +21,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.constraints.Constraint;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Mutation;
+import org.apache.accumulo.core.data.Value;
 
 /**
  * This class is an accumulo constraint that ensures values are numeric strings.
@@ -66,6 +74,31 @@ public class NumericValueConstraint implements Constraint {
     }
 
     return null;
+  }
+
+  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    try {
+      connector.tableOperations().create("testConstraints");
+    } catch (TableExistsException e) {
+      // ignore
+    }
+
+    /**
+     * Add the {@link NumericValueConstraint} constraint to the table.  Be sure to use the fully qualified class name
+     */
+    int num = connector.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.NumericValueConstraint");
+
+    System.out.println("Attempting to write non numeric data to testConstraints");
+    try (BatchWriter bw = connector.createBatchWriter("testConstraints")) {
+      Mutation m = new Mutation("r1");
+      m.put("cf1", "cq1", new Value(("value1--$$@@%%").getBytes()));
+      bw.addMutation(m);
+    } catch (MutationsRejectedException e) {
+      e.getConstraintViolationSummaries().forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
+    }
+
+    connector.tableOperations().removeConstraint("testConstraints", num);
   }
 
 }
