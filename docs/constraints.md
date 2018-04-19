@@ -18,16 +18,15 @@ limitations under the License.
 
 This tutorial uses the following Java classes, which can be found in org.apache.accumulo.examples.constraints:
 
- * AlphaNumKeyConstraint.java - a constraint that requires alphanumeric keys
- * NumericValueConstraint.java - a constraint that requires numeric string values
- * MaxMutationSize.java - a constraint that limits the size of mutations accepted into a table
+ * [AlphaNumKeyConstraint.java] - a constraint that requires alphanumeric keys
+ * [NumericValueConstraint.java] - a constraint that requires numeric string values
+ * [MaxMutationSize.java] - a constraint that limits the size of mutations accepted into a table
 
 Remember to copy the accumulo-examples-\*.jar to Accumulo's 'lib/ext' directory.
 
-The two examples below create table constraints for a key and value.  The AlphaNumKeyConstraint will prevent
-any keys from being created with characters that are not between aA and zZ or 0 to 9.  The NumericValueConstraint will
-prevent any values from being created with characters that are not between 0 and 9. The examples will attempt to create
-key value pairs for the table that violate the constraint, throwing an exception.
+AlphaNumKeyConstraint prevents insertion of keys with characters not between aA and zZ or 0 to 9.  
+NumericValueConstraint￼prevents insertion of values with characters not between 0 and 9. The examples create mutations 
+that violate the constraint, throwing an exception.
 
     $ ./bin/runex constraints.AlphaNumKeyConstraint
     $ ./bin/runex constraints.NumericValueConstraint
