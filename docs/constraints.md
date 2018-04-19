@@ -25,7 +25,7 @@ This tutorial uses the following Java classes, which can be found in org.apache.
 Remember to copy the accumulo-examples-\*.jar to Accumulo's 'lib/ext' directory.
 
 AlphaNumKeyConstraint prevents insertion of keys with characters not between aA and zZ or 0 to 9.  
-NumericValueConstraint￼prevents insertion of values with characters not between 0 and 9. The examples create mutations 
+NumericValueConstraint prevents insertion of values with characters not between 0 and 9. The examples create mutations
 that violate the constraint, throwing an exception.
 
     $ ./bin/runex constraints.AlphaNumKeyConstraint
