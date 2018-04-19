@@ -16,183 +16,59 @@ limitations under the License.
 -->
 # Apache Accumulo Bloom Filter Example
 
-This example shows how to create a table with bloom filters enabled.  It also
+This example shows how to create a table with bloom filters enabled.  The second part
 shows how bloom filters increase query performance when looking for values that
 do not exist in a table.
 
-Below table named bloom_test is created and bloom filters are enabled.
+## Bloom Filters Enabled
 
-    $ accumulo shell -u username -p password
-    Shell - Apache Accumulo Interactive Shell
-    - version: 1.5.0
-    - instance name: instance
-    - instance id: 00000000-0000-0000-0000-000000000000
-    -
-    - type 'help' for a list of available commands
-    -
-    username@instance> setauths -u username -s exampleVis
-    username@instance> createtable bloom_test
-    username@instance bloom_test> config -t bloom_test -s table.bloom.enabled=true
-    username@instance bloom_test> exit
+Accumulo data is divided into tablets and each tablet has multiple r-files.
+Lookup performance of a tablet with 3 r-files can be 3 times slower than
+a tablet with one r-file. However if the files contain unique sets of data,
+then bloom filters can help with performance.
 
-Below 1 million random values are inserted into accumulo. The randomly
-generated rows range between 0 and 1 billion. The random number generator is
-initialized with the seed 7.
+Run the example below to create two identical tables. One table has bloom
+filters enabled, the other does not. The major compaction ratio was increased to
+prevent the files from being compacted into one file. If Accumulo is not configured
+with enough memory to hold 1 million rows then more r-files will be created.
 
-    $ ./bin/runex client.RandomBatchWriter --seed 7 -c ./examples.conf -t bloom_test --num 1000000 --min 0 --max 1000000000 --size 50 --batchMemory 2M --batchLatency 60 --batchThreads 3 --vis exampleVis
+    $ ./bin/runex bloom.BloomFilters
 
-Below the table is flushed:
+Run the example below to perform 500 lookups against each table. Even though only one r-file will 
+likely contain entries for the query, all files will be interrogated.
+    
+    $ ./bin/runex bloom.BloomBatchScanner
 
-    $ accumulo shell -u username -p password -e 'flush -t bloom_test -w'
-    05 10:40:06,069 [shell.Shell] INFO : Flush of table bloom_test completed.
+    Scanning bloom_test1 with seed 7
+    Scan finished! 282.49 lookups/sec, 1.77 secs, 500 results
+    All expected rows were scanned
+    Scanning bloom_test2 with seed 7
+    Scan finished! 704.23 lookups/sec, 0.71 secs, 500 results
+    All expected rows were scanned
 
-After the flush completes, 500 random queries are done against the table. The
-same seed is used to generate the queries, therefore everything is found in the
-table.
-
-    $ ./bin/runex client.RandomBatchScanner --seed 7 -c ./examples.conf -t bloom_test --num 500 --min 0 --max 1000000000 --size 50 --scanThreads 20 --auths exampleVis
-    Generating 500 random queries...finished
-    96.19 lookups/sec   5.20 secs
-    num results : 500
-    Generating 500 random queries...finished
-    102.35 lookups/sec   4.89 secs
-    num results : 500
-
-Below another 500 queries are performed, using a different seed which results
-in nothing being found. In this case the lookups are much faster because of
-the bloom filters.
-
-    $ ./bin/runex client.RandomBatchScanner --seed 8 -c ./examples.conf -t bloom_test --num 500 --min 0 --max 1000000000 --size 50 -batchThreads 20 -auths exampleVis
-    Generating 500 random queries...finished
-    2212.39 lookups/sec   0.23 secs
-    num results : 0
-    Did not find 500 rows
-    Generating 500 random queries...finished
-    4464.29 lookups/sec   0.11 secs
-    num results : 0
-    Did not find 500 rows
-
-********************************************************************************
-
-Bloom filters can also speed up lookups for entries that exist. In accumulo
-data is divided into tablets and each tablet has multiple map files. Every
-lookup in accumulo goes to a specific tablet where a lookup is done on each
-map file in the tablet. So if a tablet has three map files, lookup performance
-can be three times slower than a tablet with one map file. However if the map
-files contain unique sets of data, then bloom filters can help eliminate map
-files that do not contain the row being looked up. To illustrate this two
-identical tables were created using the following process. One table had bloom
-filters, the other did not. Also the major compaction ratio was increased to
-prevent the files from being compacted into one file.
-
- * Insert 1 million entries using  RandomBatchWriter with a seed of 7
- * Flush the table using the shell
- * Insert 1 million entries using  RandomBatchWriter with a seed of 8
- * Flush the table using the shell
- * Insert 1 million entries using  RandomBatchWriter with a seed of 9
- * Flush the table using the shell
-
-After following the above steps, each table will have a tablet with three map
-files. Flushing the table after each batch of inserts will create a map file.
-Each map file will contain 1 million entries generated with a different seed.
-This is assuming that Accumulo is configured with enough memory to hold 1
-million inserts. If not, then more map files will be created.
-
-The commands for creating the first table without bloom filters are below.
-
-    $ accumulo shell -u username -p password
-    Shell - Apache Accumulo Interactive Shell
-    - version: 1.5.0
-    - instance name: instance
-    - instance id: 00000000-0000-0000-0000-000000000000
-    -
-    - type 'help' for a list of available commands
-    -
-    username@instance> setauths -u username -s exampleVis
-    username@instance> createtable bloom_test1
-    username@instance bloom_test1> config -t bloom_test1 -s table.compaction.major.ratio=7
-    username@instance bloom_test1> exit
-
-    $ ARGS="-c ./examples.conf -t bloom_test1 --num 1000000 --min 0 --max 1000000000 --size 50 --batchMemory 2M --batchLatency 60 --batchThreads 3 --vis exampleVis"
-    $ ./bin/runex client.RandomBatchWriter --seed 7 $ARGS
-    $ accumulo shell -u username -p password -e 'flush -t bloom_test1 -w'
-    $ ./bin/runex client.RandomBatchWriter --seed 8 $ARGS
-    $ accumulo shell -u username -p password -e 'flush -t bloom_test1 -w'
-    $ ./bin/runex client.RandomBatchWriter --seed 9 $ARGS
-    $ accumulo shell -u username -p password -e 'flush -t bloom_test1 -w'
-
-The commands for creating the second table with bloom filers are below.
-
-    $ accumulo shell -u username -p password
-    Shell - Apache Accumulo Interactive Shell
-    - version: 1.5.0
-    - instance name: instance
-    - instance id: 00000000-0000-0000-0000-000000000000
-    -
-    - type 'help' for a list of available commands
-    -
-    username@instance> setauths -u username -s exampleVis
-    username@instance> createtable bloom_test2
-    username@instance bloom_test2> config -t bloom_test2 -s table.compaction.major.ratio=7
-    username@instance bloom_test2> config -t bloom_test2 -s table.bloom.enabled=true
-    username@instance bloom_test2> exit
-
-    $ ARGS="-c ./examples.conf -t bloom_test2 --num 1000000 --min 0 --max 1000000000 --size 50 --batchMemory 2M --batchLatency 60 --batchThreads 3 --vis exampleVis"
-    $ ./bin/runex client.RandomBatchWriter --seed 7 $ARGS
-    $ accumulo shell -u username -p password -e 'flush -t bloom_test2 -w'
-    $ ./bin/runex client.RandomBatchWriter --seed 8 $ARGS
-    $ accumulo shell -u username -p password -e 'flush -t bloom_test2 -w'
-    $ ./bin/runex client.RandomBatchWriter --seed 9 $ARGS
-    $ accumulo shell -u username -p password -e 'flush -t bloom_test2 -w'
-
-Below 500 lookups are done against the table without bloom filters using random
-NG seed 7. Even though only one map file will likely contain entries for this
-seed, all map files will be interrogated.
-
-    $ ./bin/runex client.RandomBatchScanner --seed 7 -c ./examples.conf -t bloom_test1 --num 500 --min 0 --max 1000000000 --size 50 --scanThreads 20 --auths exampleVis
-    Generating 500 random queries...finished
-    35.09 lookups/sec  14.25 secs
-    num results : 500
-    Generating 500 random queries...finished
-    35.33 lookups/sec  14.15 secs
-    num results : 500
-
-Below the same lookups are done against the table with bloom filters. The
-lookups were 2.86 times faster because only one map file was used, even though three
-map files existed.
-
-    $ ./bin/runex client.RandomBatchScanner --seed 7 -c ./examples.conf -t bloom_test2 --num 500 --min 0 --max 1000000000 --size 50 -scanThreads 20 --auths exampleVis
-    Generating 500 random queries...finished
-    99.03 lookups/sec   5.05 secs
-    num results : 500
-    Generating 500 random queries...finished
-    101.15 lookups/sec   4.94 secs
-    num results : 500
-
-You can verify the table has three files by looking in HDFS. To look in HDFS
-you will need the table ID, because this is used in HDFS instead of the table
-name. The following command will show table ids.
+You can verify the table has three or more r-files by looking in HDFS. To look in HDFS
+you will need the table ID, which can be found with the following shell command.
 
     $ accumulo shell -u username -p password -e 'tables -l'
     accumulo.metadata    =>        !0
     accumulo.root        =>        +r
-    bloom_test1          =>        o7
-    bloom_test2          =>        o8
+    bloom_test1          =>         2
+    bloom_test2          =>         3
     trace                =>         1
 
-So the table id for bloom_test2 is o8. The command below shows what files this
+So the table id for bloom_test2 is 3. The command below shows what files this
 table has in HDFS. This assumes Accumulo is at the default location in HDFS.
 
-    $ hadoop fs -lsr /accumulo/tables/o8
-    drwxr-xr-x   - username supergroup          0 2012-01-10 14:02 /accumulo/tables/o8/default_tablet
-    -rw-r--r--   3 username supergroup   52672650 2012-01-10 14:01 /accumulo/tables/o8/default_tablet/F00000dj.rf
-    -rw-r--r--   3 username supergroup   52436176 2012-01-10 14:01 /accumulo/tables/o8/default_tablet/F00000dk.rf
-    -rw-r--r--   3 username supergroup   52850173 2012-01-10 14:02 /accumulo/tables/o8/default_tablet/F00000dl.rf
+    $ hdfs dfs -ls -R /accumulo/tables/3
+    drwxr-xr-x   - username supergroup          0 2012-01-10 14:02 /accumulo/tables/3/default_tablet
+    -rw-r--r--   3 username supergroup   52672650 2012-01-10 14:01 /accumulo/tables/3/default_tablet/F00000dj.rf
+    -rw-r--r--   3 username supergroup   52436176 2012-01-10 14:01 /accumulo/tables/3/default_tablet/F00000dk.rf
+    -rw-r--r--   3 username supergroup   52850173 2012-01-10 14:02 /accumulo/tables/3/default_tablet/F00000dl.rf
 
 Running the rfile-info command shows that one of the files has a bloom filter
 and its 1.5MB.
 
-    $ accumulo rfile-info /accumulo/tables/o8/default_tablet/F00000dj.rf
+    $ accumulo rfile-info /accumulo/tables/3/default_tablet/F00000dj.rf
     Locality group         : <DEFAULT>
 	Start block          : 0
 	Num   blocks         : 752
@@ -217,3 +93,20 @@ and its 1.5MB.
       Compressed size      : 1,433,115 bytes
       Compression type     : gz
 
+## Bloom Filters when data is not found
+
+Run the example below to create 2 tables, one with bloom filters enabled.
+
+    $ ./bin/runex bloom.BloomFiltersNotFound
+
+One million random values initialized with seed 7 are inserted into each table.  
+Once the flush completes, 500 random queries are done against each table but with a different seed.
+Even when nothing is found the lookups are faster against the table with the bloom filters.
+
+    Writing data to bloom_test3 and bloom_test4 (bloom filters enabled)
+    Scanning bloom_test3 with seed 8
+    Scan finished! 780.03 lookups/sec, 0.64 secs, 0 results
+    Did not find 500
+    Scanning bloom_test4 with seed 8
+    Scan finished! 1736.11 lookups/sec, 0.29 secs, 0 results
+    Did not find 500
