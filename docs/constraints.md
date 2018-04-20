@@ -18,37 +18,28 @@ limitations under the License.
 
 This tutorial uses the following Java classes, which can be found in org.apache.accumulo.examples.constraints:
 
- * AlphaNumKeyConstraint.java - a constraint that requires alphanumeric keys
- * NumericValueConstraint.java - a constraint that requires numeric string values
+ * [AlphaNumKeyConstraint.java] - a constraint that requires alphanumeric keys
+ * [NumericValueConstraint.java] - a constraint that requires numeric string values
+ * [MaxMutationSize.java] - a constraint that limits the size of mutations accepted into a table
 
-This an example of how to create a table with constraints. Below a table is
-created with two example constraints. One constraints does not allow non alpha
-numeric keys. The other constraint does not allow non numeric values. Two
-inserts that violate these constraints are attempted and denied. The scan at
-the end shows the inserts were not allowed.
+Remember to copy the accumulo-examples-\*.jar to Accumulo's 'lib/ext' directory.
 
-    $ accumulo shell -u username -p password
+AlphaNumKeyConstraint prevents insertion of keys with characters not between aA and zZ or 0 to 9.  
+NumericValueConstraint prevents insertion of values with characters not between 0 and 9. The examples create mutations
+that violate the constraint, throwing an exception.
 
-    Shell - Apache Accumulo Interactive Shell
-    -
-    - version: 1.5.0
-    - instance name: instance
-    - instance id: 00000000-0000-0000-0000-000000000000
-    -
-    - type 'help' for a list of available commands
-    -
-    username@instance> createtable testConstraints
-    username@instance testConstraints> constraint -a org.apache.accumulo.examples.constraints.NumericValueConstraint
-    username@instance testConstraints> constraint -a org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint
-    username@instance testConstraints> insert r1 cf1 cq1 1111
-    username@instance testConstraints> insert r1 cf1 cq1 ABC
-      Constraint Failures:
-          ConstraintViolationSummary(constrainClass:org.apache.accumulo.examples.constraints.NumericValueConstraint, violationCode:1, violationDescription:Value is not numeric, numberOfViolatingMutations:1)
-    username@instance testConstraints> insert r1! cf1 cq1 ABC
-      Constraint Failures:
-          ConstraintViolationSummary(constrainClass:org.apache.accumulo.examples.constraints.NumericValueConstraint, violationCode:1, violationDescription:Value is not numeric, numberOfViolatingMutations:1)
-          ConstraintViolationSummary(constrainClass:org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint, violationCode:1, violationDescription:Row was not alpha numeric, numberOfViolatingMutations:1)
-    username@instance testConstraints> scan
-    r1 cf1:cq1 []    1111
-    username@instance testConstraints>
+    $ ./bin/runex constraints.AlphaNumKeyConstraint
+    $ ./bin/runex constraints.NumericValueConstraint
+
+The MaxMutationSize constraint will force the table to reject any mutation that is larger than 1/256th of the
+working memory of the tablet server.  The following example attempts to ingest a single row with a million columns,
+which exceeds the memory limit. Depending on the amount of Java heap your tserver(s) are given, you may have to
+increase the number of columns provided to see the failure.
+
+    $ ./bin/runex constraints.MaxMutationSize
+
+[AlphaNumKeyConstraint.java]: ../src/main/java/org/apache/accumulo/examples/constraints/AlphaNumKeyConstraint.java
+[NumericValueConstraint.java]: ../src/main/java/org/apache/accumulo/examples/constraints/NumericValueConstraint.java
+[MaxMutationSize.java]: ../src/main/java/org/apache/accumulo/examples/constraints/MaxMutationSize.java
+
 
