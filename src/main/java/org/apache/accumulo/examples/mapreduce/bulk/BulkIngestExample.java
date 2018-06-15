@@ -22,7 +22,7 @@ import java.io.PrintStream;
 import java.util.Base64;
 import java.util.Collection;
 
-import org.apache.accumulo.core.client.ConnectionInfo;
+import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
@@ -120,9 +120,9 @@ public class BulkIngestExample extends Configured implements Tool {
       job.setReducerClass(ReduceClass.class);
       job.setOutputFormatClass(AccumuloFileOutputFormat.class);
 
-      Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
-      ConnectionInfo connectionInfo = Connector.builder().usingProperties("conf/accumulo-client.properties").info();
-      AccumuloInputFormat.setConnectionInfo(job, connectionInfo);
+      ClientInfo info = Connector.builder().usingProperties("conf/accumulo-client.properties").info();
+      Connector connector = Connector.builder().usingClientInfo(info).build();
+      AccumuloInputFormat.setClientInfo(job, info);
       AccumuloInputFormat.setInputTableName(job, SetupTable.tableName);
       AccumuloInputFormat.setScanAuthorizations(job, Authorizations.EMPTY);
       AccumuloOutputFormat.setCreateTables(job, true);

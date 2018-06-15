@@ -23,10 +23,12 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
+import org.apache.accumulo.examples.cli.Help;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -91,25 +93,31 @@ public class Index {
 
   }
 
-  static class Opts extends ClientOnRequiredTable {
+  static class IndexOpts extends Help {
+
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    private String tableName;
+
     @Parameter(names = "--partitions", required = true, description = "the number of shards to create")
     int partitions;
+
     @Parameter(required = true, description = "<file> { <file> ... }")
     List<String> files = new ArrayList<>();
   }
 
   public static void main(String[] args) throws Exception {
-    Opts opts = new Opts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs(Index.class.getName(), args, bwOpts);
+    IndexOpts opts = new IndexOpts();
+    opts.parseArgs(Index.class.getName(), args);
 
     String splitRegex = "\\W+";
 
-    BatchWriter bw = opts.getConnector().createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
-    for (String filename : opts.files) {
-      index(opts.partitions, new File(filename), splitRegex, bw);
+    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+
+    try (BatchWriter bw = connector.createBatchWriter(opts.tableName)) {
+      for (String filename : opts.files) {
+        index(opts.partitions, new File(filename), splitRegex, bw);
+      }
     }
-    bw.close();
   }
 
 }

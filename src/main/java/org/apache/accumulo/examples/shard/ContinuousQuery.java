@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
@@ -31,8 +30,8 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.IntersectingIterator;
-import org.apache.accumulo.examples.cli.BatchScannerOpts;
-import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.Help;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -44,51 +43,50 @@ import com.google.common.collect.Iterators;
  */
 public class ContinuousQuery {
 
-  static class Opts extends ClientOpts {
+  static class Opts extends Help {
+
     @Parameter(names = "--shardTable", required = true, description = "name of the shard table")
     String tableName = null;
+
     @Parameter(names = "--doc2Term", required = true, description = "name of the doc2Term table")
     String doc2Term;
+
     @Parameter(names = "--terms", required = true, description = "the number of terms in the query")
     int numTerms;
+
     @Parameter(names = "--count", description = "the number of queries to run")
     long iterations = Long.MAX_VALUE;
   }
 
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
-    BatchScannerOpts bsOpts = new BatchScannerOpts();
-    opts.parseArgs(ContinuousQuery.class.getName(), args, bsOpts);
+    opts.parseArgs(ContinuousQuery.class.getName(), args);
 
-    Connector conn = opts.getConnector();
+    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
 
-    ArrayList<Text[]> randTerms = findRandomTerms(conn.createScanner(opts.doc2Term, opts.auths), opts.numTerms);
+    ArrayList<Text[]> randTerms = findRandomTerms(conn.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
 
     Random rand = new Random();
 
-    BatchScanner bs = conn.createBatchScanner(opts.tableName, opts.auths, bsOpts.scanThreads);
-    bs.setTimeout(bsOpts.scanTimeout, TimeUnit.MILLISECONDS);
+    try (BatchScanner bs = conn.createBatchScanner(opts.tableName, Authorizations.EMPTY, 5)) {
+      for (long i = 0; i < opts.iterations; i += 1) {
+        Text[] columns = randTerms.get(rand.nextInt(randTerms.size()));
 
-    for (long i = 0; i < opts.iterations; i += 1) {
-      Text[] columns = randTerms.get(rand.nextInt(randTerms.size()));
+        bs.clearScanIterators();
+        bs.clearColumns();
 
-      bs.clearScanIterators();
-      bs.clearColumns();
+        IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
+        IntersectingIterator.setColumnFamilies(ii, columns);
+        bs.addScanIterator(ii);
+        bs.setRanges(Collections.singleton(new Range()));
 
-      IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
-      IntersectingIterator.setColumnFamilies(ii, columns);
-      bs.addScanIterator(ii);
-      bs.setRanges(Collections.singleton(new Range()));
+        long t1 = System.currentTimeMillis();
+        int count = Iterators.size(bs.iterator());
+        long t2 = System.currentTimeMillis();
 
-      long t1 = System.currentTimeMillis();
-      int count = Iterators.size(bs.iterator());
-      long t2 = System.currentTimeMillis();
-
-      System.out.printf("  %s %,d %6.3f%n", Arrays.asList(columns), count, (t2 - t1) / 1000.0);
+        System.out.printf("  %s %,d %6.3f%n", Arrays.asList(columns), count, (t2 - t1) / 1000.0);
+      }
     }
-
-    bs.close();
-
   }
 
   private static ArrayList<Text[]> findRandomTerms(Scanner scanner, int numTerms) {

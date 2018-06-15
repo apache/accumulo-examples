@@ -31,32 +31,25 @@ To run these example programs, create two tables like below.
 
 After creating the tables, index some files. The following command indexes all of the java files in the Accumulo source code.
 
-    $ cd /local/username/workspace/accumulo/
-    $ find core/src server/src -name "*.java" | xargs ./bin/runex shard.Index -c ./examples.conf -t shard --partitions 30
+    $ find /path/to/accumulo/core -name "*.java" | xargs ./bin/runex shard.Index -t shard --partitions 30
 
 The following command queries the index to find all files containing 'foo' and 'bar'.
 
-    $ ./bin/runex shard.Query -c ./examples.conf -t shard foo bar
+    $ ./bin/runex shard.Query -t shard foo bar
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/security/ColumnVisibilityTest.java
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/client/mock/MockConnectorTest.java
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/security/VisibilityEvaluatorTest.java
-    /local/username/workspace/accumulo/src/server/src/main/java/accumulo/test/functional/RowDeleteTest.java
-    /local/username/workspace/accumulo/src/server/src/test/java/accumulo/server/logger/TestLogWriter.java
-    /local/username/workspace/accumulo/src/server/src/main/java/accumulo/test/functional/DeleteEverythingTest.java
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/data/KeyExtentTest.java
-    /local/username/workspace/accumulo/src/server/src/test/java/accumulo/server/constraints/MetadataConstraintsTest.java
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/iterators/WholeRowIteratorTest.java
-    /local/username/workspace/accumulo/src/server/src/test/java/accumulo/server/util/DefaultMapTest.java
-    /local/username/workspace/accumulo/src/server/src/test/java/accumulo/server/tabletserver/InMemoryMapTest.java
 
 In order to run ContinuousQuery, we need to run Reverse.java to populate doc2term.
 
-    $ ./bin/runex shard.Reverse -c ./examples.conf --shardTable shard --doc2Term doc2term
+    $ ./bin/runex shard.Reverse --shardTable shard --doc2Term doc2term
 
 Below ContinuousQuery is run using 5 terms. So it selects 5 random terms from each document, then it continually
 randomly selects one set of 5 terms and queries. It prints the number of matching documents and the time in seconds.
 
-    $ ./bin/runex shard.ContinuousQuery -c ./examples.conf --shardTable shard --doc2Term doc2term --terms 5
+    $ ./bin/runex shard.ContinuousQuery --shardTable shard --doc2Term doc2term --terms 5
     [public, core, class, binarycomparable, b] 2  0.081
     [wordtodelete, unindexdocument, doctablename, putdelete, insert] 1  0.041
     [import, columnvisibilityinterpreterfactory, illegalstateexception, cv, columnvisibility] 1  0.049

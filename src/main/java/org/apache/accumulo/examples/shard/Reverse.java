@@ -24,8 +24,10 @@ import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.examples.cli.Help;
 import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.hadoop.io.Text;
 
@@ -37,33 +39,30 @@ import com.beust.jcommander.Parameter;
  */
 public class Reverse {
 
-  static class Opts extends ClientOpts {
+  static class Opts extends Help {
+
     @Parameter(names = "--shardTable")
     String shardTable = "shard";
+
     @Parameter(names = "--doc2Term")
     String doc2TermTable = "doc2Term";
   }
 
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
-    ScannerOpts scanOpts = new ScannerOpts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs(Reverse.class.getName(), args, scanOpts, bwOpts);
+    opts.parseArgs(Reverse.class.getName(), args);
 
-    Connector conn = opts.getConnector();
+    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
 
-    Scanner scanner = conn.createScanner(opts.shardTable, opts.auths);
-    scanner.setBatchSize(scanOpts.scanBatchSize);
-    BatchWriter bw = conn.createBatchWriter(opts.doc2TermTable, bwOpts.getBatchWriterConfig());
-
-    for (Entry<Key,Value> entry : scanner) {
-      Key key = entry.getKey();
-      Mutation m = new Mutation(key.getColumnQualifier());
-      m.put(key.getColumnFamily(), new Text(), new Value(new byte[0]));
-      bw.addMutation(m);
+    try (Scanner scanner = conn.createScanner(opts.shardTable, Authorizations.EMPTY)) {
+      try (BatchWriter bw = conn.createBatchWriter(opts.doc2TermTable)) {
+        for (Entry<Key, Value> entry : scanner) {
+          Key key = entry.getKey();
+          Mutation m = new Mutation(key.getColumnQualifier());
+          m.put(key.getColumnFamily(), new Text(), new Value(new byte[0]));
+          bw.addMutation(m);
+        }
+      }
     }
-
-    bw.close();
-
   }
 }
