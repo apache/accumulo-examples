@@ -54,14 +54,13 @@ public class Reverse {
 
     Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
 
-    try (Scanner scanner = conn.createScanner(opts.shardTable, Authorizations.EMPTY)) {
-      try (BatchWriter bw = conn.createBatchWriter(opts.doc2TermTable)) {
-        for (Entry<Key, Value> entry : scanner) {
-          Key key = entry.getKey();
-          Mutation m = new Mutation(key.getColumnQualifier());
-          m.put(key.getColumnFamily(), new Text(), new Value(new byte[0]));
-          bw.addMutation(m);
-        }
+    try (Scanner scanner = conn.createScanner(opts.shardTable, Authorizations.EMPTY);
+         BatchWriter bw = conn.createBatchWriter(opts.doc2TermTable)) {
+      for (Entry<Key, Value> entry : scanner) {
+        Key key = entry.getKey();
+        Mutation m = new Mutation(key.getColumnQualifier());
+        m.put(key.getColumnFamily(), new Text(), new Value(new byte[0]));
+        bw.addMutation(m);
       }
     }
   }
