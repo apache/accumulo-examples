@@ -129,9 +129,9 @@ public class ExamplesIT extends AccumuloClusterHarness {
   @Before
   public void getClusterInfo() throws Exception {
     c = getConnector();
-    String user = getAdminPrincipal();
-    String instance = c.getInstance().getInstanceName();
-    String keepers = c.getInstance().getZooKeepers();
+    String user = c.info().getPrincipal();
+    String instance = c.info().getInstanceName();
+    String keepers = c.info().getZooKeepers();
     AuthenticationToken token = getAdminToken();
     if (token instanceof PasswordToken) {
       String passwd = new String(((PasswordToken) getAdminToken()).getPassword(), UTF_8);

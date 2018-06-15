@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
@@ -30,8 +29,8 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.IntersectingIterator;
-import org.apache.accumulo.examples.cli.BatchScannerOpts;
-import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.Help;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -41,9 +40,13 @@ import com.beust.jcommander.Parameter;
  */
 public class Query {
 
-  static class Opts extends ClientOnRequiredTable {
+  static class QueryOpts extends Help {
+
     @Parameter(description = " term { <term> ... }")
     List<String> terms = new ArrayList<>();
+
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    private String tableName;
 
     @Parameter(names = {"--sample"}, description = "Do queries against sample, useful when sample is built using column qualifier")
     private boolean useSample = false;
@@ -81,21 +84,21 @@ public class Query {
   }
 
   public static void main(String[] args) throws Exception {
-    Opts opts = new Opts();
-    BatchScannerOpts bsOpts = new BatchScannerOpts();
-    opts.parseArgs(Query.class.getName(), args, bsOpts);
-    Connector conn = opts.getConnector();
-    BatchScanner bs = conn.createBatchScanner(opts.getTableName(), opts.auths, bsOpts.scanThreads);
-    bs.setTimeout(bsOpts.scanTimeout, TimeUnit.MILLISECONDS);
-    if (opts.useSample) {
-      SamplerConfiguration samplerConfig = conn.tableOperations().getSamplerConfiguration(opts.getTableName());
-      CutoffIntersectingIterator.validateSamplerConfig(conn.tableOperations().getSamplerConfiguration(opts.getTableName()));
-      bs.setSamplerConfiguration(samplerConfig);
+    QueryOpts opts = new QueryOpts();
+    opts.parseArgs(Query.class.getName(), args);
+
+    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties")
+        .build();
+
+    try (BatchScanner bs = conn.createBatchScanner(opts.tableName, Authorizations.EMPTY, 10)) {
+      if (opts.useSample) {
+        SamplerConfiguration samplerConfig = conn.tableOperations().getSamplerConfiguration(opts.tableName);
+        CutoffIntersectingIterator.validateSamplerConfig(conn.tableOperations().getSamplerConfiguration(opts.tableName));
+        bs.setSamplerConfiguration(samplerConfig);
+      }
+      for (String entry : query(bs, opts.terms, opts.sampleCutoff)) {
+        System.out.println("  " + entry);
+      }
     }
-    for (String entry : query(bs, opts.terms, opts.sampleCutoff))
-      System.out.println("  " + entry);
-
-    bs.close();
   }
-
 }
