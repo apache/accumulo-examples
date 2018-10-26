@@ -23,10 +23,11 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -39,13 +40,13 @@ import org.apache.accumulo.core.security.Authorizations;
 public class BloomBatchScanner {
 
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
 
-    scan(connector, "bloom_test1", 7);
-    scan(connector, "bloom_test2", 7);
+    scan(client, "bloom_test1", 7);
+    scan(client, "bloom_test2", 7);
   }
 
-  static void scan(Connector connector, String tableName, int seed) throws TableNotFoundException {
+  static void scan(AccumuloClient client, String tableName, int seed) throws TableNotFoundException {
     Random r = new Random(seed);
     HashSet<Range> ranges = new HashSet<>();
     HashMap<String,Boolean> expectedRows = new HashMap<>();
@@ -61,7 +62,7 @@ public class BloomBatchScanner {
     long lookups = ranges.size();
 
     System.out.println("Scanning " + tableName + " with seed " + seed);
-    try (BatchScanner scan = connector.createBatchScanner(tableName, Authorizations.EMPTY, 20)) {
+    try (BatchScanner scan = client.createBatchScanner(tableName, Authorizations.EMPTY, 20)) {
       scan.setRanges(ranges);
       for (Entry<Key, Value> entry : scan) {
         Key key = entry.getKey();

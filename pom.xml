@@ -33,8 +33,8 @@
   <description>Example code and corresponding documentation for using Apache Accumulo</description>
 
   <properties>
-    <accumulo.version>2.0.0-SNAPSHOT</accumulo.version>
-    <hadoop.version>2.6.4</hadoop.version>
+    <accumulo.version>2.0.0-alpha-1</accumulo.version>
+    <hadoop.version>3.1.1</hadoop.version>
     <slf4j.version>1.7.21</slf4j.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -45,7 +45,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>14.0.1</version>
+        <version>26.0-jre</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -131,17 +131,17 @@
     <dependency>
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
-      <version>1.48</version>
+      <version>1.72</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>14.0.1</version>
+      <version>26.0-jre</version>
     </dependency>
     <dependency>
       <groupId>commons-configuration</groupId>
       <artifactId>commons-configuration</artifactId>
-      <version>1.6</version>
+      <version>1.10</version>
     </dependency>
     <dependency>
       <groupId>jline</groupId>

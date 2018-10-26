@@ -22,8 +22,9 @@ import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -62,13 +63,13 @@ public class ContinuousQuery {
     Opts opts = new Opts();
     opts.parseArgs(ContinuousQuery.class.getName(), args);
 
-    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client= Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
 
-    ArrayList<Text[]> randTerms = findRandomTerms(conn.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
+    ArrayList<Text[]> randTerms = findRandomTerms(client.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
 
     Random rand = new Random();
 
-    try (BatchScanner bs = conn.createBatchScanner(opts.tableName, Authorizations.EMPTY, 5)) {
+    try (BatchScanner bs = client.createBatchScanner(opts.tableName, Authorizations.EMPTY, 5)) {
       for (long i = 0; i < opts.iterations; i += 1) {
         Text[] columns = randTerms.get(rand.nextInt(randTerms.size()));
 

@@ -22,10 +22,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -102,9 +103,9 @@ public class AlphaNumKeyConstraint implements Constraint {
   }
 
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
     try {
-      connector.tableOperations().create("testConstraints");
+      client.tableOperations().create("testConstraints");
     } catch (TableExistsException e) {
       // ignore
     }
@@ -112,10 +113,10 @@ public class AlphaNumKeyConstraint implements Constraint {
     /**
      * Add the {@link AlphaNumKeyConstraint} to the table. Be sure to use the fully qualified class name.
      */
-    int num = connector.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint");
+    int num = client.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint");
 
     System.out.println("Attempting to write non alpha numeric data to testConstraints");
-    try (BatchWriter bw = connector.createBatchWriter("testConstraints")) {
+    try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
       Mutation m = new Mutation("r1--$$@@%%");
       m.put("cf1", "cq1", new Value(("value1").getBytes()));
       bw.addMutation(m);
@@ -123,6 +124,6 @@ public class AlphaNumKeyConstraint implements Constraint {
       e.getConstraintViolationSummaries().forEach(violationSummary -> System.out.println("Constraint violated: " + violationSummary.constrainClass));
     }
 
-    connector.tableOperations().removeConstraint("testConstraints", num);
+    client.tableOperations().removeConstraint("testConstraints", num);
   }
 }

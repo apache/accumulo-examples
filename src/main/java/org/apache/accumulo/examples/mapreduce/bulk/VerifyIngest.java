@@ -19,16 +19,16 @@ package org.apache.accumulo.examples.mapreduce.bulk;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +36,8 @@ public class VerifyIngest {
   private static final Logger log = LoggerFactory.getLogger(VerifyIngest.class);
 
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
-    Scanner scanner = connector.createScanner(SetupTable.tableName, Authorizations.EMPTY);
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+    Scanner scanner = client.createScanner(SetupTable.tableName, Authorizations.EMPTY);
 
     scanner.setRange(new Range(String.format("row_%010d", 0), null));
 

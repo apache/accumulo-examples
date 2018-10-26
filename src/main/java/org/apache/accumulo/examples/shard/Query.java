@@ -21,8 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.data.Key;
@@ -87,13 +88,13 @@ public class Query {
     QueryOpts opts = new QueryOpts();
     opts.parseArgs(Query.class.getName(), args);
 
-    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties")
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
         .build();
 
-    try (BatchScanner bs = conn.createBatchScanner(opts.tableName, Authorizations.EMPTY, 10)) {
+    try (BatchScanner bs = client.createBatchScanner(opts.tableName, Authorizations.EMPTY, 10)) {
       if (opts.useSample) {
-        SamplerConfiguration samplerConfig = conn.tableOperations().getSamplerConfiguration(opts.tableName);
-        CutoffIntersectingIterator.validateSamplerConfig(conn.tableOperations().getSamplerConfiguration(opts.tableName));
+        SamplerConfiguration samplerConfig = client.tableOperations().getSamplerConfiguration(opts.tableName);
+        CutoffIntersectingIterator.validateSamplerConfig(client.tableOperations().getSamplerConfiguration(opts.tableName));
         bs.setSamplerConfiguration(samplerConfig);
       }
       for (String entry : query(bs, opts.terms, opts.sampleCutoff)) {

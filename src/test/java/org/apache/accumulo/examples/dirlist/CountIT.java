@@ -22,9 +22,9 @@ import static org.junit.Assert.assertFalse;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Key;
@@ -43,7 +43,7 @@ import org.junit.Test;
 
 public class CountIT extends ConfigurableMacBase {
 
-  private Connector conn;
+  private AccumuloClient client;
   private String tableName;
 
   @Override
@@ -54,9 +54,9 @@ public class CountIT extends ConfigurableMacBase {
   @Before
   public void setupInstance() throws Exception {
     tableName = getUniqueNames(1)[0];
-    conn = getConnector();
-    conn.tableOperations().create(tableName);
-    BatchWriter bw = conn.createBatchWriter(tableName, new BatchWriterConfig());
+    client = getClient();
+    client.tableOperations().create(tableName);
+    BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
     ColumnVisibility cv = new ColumnVisibility();
     // / has 1 dir
     // /local has 2 dirs 1 file
@@ -73,13 +73,13 @@ public class CountIT extends ConfigurableMacBase {
 
   @Test
   public void test() throws Exception {
-    Scanner scanner = conn.createScanner(tableName, new Authorizations());
+    Scanner scanner = client.createScanner(tableName, new Authorizations());
     scanner.fetchColumn(new Text("dir"), new Text("counts"));
     assertFalse(scanner.iterator().hasNext());
 
     ScannerOpts scanOpts = new ScannerOpts();
     BatchWriterOpts bwOpts = new BatchWriterOpts();
-    FileCount fc = new FileCount(conn, tableName, Authorizations.EMPTY, new ColumnVisibility(), scanOpts, bwOpts);
+    FileCount fc = new FileCount(client,  tableName, Authorizations.EMPTY, new ColumnVisibility(), scanOpts, bwOpts);
     fc.run();
 
     ArrayList<Pair<String,String>> expected = new ArrayList<>();

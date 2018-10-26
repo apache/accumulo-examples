@@ -18,8 +18,10 @@ package org.apache.accumulo.examples.client;
 
 import java.util.Map.Entry;
 
+import com.beust.jcommander.Parameter;
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -27,6 +29,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,23 +39,30 @@ public class ReadWriteExample {
   private static final String namespace = "examples";
   private static final String table = namespace + ".readwrite";
 
-  public static void main(String[] args) throws Exception {
+  static class Opts extends Help {
+    @Parameter(names = "-c")
+    String clientProps = "conf/accumulo-client.properties";
+  }
 
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args) throws Exception {
+    Opts opts = new Opts();
+    opts.parseArgs(ReadWriteExample.class.getName(), args);
+
+    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
 
     try {
-      connector.namespaceOperations().create(namespace);
+      client.namespaceOperations().create(namespace);
     } catch (NamespaceExistsException e) {
       // ignore
     }
     try {
-      connector.tableOperations().create(table);
+      client.tableOperations().create(table);
     } catch (TableExistsException e) {
       // ignore
     }
 
     // write data
-    try (BatchWriter writer = connector.createBatchWriter(table)) {
+    try (BatchWriter writer = client.createBatchWriter(table)) {
       for (int i = 0; i < 10; i++) {
         Mutation m = new Mutation("hello" + i);
         m.put("cf", "cq", new Value("world" + i));
@@ -61,13 +71,13 @@ public class ReadWriteExample {
     }
 
     // read data
-    try (Scanner scanner = connector.createScanner(table, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
       for (Entry<Key, Value> entry : scanner) {
         log.info(entry.getKey().toString() + " -> " + entry.getValue().toString());
       }
     }
 
     // delete table
-    connector.tableOperations().delete(table);
+    client.tableOperations().delete(table);
   }
 }

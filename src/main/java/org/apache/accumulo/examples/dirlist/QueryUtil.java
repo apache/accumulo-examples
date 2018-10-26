@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -41,7 +41,7 @@ import com.beust.jcommander.Parameter;
  * names.
  */
 public class QueryUtil {
-  private Connector conn = null;
+  private AccumuloClient client= null;
   private String tableName;
   private Authorizations auths;
   public static final Text DIR_COLF = new Text("dir");
@@ -51,7 +51,7 @@ public class QueryUtil {
   public static final Text COUNTS_COLQ = new Text("counts");
 
   public QueryUtil(Opts opts) throws AccumuloException, AccumuloSecurityException {
-    conn = opts.getConnector();
+    client = opts.getAccumuloClient();
     this.tableName = opts.getTableName();
     this.auths = opts.auths;
   }
@@ -141,7 +141,7 @@ public class QueryUtil {
   public Map<String,String> getData(String path) throws TableNotFoundException {
     if (path.endsWith("/"))
       path = path.substring(0, path.length() - 1);
-    Scanner scanner = conn.createScanner(tableName, auths);
+    Scanner scanner = client.createScanner(tableName, auths);
     scanner.setRange(new Range(getRow(path)));
     Map<String,String> data = new TreeMap<>();
     for (Entry<Key,Value> e : scanner) {
@@ -162,7 +162,7 @@ public class QueryUtil {
     if (!path.endsWith("/"))
       path = path + "/";
     Map<String,Map<String,String>> fim = new TreeMap<>();
-    Scanner scanner = conn.createScanner(tableName, auths);
+    Scanner scanner = client.createScanner(tableName, auths);
     scanner.setRange(Range.prefix(getRow(path)));
     for (Entry<Key,Value> e : scanner) {
       String name = e.getKey().getRow().toString();
@@ -185,7 +185,7 @@ public class QueryUtil {
    */
   public Iterable<Entry<Key,Value>> exactTermSearch(String term) throws Exception {
     System.out.println("executing exactTermSearch for " + term);
-    Scanner scanner = conn.createScanner(tableName, auths);
+    Scanner scanner = client.createScanner(tableName, auths);
     scanner.setRange(new Range(getForwardIndex(term)));
     return scanner;
   }
@@ -200,7 +200,7 @@ public class QueryUtil {
     if (exp.indexOf("/") >= 0)
       throw new Exception("this method only works with unqualified names");
 
-    Scanner scanner = conn.createScanner(tableName, auths);
+    Scanner scanner = client.createScanner(tableName, auths);
     if (exp.startsWith("*")) {
       System.out.println("executing beginning wildcard search for " + exp);
       exp = exp.substring(1);
@@ -238,7 +238,7 @@ public class QueryUtil {
     String lastPart = exp.substring(starIndex + 1);
     String regexString = ".*/" + exp.replace("*", "[^/]*");
 
-    Scanner scanner = conn.createScanner(tableName, auths);
+    Scanner scanner = client.createScanner(tableName, auths);
     if (firstPart.length() >= lastPart.length()) {
       System.out.println("executing middle wildcard search for " + regexString + " from entries starting with " + firstPart);
       scanner.setRange(Range.prefix(getForwardIndex(firstPart)));

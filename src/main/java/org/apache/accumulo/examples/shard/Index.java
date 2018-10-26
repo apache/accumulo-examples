@@ -22,12 +22,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.BatchWriterOpts;
-import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 import org.apache.accumulo.examples.cli.Help;
 import org.apache.hadoop.io.Text;
 
@@ -111,9 +110,9 @@ public class Index {
 
     String splitRegex = "\\W+";
 
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
 
-    try (BatchWriter bw = connector.createBatchWriter(opts.tableName)) {
+    try (BatchWriter bw = client.createBatchWriter(opts.tableName)) {
       for (String filename : opts.files) {
         index(opts.partitions, new File(filename), splitRegex, bw);
       }

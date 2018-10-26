@@ -16,14 +16,17 @@
  */
 package org.apache.accumulo.examples.helloworld;
 
+import com.beust.jcommander.Parameter;
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,16 +37,23 @@ public class InsertWithBatchWriter {
 
   private static final Logger log = LoggerFactory.getLogger(InsertWithBatchWriter.class);
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  static class Opts extends Help {
+    @Parameter(names = "-c")
+    String clientProps = "conf/accumulo-client.properties";
+  }
 
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    Opts opts = new Opts();
+    opts.parseArgs(InsertWithBatchWriter.class.getName(), args);
+
+    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
     try {
-      connector.tableOperations().create("hellotable");
+      client.tableOperations().create("hellotable");
     } catch (TableExistsException e) {
       // ignore
     }
 
-    try (BatchWriter bw = connector.createBatchWriter("hellotable")) {
+    try (BatchWriter bw = client.createBatchWriter("hellotable")) {
       log.trace("writing ...");
       for (int i = 0; i < 10000; i++) {
         Mutation m = new Mutation(String.format("row_%d", i));
