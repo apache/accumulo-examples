@@ -25,11 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -49,6 +49,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ChunkInputStreamIT extends AccumuloClusterHarness {
+
   @Override
   public void configureMiniCluster(MiniAccumuloConfigImpl cfg, Configuration hadoopCoreSite) {
     cfg.setProperty(Property.TSERV_NATIVEMAP_ENABLED, "false");
@@ -56,7 +57,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
 
   private static final Authorizations AUTHS = new Authorizations("A", "B", "C", "D");
 
-  private Connector conn;
+  private AccumuloClient client;
   private String tableName;
   private List<Entry<Key,Value>> data;
   private List<Entry<Key,Value>> baddata;
@@ -64,9 +65,9 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
 
   @Before
   public void setupInstance() throws Exception {
-    conn = getConnector();
+    client = getAccumuloClient();
     tableName = getUniqueNames(1)[0];
-    conn.securityOperations().changeUserAuthorizations(conn.whoami(), AUTHS);
+    client.securityOperations().changeUserAuthorizations(client.whoami(), AUTHS);
   }
 
   @Before
@@ -126,8 +127,8 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
 
   @Test
   public void testWithAccumulo() throws AccumuloException, AccumuloSecurityException, TableExistsException, TableNotFoundException, IOException {
-    conn.tableOperations().create(tableName);
-    BatchWriter bw = conn.createBatchWriter(tableName, new BatchWriterConfig());
+    client.tableOperations().create(tableName);
+    BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
 
     for (Entry<Key,Value> e : data) {
       Key k = e.getKey();
@@ -137,7 +138,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
     }
     bw.close();
 
-    Scanner scan = conn.createScanner(tableName, AUTHS);
+    Scanner scan = client.createScanner(tableName, AUTHS);
 
     ChunkInputStream cis = new ChunkInputStream();
     byte[] b = new byte[20];

@@ -25,16 +25,19 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import com.beust.jcommander.Parameter;
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +48,18 @@ public class RandomBatchScanner {
 
   private static final Logger log = LoggerFactory.getLogger(RandomBatchScanner.class);
 
+  static class Opts extends Help {
+    @Parameter(names = "-c")
+    String clientProps = "conf/accumulo-client.properties";
+  }
+
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    Opts opts = new Opts();
+    opts.parseArgs(RandomBatchScanner.class.getName(), args);
+
+    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
     try {
-      connector.tableOperations().create("batch");
+      client.tableOperations().create("batch");
     } catch (TableExistsException e) {
       // ignore
     }
@@ -70,7 +81,7 @@ public class RandomBatchScanner {
     long lookups = 0;
 
     log.info("Reading ranges using BatchScanner");
-    try (BatchScanner scan = connector.createBatchScanner("batch", Authorizations.EMPTY, 20)) {
+    try (BatchScanner scan = client.createBatchScanner("batch", Authorizations.EMPTY, 20)) {
       scan.setRanges(ranges);
       for (Entry<Key, Value> entry : scan) {
         Key key = entry.getKey();

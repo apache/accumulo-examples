@@ -29,9 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -69,14 +69,14 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
   private static List<Entry<Key,Value>> data;
   private static List<Entry<Key,Value>> baddata;
 
-  private Connector conn;
+  private AccumuloClient client;
   private String tableName;
 
   @Before
   public void setupInstance() throws Exception {
-    conn = getConnector();
+    client = getAccumuloClient();
     tableName = getUniqueNames(1)[0];
-    conn.securityOperations().changeUserAuthorizations(conn.whoami(), AUTHS);
+    client.securityOperations().changeUserAuthorizations(client.whoami(), AUTHS);
   }
 
   @BeforeClass
@@ -273,8 +273,8 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
 
   @Test
   public void test() throws Exception {
-    conn.tableOperations().create(tableName);
-    BatchWriter bw = conn.createBatchWriter(tableName, new BatchWriterConfig());
+    client.tableOperations().create(tableName);
+    BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
 
     for (Entry<Key,Value> e : data) {
       Key k = e.getKey();
@@ -290,8 +290,8 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
 
   @Test
   public void testErrorOnNextWithoutClose() throws Exception {
-    conn.tableOperations().create(tableName);
-    BatchWriter bw = conn.createBatchWriter(tableName, new BatchWriterConfig());
+    client.tableOperations().create(tableName);
+    BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
 
     for (Entry<Key,Value> e : data) {
       Key k = e.getKey();
@@ -309,8 +309,8 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
 
   @Test
   public void testInfoWithoutChunks() throws Exception {
-    conn.tableOperations().create(tableName);
-    BatchWriter bw = conn.createBatchWriter(tableName, new BatchWriterConfig());
+    client.tableOperations().create(tableName);
+    BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
     for (Entry<Key,Value> e : baddata) {
       Key k = e.getKey();
       Mutation m = new Mutation(k.getRow());

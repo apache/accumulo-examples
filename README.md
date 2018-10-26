@@ -16,6 +16,8 @@ limitations under the License.
 -->
 # Apache Accumulo Examples
 
+[![Build Status][ti]][tl]
+
 ## Setup instructions
 
 Before running any of the examples, the following steps must be performed.
@@ -124,3 +126,5 @@ This repository can be used to test Accumulo release candidates.  See
 [tabletofile]: docs/tabletofile.md
 [terasort]: docs/terasort.md
 [visibility]: docs/visibility.md
+[ti]: https://travis-ci.org/apache/accumulo-examples.svg?branch=master
+[tl]: https://travis-ci.org/apache/accumulo-examples

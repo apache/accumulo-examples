@@ -19,8 +19,8 @@ package org.apache.accumulo.examples.dirlist;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -45,7 +45,7 @@ public class FileCount {
 
   private ScannerOpts scanOpts;
   private BatchWriterOpts bwOpts;
-  private Connector conn;
+  private AccumuloClient client;
   private String tableName;
   private Authorizations auths;
   private ColumnVisibility visibility;
@@ -237,8 +237,8 @@ public class FileCount {
     }
   }
 
-  public FileCount(Connector conn, String tableName, Authorizations auths, ColumnVisibility cv, ScannerOpts scanOpts, BatchWriterOpts bwOpts) throws Exception {
-    this.conn = conn;
+  public FileCount(AccumuloClient client, String tableName, Authorizations auths, ColumnVisibility cv, ScannerOpts scanOpts, BatchWriterOpts bwOpts) throws Exception {
+    this.client = client;
     this.tableName = tableName;
     this.auths = auths;
     this.visibility = cv;
@@ -251,9 +251,9 @@ public class FileCount {
     entriesScanned = 0;
     inserts = 0;
 
-    Scanner scanner = conn.createScanner(tableName, auths);
+    Scanner scanner = client.createScanner(tableName, auths);
     scanner.setBatchSize(scanOpts.scanBatchSize);
-    BatchWriter bw = conn.createBatchWriter(tableName, bwOpts.getBatchWriterConfig());
+    BatchWriter bw = client.createBatchWriter(tableName, bwOpts.getBatchWriterConfig());
 
     long t1 = System.currentTimeMillis();
 
@@ -290,7 +290,7 @@ public class FileCount {
     String programName = FileCount.class.getName();
     opts.parseArgs(programName, args, scanOpts, bwOpts);
 
-    FileCount fileCount = new FileCount(opts.getConnector(), opts.getTableName(), opts.auths, opts.visibility, scanOpts, bwOpts);
+    FileCount fileCount = new FileCount(opts.getAccumuloClient(), opts.getTableName(), opts.auths, opts.visibility, scanOpts, bwOpts);
     fileCount.run();
   }
 }

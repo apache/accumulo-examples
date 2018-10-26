@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -140,19 +140,19 @@ public class Ingest {
     BatchWriterOpts bwOpts = new BatchWriterOpts();
     opts.parseArgs(Ingest.class.getName(), args, bwOpts);
 
-    Connector conn = opts.getConnector();
-    if (!conn.tableOperations().exists(opts.nameTable))
-      conn.tableOperations().create(opts.nameTable);
-    if (!conn.tableOperations().exists(opts.indexTable))
-      conn.tableOperations().create(opts.indexTable);
-    if (!conn.tableOperations().exists(opts.dataTable)) {
-      conn.tableOperations().create(opts.dataTable);
-      conn.tableOperations().attachIterator(opts.dataTable, new IteratorSetting(1, ChunkCombiner.class));
+    AccumuloClient client= opts.getAccumuloClient();
+    if (!client.tableOperations().exists(opts.nameTable))
+      client.tableOperations().create(opts.nameTable);
+    if (!client.tableOperations().exists(opts.indexTable))
+      client.tableOperations().create(opts.indexTable);
+    if (!client.tableOperations().exists(opts.dataTable)) {
+      client.tableOperations().create(opts.dataTable);
+      client.tableOperations().attachIterator(opts.dataTable, new IteratorSetting(1, ChunkCombiner.class));
     }
 
-    BatchWriter dirBW = conn.createBatchWriter(opts.nameTable, bwOpts.getBatchWriterConfig());
-    BatchWriter indexBW = conn.createBatchWriter(opts.indexTable, bwOpts.getBatchWriterConfig());
-    BatchWriter dataBW = conn.createBatchWriter(opts.dataTable, bwOpts.getBatchWriterConfig());
+    BatchWriter dirBW = client.createBatchWriter(opts.nameTable, bwOpts.getBatchWriterConfig());
+    BatchWriter indexBW = client.createBatchWriter(opts.indexTable, bwOpts.getBatchWriterConfig());
+    BatchWriter dataBW = client.createBatchWriter(opts.dataTable, bwOpts.getBatchWriterConfig());
     FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
     for (String dir : opts.directories) {
       recurse(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);

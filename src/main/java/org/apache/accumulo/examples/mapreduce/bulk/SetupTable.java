@@ -20,7 +20,8 @@ import java.io.BufferedOutputStream;
 import java.io.PrintStream;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -36,9 +37,9 @@ public class SetupTable {
   static String outputFile = "bulk/test_1.txt";
 
   public static void main(String[] args) throws Exception {
-    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
     try {
-      conn.tableOperations().create(tableName);
+      client.tableOperations().create(tableName);
     } catch (TableExistsException e) {
       //ignore
     }
@@ -48,7 +49,7 @@ public class SetupTable {
     for (String split : splits) {
       intialPartitions.add(new Text(split));
     }
-    conn.tableOperations().addSplits(tableName, intialPartitions);
+    client.tableOperations().addSplits(tableName, intialPartitions);
 
     FileSystem fs = FileSystem.get(new Configuration());
     try (PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(outputFile))))) {

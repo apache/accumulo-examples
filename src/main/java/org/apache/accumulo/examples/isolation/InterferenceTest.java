@@ -19,8 +19,8 @@ package org.apache.accumulo.examples.isolation;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
@@ -159,17 +159,17 @@ public class InterferenceTest {
     if (opts.iterations < 1)
       opts.iterations = Long.MAX_VALUE;
 
-    Connector conn = opts.getConnector();
-    if (!conn.tableOperations().exists(opts.getTableName()))
-      conn.tableOperations().create(opts.getTableName());
+    AccumuloClient client = opts.getAccumuloClient();
+    if (!client.tableOperations().exists(opts.getTableName()))
+      client.tableOperations().create(opts.getTableName());
 
-    Thread writer = new Thread(new Writer(conn.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig()), opts.iterations));
+    Thread writer = new Thread(new Writer(client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig()), opts.iterations));
     writer.start();
     Reader r;
     if (opts.isolated)
-      r = new Reader(new IsolatedScanner(conn.createScanner(opts.getTableName(), opts.auths)));
+      r = new Reader(new IsolatedScanner(client.createScanner(opts.getTableName(), opts.auths)));
     else
-      r = new Reader(conn.createScanner(opts.getTableName(), opts.auths));
+      r = new Reader(client.createScanner(opts.getTableName(), opts.auths));
     Thread reader;
     reader = new Thread(r);
     reader.start();

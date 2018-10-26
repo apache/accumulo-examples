@@ -16,9 +16,9 @@
  */
 package org.apache.accumulo.examples.client;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Range;
@@ -55,18 +55,18 @@ public class TraceDumpExample {
       throw new IllegalArgumentException("--traceid option is required");
     }
 
-    final Connector conn = opts.getConnector();
+    final AccumuloClient client= opts.getAccumuloClient();
     final String principal = opts.getPrincipal();
     final String table = opts.getTableName();
-    if (!conn.securityOperations().hasTablePermission(principal, table, TablePermission.READ)) {
-      conn.securityOperations().grantTablePermission(principal, table, TablePermission.READ);
+    if (!client.securityOperations().hasTablePermission(principal, table, TablePermission.READ)) {
+      client.securityOperations().grantTablePermission(principal, table, TablePermission.READ);
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new RuntimeException(e);
       }
-      while (!conn.securityOperations().hasTablePermission(principal, table, TablePermission.READ)) {
+      while (!client.securityOperations().hasTablePermission(principal, table, TablePermission.READ)) {
         log.info("{} didn't propagate read permission on {}", principal, table);
         try {
           Thread.sleep(1000);
@@ -76,7 +76,7 @@ public class TraceDumpExample {
         }
       }
     }
-    Scanner scanner = conn.createScanner(table, opts.auths);
+    Scanner scanner = client.createScanner(table, opts.auths);
     scanner.setRange(new Range(new Text(opts.traceId)));
     TraceDump.printTrace(scanner, new Printer() {
       @Override

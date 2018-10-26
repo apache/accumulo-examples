@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
@@ -94,7 +94,7 @@ public class UniqueColumns extends Configured implements Tool {
     job.setJarByClass(this.getClass());
 
     String clone = opts.getTableName();
-    Connector conn = null;
+    AccumuloClient client = null;
 
     opts.setAccumuloConfigs(job);
 
@@ -104,10 +104,10 @@ public class UniqueColumns extends Configured implements Tool {
        * table, clone it, and then keep using the same clone as input for map reduce.
        */
 
-      conn = opts.getConnector();
+      client = opts.getAccumuloClient();
       clone = opts.getTableName() + "_" + jobName;
-      conn.tableOperations().clone(opts.getTableName(), clone, true, new HashMap<String,String>(), new HashSet<String>());
-      conn.tableOperations().offline(clone);
+      client.tableOperations().clone(opts.getTableName(), clone, true, new HashMap<String,String>(), new HashSet<String>());
+      client.tableOperations().offline(clone);
 
       AccumuloInputFormat.setOfflineTableScan(job, true);
       AccumuloInputFormat.setInputTableName(job, clone);
@@ -130,7 +130,7 @@ public class UniqueColumns extends Configured implements Tool {
     job.waitForCompletion(true);
 
     if (opts.offline) {
-      conn.tableOperations().delete(clone);
+      client.tableOperations().delete(clone);
     }
 
     return job.isSuccessful() ? 0 : 1;

@@ -25,11 +25,11 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -71,13 +71,13 @@ public class MapReduceIT extends ConfigurableMacBase {
   @Test
   public void test() throws Exception {
     String confFile = System.getProperty("user.dir")+"/target/examples.conf";
-    String instance = getConnector().getInstance().getInstanceName();
-    String keepers = getConnector().getInstance().getZooKeepers();
-    ExamplesIT.writeConnectionFile(confFile, instance, keepers, "root", ROOT_PASSWORD);
-    runTest(confFile, getConnector(), getCluster());
+    String instance = getClientInfo().getInstanceName();
+    String keepers = getClientInfo().getZooKeepers();
+    ExamplesIT.writeClientPropsFile(confFile, instance, keepers, "root", ROOT_PASSWORD);
+    runTest(confFile, getClient(), getCluster());
   }
 
-  static void runTest(String confFile, Connector c, MiniAccumuloClusterImpl cluster) throws AccumuloException, AccumuloSecurityException, TableExistsException,
+  static void runTest(String confFile, AccumuloClient c, MiniAccumuloClusterImpl cluster) throws AccumuloException, AccumuloSecurityException, TableExistsException,
       TableNotFoundException, MutationsRejectedException, IOException, InterruptedException, NoSuchAlgorithmException {
     c.tableOperations().create(tablename);
     BatchWriter bw = c.createBatchWriter(tablename, new BatchWriterConfig());

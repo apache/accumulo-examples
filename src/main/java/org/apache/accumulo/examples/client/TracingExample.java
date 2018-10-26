@@ -74,7 +74,7 @@ public class TracingExample {
   public void execute(Opts opts) throws TableNotFoundException, InterruptedException, AccumuloException, AccumuloSecurityException, TableExistsException {
 
     if (opts.createtable) {
-      opts.getConnector().tableOperations().create(opts.getTableName());
+      opts.getAccumuloClient().tableOperations().create(opts.getTableName());
     }
 
     if (opts.createEntries) {
@@ -86,7 +86,7 @@ public class TracingExample {
     }
 
     if (opts.deletetable) {
-      opts.getConnector().tableOperations().delete(opts.getTableName());
+      opts.getAccumuloClient().tableOperations().delete(opts.getTableName());
     }
   }
 
@@ -98,7 +98,7 @@ public class TracingExample {
     TraceScope scope = Trace.startSpan("Client Write", Sampler.ALWAYS);
 
     System.out.println("TraceID: " + Long.toHexString(scope.getSpan().getTraceId()));
-    BatchWriter batchWriter = opts.getConnector().createBatchWriter(opts.getTableName(), new BatchWriterConfig());
+    BatchWriter batchWriter = opts.getAccumuloClient().createBatchWriter(opts.getTableName(), new BatchWriterConfig());
 
     Mutation m = new Mutation("row");
     m.put("cf", "cq", "value");
@@ -114,7 +114,7 @@ public class TracingExample {
 
   private void readEntries(Opts opts) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
 
-    Scanner scanner = opts.getConnector().createScanner(opts.getTableName(), opts.auths);
+    Scanner scanner = opts.getAccumuloClient().createScanner(opts.getTableName(), opts.auths);
 
     // Trace the read operation.
     TraceScope readScope = Trace.startSpan("Client Read", Sampler.ALWAYS);

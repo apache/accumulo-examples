@@ -22,10 +22,10 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -136,8 +136,8 @@ public class RandomBatchWriter {
     else {
       r = new Random(opts.seed);
     }
-    Connector connector = opts.getConnector();
-    BatchWriter bw = connector.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
+    AccumuloClient client = opts.getAccumuloClient();
+    BatchWriter bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
 
     // reuse the ColumnVisibility object to improve performance
     ColumnVisibility cv = opts.visiblity;

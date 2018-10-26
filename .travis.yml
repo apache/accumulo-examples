@@ -13,19 +13,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 language: java
-notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#accumulo"
-    use_notice: true
-    on_success: change
-    on_failure: always
-    template:
-      - "%{result} %{repository_slug} %{branch} (%{build_url}): %{message}"
 cache:
   directories:
     - $HOME/.m2
 jdk:
-  - oraclejdk8
+  - openjdk8
 install: true
 script: mvn clean verify -DskipITs

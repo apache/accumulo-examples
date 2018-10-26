@@ -18,15 +18,18 @@ package org.apache.accumulo.examples.helloworld;
 
 import java.util.Map.Entry;
 
+import com.beust.jcommander.Parameter;
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +40,18 @@ public class ReadData {
 
   private static final Logger log = LoggerFactory.getLogger(ReadData.class);
 
+  static class Opts extends Help {
+    @Parameter(names = "-c")
+    String clientProps = "conf/accumulo-client.properties";
+  }
+
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    Opts opts = new Opts();
+    opts.parseArgs(ReadData.class.getName(), args);
 
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
 
-    try (Scanner scan = connector.createScanner("hellotable", Authorizations.EMPTY)) {
+    try (Scanner scan = client.createScanner("hellotable", Authorizations.EMPTY)) {
       scan.setRange(new Range(new Key("row_0"), new Key("row_1002")));
       for (Entry<Key, Value> e : scan) {
         Key key = e.getKey();

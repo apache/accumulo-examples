@@ -19,18 +19,14 @@ package org.apache.accumulo.examples.cli;
 import java.io.File;
 import java.time.Duration;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
@@ -98,40 +94,38 @@ public class ClientOpts extends Help {
   }
 
   @Parameter(names = {"-c", "--conf"}, required = true, converter = PropertiesConverter.class,
-      description = "Config file for connecting to Accumulo.  See README.md for details.")
+      description = "Accumulo client properties file.  See README.md for details.")
   private File config = null;
 
   @Parameter(names = {"-auths", "--auths"}, converter = AuthConverter.class, description = "the authorizations to use when reading or writing")
   public Authorizations auths = Authorizations.EMPTY;
 
-  public Connector getConnector() {
-    try {
-      ZooKeeperInstance zki = new ZooKeeperInstance(getClientConfiguration());
-      return zki.getConnector(getPrincipal(), getToken());
-    } catch (AccumuloException | AccumuloSecurityException e) {
-      throw new RuntimeException(e);
+  private ClientInfo cachedInfo = null;
+  private AccumuloClient cachedAccumuloClient = null;
+
+  public AccumuloClient getAccumuloClient() {
+    if (cachedAccumuloClient == null) {
+      try {
+        cachedAccumuloClient = Accumulo.newClient().usingClientInfo(getClientInfo()).build();
+      } catch (AccumuloException|AccumuloSecurityException e) {
+        throw new IllegalArgumentException(e);
+      }
     }
+    return cachedAccumuloClient;
   }
 
-  public ClientConfiguration getClientConfiguration() {
-    return ClientConfiguration.fromFile(config);
+  public ClientInfo getClientInfo() {
+    if (cachedInfo == null) {
+      cachedInfo = Accumulo.newClient().usingProperties(config.getAbsolutePath()).info();
+    }
+    return cachedInfo;
   }
 
   public String getPrincipal() {
-    String user = getClientConfiguration().getString("accumulo.examples.principal");
-    if(user != null)
-      return user;
-
-    return "root";
+    return getClientInfo().getPrincipal();
   }
 
   public AuthenticationToken getToken() {
-    AuthenticationToken token = new PasswordToken("secret");
-    String password = getClientConfiguration().getString("accumulo.examples.password");
-    if(password != null){
-      token = new PasswordToken(password);
-    }
-
-    return token;
+    return getClientInfo().getAuthenticationToken();
   }
 }

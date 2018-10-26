@@ -24,8 +24,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.data.ArrayByteSequence;
@@ -186,12 +186,12 @@ public class FileDataIngest {
     BatchWriterOpts bwOpts = new BatchWriterOpts();
     opts.parseArgs(FileDataIngest.class.getName(), args, bwOpts);
 
-    Connector conn = opts.getConnector();
-    if (!conn.tableOperations().exists(opts.getTableName())) {
-      conn.tableOperations().create(opts.getTableName());
-      conn.tableOperations().attachIterator(opts.getTableName(), new IteratorSetting(1, ChunkCombiner.class));
+    AccumuloClient client= opts.getAccumuloClient();
+    if (!client.tableOperations().exists(opts.getTableName())) {
+      client.tableOperations().create(opts.getTableName());
+      client.tableOperations().attachIterator(opts.getTableName(), new IteratorSetting(1, ChunkCombiner.class));
     }
-    BatchWriter bw = conn.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
+    BatchWriter bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
     FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
     for (String filename : opts.files) {
       fdi.insertFileData(filename, bw);

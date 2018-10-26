@@ -22,8 +22,9 @@ import java.io.PrintStream;
 import java.util.Base64;
 import java.util.Collection;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.ClientInfo;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
@@ -32,7 +33,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.TextUtil;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -46,8 +46,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-
-import com.beust.jcommander.Parameter;
 
 /**
  * Example map reduce job that bulk ingest data into an accumulo table. The expected input is text files containing tab separated key value pairs on each line.
@@ -120,8 +118,8 @@ public class BulkIngestExample extends Configured implements Tool {
       job.setReducerClass(ReduceClass.class);
       job.setOutputFormatClass(AccumuloFileOutputFormat.class);
 
-      ClientInfo info = Connector.builder().usingProperties("conf/accumulo-client.properties").info();
-      Connector connector = Connector.builder().usingClientInfo(info).build();
+      ClientInfo info = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").info();
+      AccumuloClient client = Accumulo.newClient().usingClientInfo(info).build();
       AccumuloInputFormat.setClientInfo(job, info);
       AccumuloInputFormat.setInputTableName(job, SetupTable.tableName);
       AccumuloInputFormat.setScanAuthorizations(job, Authorizations.EMPTY);
@@ -134,7 +132,7 @@ public class BulkIngestExample extends Configured implements Tool {
       FileSystem fs = FileSystem.get(conf);
       out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))));
 
-      Collection<Text> splits = connector.tableOperations().listSplits(SetupTable.tableName, 100);
+      Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
       for (Text split : splits)
         out.println(Base64.getEncoder().encodeToString(TextUtil.getBytes(split)));
 
@@ -151,7 +149,7 @@ public class BulkIngestExample extends Configured implements Tool {
       // With HDFS permissions on, we need to make sure the Accumulo user can read/move the rfiles
       FsShell fsShell = new FsShell(conf);
       fsShell.run(new String[] {"-chmod", "-R", "777", workDir});
-      connector.tableOperations().importDirectory(SetupTable.tableName, workDir + "/files", workDir + "/failures", false);
+      client.tableOperations().importDirectory(SetupTable.tableName, workDir + "/files", workDir + "/failures", false);
 
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -20,15 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.ClientConfiguration;
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriter.Status;
 import org.apache.accumulo.core.client.ConditionalWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Condition;
 import org.apache.accumulo.core.data.ConditionalMutation;
 import org.apache.accumulo.core.data.Key;
@@ -56,15 +54,15 @@ public class ARS {
 
   private static final Logger log = LoggerFactory.getLogger(ARS.class);
 
-  private Connector conn;
+  private AccumuloClient client;
   private String rTable;
 
   public enum ReservationResult {
     RESERVED, WAIT_LISTED
   }
 
-  public ARS(Connector conn, String rTable) {
-    this.conn = conn;
+  public ARS(AccumuloClient client, String rTable) {
+    this.client = client;
     this.rTable = rTable;
   }
 
@@ -89,8 +87,8 @@ public class ARS {
     ReservationResult result = ReservationResult.RESERVED;
 
     // it is important to use an isolated scanner so that only whole mutations are seen
-    try (ConditionalWriter cwriter = conn.createConditionalWriter(rTable, new ConditionalWriterConfig());
-        Scanner scanner = new IsolatedScanner(conn.createScanner(rTable, Authorizations.EMPTY))) {
+    try (ConditionalWriter cwriter = client.createConditionalWriter(rTable, new ConditionalWriterConfig());
+        Scanner scanner = new IsolatedScanner(client.createScanner(rTable, Authorizations.EMPTY))) {
       while (true) {
         Status status = cwriter.write(update).getStatus();
         switch (status) {
@@ -162,8 +160,8 @@ public class ARS {
     // when it actually got the reservation.
 
     // its important to use an isolated scanner so that only whole mutations are seen
-    try (ConditionalWriter cwriter = conn.createConditionalWriter(rTable, new ConditionalWriterConfig());
-        Scanner scanner = new IsolatedScanner(conn.createScanner(rTable, Authorizations.EMPTY))) {
+    try (ConditionalWriter cwriter = client.createConditionalWriter(rTable, new ConditionalWriterConfig());
+        Scanner scanner = new IsolatedScanner(client.createScanner(rTable, Authorizations.EMPTY))) {
       while (true) {
         scanner.setRange(new Range(row));
 
@@ -216,7 +214,7 @@ public class ARS {
     String row = what + ":" + when;
 
     // its important to use an isolated scanner so that only whole mutations are seen
-    try (Scanner scanner = new IsolatedScanner(conn.createScanner(rTable, Authorizations.EMPTY))) {
+    try (Scanner scanner = new IsolatedScanner(client.createScanner(rTable, Authorizations.EMPTY))) {
       scanner.setRange(new Range(row));
       scanner.fetchColumnFamily(new Text("res"));
 
@@ -281,10 +279,10 @@ public class ARS {
       } else if (tokens[0].equals("quit") && tokens.length == 1) {
         break;
       } else if (tokens[0].equals("connect") && tokens.length == 6 && ars == null) {
-        ZooKeeperInstance zki = new ZooKeeperInstance(ClientConfiguration.create().withInstance(tokens[1]).withZkHosts(tokens[2]));
-        Connector conn = zki.getConnector(tokens[3], new PasswordToken(tokens[4]));
-        if (conn.tableOperations().exists(tokens[5])) {
-          ars = new ARS(conn, tokens[5]);
+        AccumuloClient client = Accumulo.newClient().forInstance(tokens[1], tokens[2])
+            .usingPassword(tokens[3], tokens[4]).build();
+        if (client.tableOperations().exists(tokens[5])) {
+          ars = new ARS(client,  tokens[5]);
           reader.println("  connected");
         } else
           reader.println("  No Such Table");

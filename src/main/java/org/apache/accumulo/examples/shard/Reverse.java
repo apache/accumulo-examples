@@ -18,17 +18,15 @@ package org.apache.accumulo.examples.shard;
 
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.examples.cli.BatchWriterOpts;
-import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.examples.cli.Help;
-import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -52,10 +50,10 @@ public class Reverse {
     Opts opts = new Opts();
     opts.parseArgs(Reverse.class.getName(), args);
 
-    Connector conn = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
 
-    try (Scanner scanner = conn.createScanner(opts.shardTable, Authorizations.EMPTY);
-         BatchWriter bw = conn.createBatchWriter(opts.doc2TermTable)) {
+    try (Scanner scanner = client.createScanner(opts.shardTable, Authorizations.EMPTY);
+         BatchWriter bw = client.createBatchWriter(opts.doc2TermTable)) {
       for (Entry<Key, Value> entry : scanner) {
         Key key = entry.getKey();
         Mutation m = new Mutation(key.getColumnQualifier());

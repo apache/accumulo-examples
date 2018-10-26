@@ -19,10 +19,11 @@ package org.apache.accumulo.examples.constraints;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -51,9 +52,9 @@ public class MaxMutationSize implements Constraint {
   }
 
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
     try {
-      connector.tableOperations().create("testConstraints");
+      client.tableOperations().create("testConstraints");
     } catch (TableExistsException e) {
       // ignore
     }
@@ -61,10 +62,10 @@ public class MaxMutationSize implements Constraint {
     /**
      * Add the {@link MaxMutationSize} constraint to the table. Be sure to use the fully qualified class name
      */
-    int num = connector.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.MaxMutationSize");
+    int num = client.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.MaxMutationSize");
 
     System.out.println("Attempting to write a lot of mutations to testConstraints");
-    try (BatchWriter bw = connector.createBatchWriter("testConstraints")) {
+    try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
       Mutation m = new Mutation("r1");
       for (int i = 0; i < 1_000_000; i++)
         m.put("cf" + i % 5000, "cq" + i, new Value(("value" + i).getBytes()));
@@ -73,7 +74,7 @@ public class MaxMutationSize implements Constraint {
       e.getConstraintViolationSummaries().forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
     }
 
-    connector.tableOperations().removeConstraint("testConstraints", num);
+    client.tableOperations().removeConstraint("testConstraints", num);
   }
 
 }

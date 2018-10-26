@@ -18,15 +18,18 @@ package org.apache.accumulo.examples.client;
 
 import java.util.Random;
 
+import com.beust.jcommander.Parameter;
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 
+import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,19 +54,27 @@ public class SequentialBatchWriter {
     return new Value(value);
   }
 
+  static class Opts extends Help {
+    @Parameter(names = "-c")
+    String clientProps = "conf/accumulo-client.properties";
+  }
+
   /**
    * Writes 1000 entries to Accumulo using a {@link BatchWriter}. The rows of the entries will be sequential starting from 0.
    * The column families will be "foo" and column qualifiers will be "1". The values will be random 50 byte arrays.
    */
   public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Connector connector = Connector.builder().usingProperties("conf/accumulo-client.properties").build();
+    Opts opts = new Opts();
+    opts.parseArgs(SequentialBatchWriter.class.getName(), args);
+
+    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
     try {
-      connector.tableOperations().create("batch");
+      client.tableOperations().create("batch");
     } catch (TableExistsException e) {
       // ignore
     }
 
-    try (BatchWriter bw = connector.createBatchWriter("batch")) {
+    try (BatchWriter bw = client.createBatchWriter("batch")) {
       for (int i = 0; i < 10000; i++) {
         Mutation m = new Mutation(String.format("row_%010d", i));
         // create a random value that is a function of row id for verification purposes

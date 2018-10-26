@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -41,10 +40,10 @@ import java.util.regex.Pattern;
 import org.apache.accumulo.cluster.standalone.StandaloneAccumuloCluster;
 import org.apache.accumulo.cluster.standalone.StandaloneClusterControl;
 import org.apache.accumulo.core.cli.BatchWriterOpts;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
@@ -76,9 +75,6 @@ import org.apache.accumulo.examples.mapreduce.RowHash;
 import org.apache.accumulo.examples.mapreduce.TableToFile;
 import org.apache.accumulo.examples.mapreduce.TeraSortIngest;
 import org.apache.accumulo.examples.mapreduce.WordCount;
-import org.apache.accumulo.examples.mapreduce.bulk.BulkIngestExample;
-import org.apache.accumulo.examples.mapreduce.bulk.SetupTable;
-import org.apache.accumulo.examples.mapreduce.bulk.VerifyIngest;
 import org.apache.accumulo.examples.shard.ContinuousQuery;
 import org.apache.accumulo.examples.shard.Index;
 import org.apache.accumulo.examples.shard.Query;
@@ -112,7 +108,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
   private static final String visibility = "A|B";
   private static final String auths = "A,B";
 
-  Connector c;
+  AccumuloClient c;
   BatchWriter bw;
   IteratorSetting is;
   String dir;
@@ -128,14 +124,14 @@ public class ExamplesIT extends AccumuloClusterHarness {
 
   @Before
   public void getClusterInfo() throws Exception {
-    c = getConnector();
+    c = getAccumuloClient();
     String user = c.info().getPrincipal();
     String instance = c.info().getInstanceName();
     String keepers = c.info().getZooKeepers();
     AuthenticationToken token = getAdminToken();
     if (token instanceof PasswordToken) {
       String passwd = new String(((PasswordToken) getAdminToken()).getPassword(), UTF_8);
-      writeConnectionFile(getConnectionFile(), instance, keepers, user, passwd);
+      writeClientPropsFile(getClientPropsFile(), instance, keepers, user, passwd);
     } else {
       Assert.fail("Unknown token type: " + token);
     }
@@ -149,21 +145,22 @@ public class ExamplesIT extends AccumuloClusterHarness {
   @After
   public void resetAuths() throws Exception {
     if (null != origAuths) {
-      getConnector().securityOperations().changeUserAuthorizations(getAdminPrincipal(), origAuths);
+      getAccumuloClient().securityOperations().changeUserAuthorizations(getAdminPrincipal(), origAuths);
     }
   }
 
-  public static void writeConnectionFile(String file, String instance, String keepers, String user, String password) throws IOException {
+  public static void writeClientPropsFile(String file, String instance, String keepers, String user, String password) throws IOException {
     try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(file))) {
-      writer.write("instance.zookeeper.host=" + keepers + "\n");
       writer.write("instance.name=" + instance + "\n");
-      writer.write("accumulo.examples.principal=" + user + "\n");
-      writer.write("accumulo.examples.password=" + password + "\n");
+      writer.write("instance.zookeepers=" + keepers + "\n");
+      writer.write("auth.type=password\n");
+      writer.write("auth.principal=" + user + "\n");
+      writer.write("auth.token=" + password + "\n");
     }
   }
 
-  private String getConnectionFile() {
-    return System.getProperty("user.dir") + "/target/examples.conf";
+  private String getClientPropsFile() {
+    return System.getProperty("user.dir") + "/target/accumulo-client.properties";
   }
 
   @Override
@@ -180,7 +177,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
       while (!c.tableOperations().exists("trace"))
         sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
     }
-    String[] args = new String[] {"-c", getConnectionFile(), "--createtable", "--deletetable", "--create"};
+    String[] args = new String[] {"-c", getClientPropsFile(), "--createtable", "--deletetable", "--create"};
     Entry<Integer,String> pair = cluster.getClusterControl().execWithStdout(TracingExample.class, args);
     Assert.assertEquals("Expected return code of zero. STDOUT=" + pair.getValue(), 0, pair.getKey().intValue());
     String result = pair.getValue();
@@ -188,7 +185,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
     Matcher matcher = pattern.matcher(result);
     int count = 0;
     while (matcher.find()) {
-      args = new String[] {"-c", getConnectionFile(), "--traceid", matcher.group(1)};
+      args = new String[] {"-c", getClientPropsFile(), "--traceid", matcher.group(1)};
       pair = cluster.getClusterControl().execWithStdout(TraceDumpExample.class, args);
       count++;
     }
@@ -197,24 +194,6 @@ public class ExamplesIT extends AccumuloClusterHarness {
     if (ClusterType.MINI == getClusterType() && null != trace) {
       trace.destroy();
     }
-  }
-
-  @Test
-  public void testClasspath() throws Exception {
-    Entry<Integer,String> entry = getCluster().getClusterControl().execWithStdout(Main.class, new String[] {"classpath"});
-    assertEquals(0, entry.getKey().intValue());
-    String result = entry.getValue();
-    int level1 = result.indexOf("Level 1");
-    int level2 = result.indexOf("Level 2");
-    int level3 = result.indexOf("Level 3");
-    int level4 = result.indexOf("Level 4");
-    assertTrue("Level 1 classloader not present.", level1 >= 0);
-    assertTrue("Level 2 classloader not present.", level2 > 0);
-    assertTrue("Level 3 classloader not present.", level3 > 0);
-    assertTrue("Level 4 classloader not present.", level4 > 0);
-    assertTrue(level1 < level2);
-    assertTrue(level2 < level3);
-    assertTrue(level3 < level4);
   }
 
   @Test
@@ -235,7 +214,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
     }
     assumeTrue(new File(dirListDirectory).exists());
     // Index a directory listing on /tmp. If this is running against a standalone cluster, we can't guarantee Accumulo source will be there.
-    args = new String[] {"-c", getConnectionFile(), "--dirTable", dirTable, "--indexTable", indexTable, "--dataTable", dataTable, "--vis", visibility,
+    args = new String[] {"-c", getClientPropsFile(), "--dirTable", dirTable, "--indexTable", indexTable, "--dataTable", dataTable, "--vis", visibility,
         "--chunkSize", Integer.toString(10000), dirListDirectory};
 
     Entry<Integer,String> entry = getClusterControl().execWithStdout(Ingest.class, args);
@@ -255,7 +234,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
         throw new RuntimeException("Unknown cluster type");
     }
 
-    args = new String[] {"-c", getConnectionFile(), "-t", indexTable, "--auths", auths, "--search", "--path", expectedFile};
+    args = new String[] {"-c", getClientPropsFile(), "-t", indexTable, "--auths", auths, "--search", "--path", expectedFile};
     entry = getClusterControl().execWithStdout(QueryUtil.class, args);
     if (ClusterType.MINI == getClusterType()) {
       MiniAccumuloClusterImpl impl = (MiniAccumuloClusterImpl) cluster;
@@ -325,36 +304,6 @@ public class ExamplesIT extends AccumuloClusterHarness {
   }
 
   @Test
-  public void testBloomFilters() throws Exception {
-    String tableName = getUniqueNames(1)[0];
-    c.tableOperations().create(tableName);
-    c.tableOperations().setProperty(tableName, Property.TABLE_BLOOM_ENABLED.getKey(), "true");
-    String[] args = new String[] {"--seed", "7", "-c", getConnectionFile(), "--num", "100000", "--min", "0", "--max", "1000000000", "--size", "50",
-        "--batchMemory", "2M", "--batchLatency", "60", "--batchThreads", "3", "-t", tableName};
-
-    goodExec(RandomBatchWriter.class, args);
-    c.tableOperations().flush(tableName, null, null, true);
-    long diff = 0, diff2 = 0;
-    // try the speed test a couple times in case the system is loaded with other tests
-    for (int i = 0; i < 2; i++) {
-      long now = System.currentTimeMillis();
-      args = new String[] {"--seed", "7", "-c", getConnectionFile(), "--num", "10000", "--min", "0", "--max", "1000000000", "--size", "50", "--scanThreads",
-          "4", "-t", tableName};
-      goodExec(RandomBatchScanner.class, args);
-      diff = System.currentTimeMillis() - now;
-      now = System.currentTimeMillis();
-      args = new String[] {"--seed", "8", "-c", getConnectionFile(), "--num", "10000", "--min", "0", "--max", "1000000000", "--size", "50", "--scanThreads",
-          "4", "-t", tableName};
-      int retCode = getClusterControl().exec(RandomBatchScanner.class, args);
-      assertEquals(1, retCode);
-      diff2 = System.currentTimeMillis() - now;
-      if (diff2 < diff)
-        break;
-    }
-    assertTrue(diff2 < diff);
-  }
-
-  @Test
   public void testShardedIndex() throws Exception {
     File src = new File(System.getProperty("user.dir") + "/src");
     assumeTrue(src.exists());
@@ -376,11 +325,11 @@ public class ExamplesIT extends AccumuloClusterHarness {
     }
     assertTrue(thisFile);
 
-    String[] args = new String[] {"-c", getConnectionFile(), "--shardTable", shard, "--doc2Term", index};
+    String[] args = new String[] {"-c", getClientPropsFile(), "--shardTable", shard, "--doc2Term", index};
 
     // create a reverse index
     goodExec(Reverse.class, args);
-    args = new String[] {"-c", getConnectionFile(), "--shardTable", shard, "--doc2Term", index, "--terms", "5", "--count", "1000"};
+    args = new String[] {"-c", getClientPropsFile(), "--shardTable", shard, "--doc2Term", index, "--terms", "5", "--count", "1000"};
     // run some queries
     goodExec(ContinuousQuery.class, args);
   }
@@ -407,22 +356,22 @@ public class ExamplesIT extends AccumuloClusterHarness {
     // TODO Figure out a way to run M/R with Kerberos
     assumeTrue(getAdminToken() instanceof PasswordToken);
     String tableName = getUniqueNames(1)[0];
-    String[] args = new String[] {"--count", (1000 * 1000) + "", "-nk", "10", "-xk", "10", "-nv", "10", "-xv", "10", "-t", tableName, "-c", getConnectionFile(),
+    String[] args = new String[] {"--count", (1000 * 1000) + "", "-nk", "10", "-xk", "10", "-nv", "10", "-xv", "10", "-t", tableName, "-c", getClientPropsFile(),
         "--splits", "4"};
     goodExec(TeraSortIngest.class, args);
     Path output = new Path(dir, "tmp/nines");
     if (fs.exists(output)) {
       fs.delete(output, true);
     }
-    args = new String[] {"-c", getConnectionFile(), "-t", tableName, "--rowRegex", ".*999.*", "--output", output.toString()};
+    args = new String[] {"-c", getClientPropsFile(), "-t", tableName, "--rowRegex", ".*999.*", "--output", output.toString()};
     goodExec(RegexExample.class, args);
-    args = new String[] {"-c", getConnectionFile(), "-t", tableName, "--column", "c:"};
+    args = new String[] {"-c", getClientPropsFile(), "-t", tableName, "--column", "c:"};
     goodExec(RowHash.class, args);
     output = new Path(dir, "tmp/tableFile");
     if (fs.exists(output)) {
       fs.delete(output, true);
     }
-    args = new String[] {"-c", getConnectionFile(), "-t", tableName, "--output", output.toString()};
+    args = new String[] {"-c", getClientPropsFile(), "-t", tableName, "--output", output.toString()};
     goodExec(TableToFile.class, args);
   }
 
@@ -443,15 +392,14 @@ public class ExamplesIT extends AccumuloClusterHarness {
     }
     fs.copyFromLocalFile(readme, new Path(dir + "/tmp/wc/README.md"));
     String[] args;
-    args = new String[] {"-c", getConnectionFile(), "--input", dir + "/tmp/wc", "-t", tableName};
+    args = new String[] {"-c", getClientPropsFile(), "--input", dir + "/tmp/wc", "-t", tableName};
     goodExec(WordCount.class, args);
   }
 
   @Test
   public void testInsertWithBatchWriterAndReadData() throws Exception {
-    String tableName = getUniqueNames(1)[0];
     String[] args;
-    args = new String[] {"-c", getConnectionFile(), "-t", tableName};
+    args = new String[] {"-c", getClientPropsFile()};
     goodExec(InsertWithBatchWriter.class, args);
     goodExec(ReadData.class, args);
   }
@@ -459,60 +407,35 @@ public class ExamplesIT extends AccumuloClusterHarness {
   @Test
   public void testIsolatedScansWithInterference() throws Exception {
     String[] args;
-    args = new String[] {"-c", getConnectionFile(), "-t", getUniqueNames(1)[0], "--iterations", "100000", "--isolated"};
+    args = new String[] {"-c", getClientPropsFile(), "-t", getUniqueNames(1)[0], "--iterations", "100000", "--isolated"};
     goodExec(InterferenceTest.class, args);
   }
 
   @Test
   public void testScansWithInterference() throws Exception {
     String[] args;
-    args = new String[] {"-c", getConnectionFile(), "-t", getUniqueNames(1)[0], "--iterations", "100000"};
+    args = new String[] {"-c", getClientPropsFile(), "-t", getUniqueNames(1)[0], "--iterations", "100000"};
     goodExec(InterferenceTest.class, args);
   }
 
   @Test
   public void testRowOperations() throws Exception {
-    String[] args;
-    args = new String[] {"-c", getConnectionFile()};
-    goodExec(RowOperations.class, args);
+    goodExec(RowOperations.class, "-c", getClientPropsFile());
   }
 
   @Test
-  public void testBatchWriter() throws Exception {
-    String tableName = getUniqueNames(1)[0];
-    c.tableOperations().create(tableName);
-    String[] args;
-    args = new String[] {"-c", getConnectionFile(), "-t", tableName, "--start", "0", "--num", "100000", "--size", "50", "--batchMemory", "10000000",
-        "--batchLatency", "1000", "--batchThreads", "4", "--vis", visibility};
-    goodExec(SequentialBatchWriter.class, args);
-
+  public void testSequentialBatchWriter() throws Exception {
+    goodExec(SequentialBatchWriter.class, "-c", getClientPropsFile());
   }
 
   @Test
   public void testReadWriteAndDelete() throws Exception {
-    String tableName = getUniqueNames(1)[0];
-    String[] args;
-    args = new String[] {"-c", getConnectionFile(), "--auths", auths, "--table", tableName, "--createtable", "--create"};
-    goodExec(ReadWriteExample.class, args);
-    args = new String[] {"-c", getConnectionFile(), "--auths", auths, "--table", tableName, "--delete"};
-    goodExec(ReadWriteExample.class, args);
-
+    goodExec(ReadWriteExample.class,"-c", getClientPropsFile());
   }
 
   @Test
-  public void testRandomBatchesAndFlush() throws Exception {
-    String tableName = getUniqueNames(1)[0];
-    c.tableOperations().create(tableName);
-    String[] args = new String[] {"-c", getConnectionFile(), "--table", tableName, "--num", "100000", "--min", "0", "--max", "100000", "--size", "100",
-        "--batchMemory", "1000000", "--batchLatency", "1000", "--batchThreads", "4", "--vis", visibility};
-    goodExec(RandomBatchWriter.class, args);
-
-    args = new String[] {"-c", getConnectionFile(), "--table", tableName, "--num", "10000", "--min", "0", "--max", "100000", "--size", "100", "--scanThreads",
-        "4", "--auths", auths};
-    goodExec(RandomBatchScanner.class, args);
-
-    args = new String[] {"-c", getConnectionFile(), "--table", tableName};
-    goodExec(Flush.class, args);
+  public void testRandomBatchScanner() throws Exception {
+    goodExec(RandomBatchScanner.class, "-c", getClientPropsFile());
   }
 
   private void goodExec(Class<?> theClass, String... args) throws InterruptedException, IOException {
