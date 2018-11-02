@@ -33,8 +33,8 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.PeekingIterator;
 
 /**
- * Retrieves file data based on the hash of the file. Used by the {@link org.apache.accumulo.examples.dirlist.Viewer}. See README.dirlist for
- * instructions.
+ * Retrieves file data based on the hash of the file. Used by the
+ * {@link org.apache.accumulo.examples.dirlist.Viewer}. See README.dirlist for instructions.
  */
 public class FileDataQuery {
   List<Entry<Key,Value>> lastRefs;

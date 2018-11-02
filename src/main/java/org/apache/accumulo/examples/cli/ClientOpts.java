@@ -50,8 +50,8 @@ public class ClientOpts extends Help {
   public static class TimeConverter implements IStringConverter<Long> {
     @Override
     public Long convert(String value) {
-      if(value.matches("[0-9]+"))
-        value = "PT"+value+"S"; //if only numbers then assume seconds
+      if (value.matches("[0-9]+"))
+        value = "PT" + value + "S"; // if only numbers then assume seconds
       return Duration.parse(value).toMillis();
     }
   }
@@ -76,8 +76,9 @@ public class ClientOpts extends Help {
         }
         return Long.parseLong(str.substring(0, str.length() - 1)) << multiplier;
       } catch (Exception ex) {
-        throw new IllegalArgumentException("The value '" + str + "' is not a valid memory setting. A valid value would a number "
-            + "possibily followed by an optional 'G', 'M', 'K', or 'B'.");
+        throw new IllegalArgumentException(
+            "The value '" + str + "' is not a valid memory setting. A valid value would a number "
+                + "possibily followed by an optional 'G', 'M', 'K', or 'B'.");
       }
     }
   }
@@ -97,7 +98,8 @@ public class ClientOpts extends Help {
       description = "Accumulo client properties file.  See README.md for details.")
   private File config = null;
 
-  @Parameter(names = {"-auths", "--auths"}, converter = AuthConverter.class, description = "the authorizations to use when reading or writing")
+  @Parameter(names = {"-auths", "--auths"}, converter = AuthConverter.class,
+      description = "the authorizations to use when reading or writing")
   public Authorizations auths = Authorizations.EMPTY;
 
   private ClientInfo cachedInfo = null;
@@ -107,7 +109,7 @@ public class ClientOpts extends Help {
     if (cachedAccumuloClient == null) {
       try {
         cachedAccumuloClient = Accumulo.newClient().usingClientInfo(getClientInfo()).build();
-      } catch (AccumuloException|AccumuloSecurityException e) {
+      } catch (AccumuloException | AccumuloSecurityException e) {
         throw new IllegalArgumentException(e);
       }
     }

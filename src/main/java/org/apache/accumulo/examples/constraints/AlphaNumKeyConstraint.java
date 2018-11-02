@@ -102,8 +102,10 @@ public class AlphaNumKeyConstraint implements Constraint {
     return null;
   }
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
     try {
       client.tableOperations().create("testConstraints");
     } catch (TableExistsException e) {
@@ -111,9 +113,11 @@ public class AlphaNumKeyConstraint implements Constraint {
     }
 
     /**
-     * Add the {@link AlphaNumKeyConstraint} to the table. Be sure to use the fully qualified class name.
+     * Add the {@link AlphaNumKeyConstraint} to the table. Be sure to use the fully qualified class
+     * name.
      */
-    int num = client.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint");
+    int num = client.tableOperations().addConstraint("testConstraints",
+        "org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint");
 
     System.out.println("Attempting to write non alpha numeric data to testConstraints");
     try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
@@ -121,7 +125,8 @@ public class AlphaNumKeyConstraint implements Constraint {
       m.put("cf1", "cq1", new Value(("value1").getBytes()));
       bw.addMutation(m);
     } catch (MutationsRejectedException e) {
-      e.getConstraintViolationSummaries().forEach(violationSummary -> System.out.println("Constraint violated: " + violationSummary.constrainClass));
+      e.getConstraintViolationSummaries().forEach(violationSummary -> System.out
+          .println("Constraint violated: " + violationSummary.constrainClass));
     }
 
     client.tableOperations().removeConstraint("testConstraints", num);

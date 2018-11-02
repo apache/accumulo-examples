@@ -27,8 +27,10 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 
 public class BloomFiltersNotFound {
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
     try {
       client.tableOperations().create("bloom_test3");
       client.tableOperations().create("bloom_test4");

@@ -32,8 +32,9 @@ import org.apache.hadoop.io.Text;
 import com.beust.jcommander.Parameter;
 
 /**
- * The program reads an accumulo table written by {@link Index} and writes out to another table. It writes out a mapping of documents to terms. The document to
- * term mapping is used by {@link ContinuousQuery}.
+ * The program reads an accumulo table written by {@link Index} and writes out to another table. It
+ * writes out a mapping of documents to terms. The document to term mapping is used by
+ * {@link ContinuousQuery}.
  */
 public class Reverse {
 
@@ -50,11 +51,12 @@ public class Reverse {
     Opts opts = new Opts();
     opts.parseArgs(Reverse.class.getName(), args);
 
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
 
     try (Scanner scanner = client.createScanner(opts.shardTable, Authorizations.EMPTY);
-         BatchWriter bw = client.createBatchWriter(opts.doc2TermTable)) {
-      for (Entry<Key, Value> entry : scanner) {
+        BatchWriter bw = client.createBatchWriter(opts.doc2TermTable)) {
+      for (Entry<Key,Value> entry : scanner) {
         Key key = entry.getKey();
         Mutation m = new Mutation(key.getColumnQualifier());
         m.put(key.getColumnFamily(), new Text(), new Value(new byte[0]));

@@ -39,8 +39,9 @@ import com.beust.jcommander.Parameter;
 import com.google.common.collect.Iterators;
 
 /**
- * Using the doc2word table created by Reverse.java, this program randomly selects N words per document. Then it continually queries a random set of words in
- * the shard table (created by {@link Index}) using the {@link IntersectingIterator}.
+ * Using the doc2word table created by Reverse.java, this program randomly selects N words per
+ * document. Then it continually queries a random set of words in the shard table (created by
+ * {@link Index}) using the {@link IntersectingIterator}.
  */
 public class ContinuousQuery {
 
@@ -63,9 +64,11 @@ public class ContinuousQuery {
     Opts opts = new Opts();
     opts.parseArgs(ContinuousQuery.class.getName(), args);
 
-    AccumuloClient client= Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
 
-    ArrayList<Text[]> randTerms = findRandomTerms(client.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
+    ArrayList<Text[]> randTerms = findRandomTerms(
+        client.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
 
     Random rand = new Random();
 
@@ -120,7 +123,8 @@ public class ContinuousQuery {
     return ret;
   }
 
-  private static void selectRandomWords(ArrayList<Text> words, ArrayList<Text[]> ret, Random rand, int numTerms) {
+  private static void selectRandomWords(ArrayList<Text> words, ArrayList<Text[]> ret, Random rand,
+      int numTerms) {
     if (words.size() >= numTerms) {
       Collections.shuffle(words, rand);
       Text docWords[] = new Text[numTerms];

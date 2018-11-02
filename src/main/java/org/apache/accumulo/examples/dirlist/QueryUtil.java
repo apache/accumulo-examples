@@ -37,11 +37,11 @@ import org.apache.hadoop.io.Text;
 import com.beust.jcommander.Parameter;
 
 /**
- * Provides utility methods for getting the info for a file, listing the contents of a directory, and performing single wild card searches on file or directory
- * names.
+ * Provides utility methods for getting the info for a file, listing the contents of a directory,
+ * and performing single wild card searches on file or directory names.
  */
 public class QueryUtil {
-  private AccumuloClient client= null;
+  private AccumuloClient client = null;
   private String tableName;
   private Authorizations auths;
   public static final Text DIR_COLF = new Text("dir");
@@ -72,7 +72,8 @@ public class QueryUtil {
   }
 
   /**
-   * Given a path, construct an accumulo row prepended with the path's depth for the directory table.
+   * Given a path, construct an accumulo row prepended with the path's depth for the directory
+   * table.
    *
    * @param path
    *          the full path of a file or directory
@@ -85,7 +86,8 @@ public class QueryUtil {
   }
 
   /**
-   * Given a path, construct an accumulo row prepended with the {@link #FORWARD_PREFIX} for the index table.
+   * Given a path, construct an accumulo row prepended with the {@link #FORWARD_PREFIX} for the
+   * index table.
    *
    * @param path
    *          the full path of a file or directory
@@ -101,7 +103,8 @@ public class QueryUtil {
   }
 
   /**
-   * Given a path, construct an accumulo row prepended with the {@link #REVERSE_PREFIX} with the path reversed for the index table.
+   * Given a path, construct an accumulo row prepended with the {@link #REVERSE_PREFIX} with the
+   * path reversed for the index table.
    *
    * @param path
    *          the full path of a file or directory
@@ -147,7 +150,8 @@ public class QueryUtil {
     for (Entry<Key,Value> e : scanner) {
       String type = getType(e.getKey().getColumnFamily());
       data.put("fullname", e.getKey().getRow().toString().substring(3));
-      data.put(type + e.getKey().getColumnQualifier().toString() + ":" + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
+      data.put(type + e.getKey().getColumnQualifier().toString() + ":"
+          + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
     }
     return data;
   }
@@ -172,7 +176,8 @@ public class QueryUtil {
         fim.put(name, new TreeMap<String,String>());
         fim.get(name).put("fullname", e.getKey().getRow().toString().substring(3));
       }
-      fim.get(name).put(type + e.getKey().getColumnQualifier().toString() + ":" + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
+      fim.get(name).put(type + e.getKey().getColumnQualifier().toString() + ":"
+          + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
     }
     return fim;
   }
@@ -191,10 +196,12 @@ public class QueryUtil {
   }
 
   /**
-   * Scans over the index table for files or directories with a given name, prefix, or suffix (indicated by a wildcard '*' at the beginning or end of the term.
+   * Scans over the index table for files or directories with a given name, prefix, or suffix
+   * (indicated by a wildcard '*' at the beginning or end of the term.
    *
    * @param exp
-   *          the name a file or directory to search for with an optional wildcard '*' at the beginning or end
+   *          the name a file or directory to search for with an optional wildcard '*' at the
+   *          beginning or end
    */
   public Iterable<Entry<Key,Value>> singleRestrictedWildCardSearch(String exp) throws Exception {
     if (exp.indexOf("/") >= 0)
@@ -218,7 +225,8 @@ public class QueryUtil {
   }
 
   /**
-   * Scans over the index table for files or directories with a given name that can contain a single wildcard '*' anywhere in the term.
+   * Scans over the index table for files or directories with a given name that can contain a single
+   * wildcard '*' anywhere in the term.
    *
    * @param exp
    *          the name a file or directory to search for with one optional wildcard '*'
@@ -240,10 +248,12 @@ public class QueryUtil {
 
     Scanner scanner = client.createScanner(tableName, auths);
     if (firstPart.length() >= lastPart.length()) {
-      System.out.println("executing middle wildcard search for " + regexString + " from entries starting with " + firstPart);
+      System.out.println("executing middle wildcard search for " + regexString
+          + " from entries starting with " + firstPart);
       scanner.setRange(Range.prefix(getForwardIndex(firstPart)));
     } else {
-      System.out.println("executing middle wildcard search for " + regexString + " from entries ending with " + lastPart);
+      System.out.println("executing middle wildcard search for " + regexString
+          + " from entries ending with " + lastPart);
       scanner.setRange(Range.prefix(getReverseIndex(lastPart)));
     }
     IteratorSetting regex = new IteratorSetting(50, "regex", RegExFilter.class);
@@ -260,7 +270,8 @@ public class QueryUtil {
   }
 
   /**
-   * Lists the contents of a directory using the directory table, or searches for file or directory names (if the -search flag is included).
+   * Lists the contents of a directory using the directory table, or searches for file or directory
+   * names (if the -search flag is included).
    */
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();

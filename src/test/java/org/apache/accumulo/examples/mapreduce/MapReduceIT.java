@@ -59,7 +59,8 @@ public class MapReduceIT extends ConfigurableMacBase {
     cfg.setProperty(Property.TSERV_NATIVEMAP_ENABLED, "false");
   }
 
-  public static final String hadoopTmpDirArg = "-Dhadoop.tmp.dir=" + System.getProperty("user.dir") + "/target/hadoop-tmp";
+  public static final String hadoopTmpDirArg = "-Dhadoop.tmp.dir=" + System.getProperty("user.dir")
+      + "/target/hadoop-tmp";
 
   static final String tablename = "mapredf";
   static final String input_cf = "cf-HASHTYPE";
@@ -70,15 +71,17 @@ public class MapReduceIT extends ConfigurableMacBase {
 
   @Test
   public void test() throws Exception {
-    String confFile = System.getProperty("user.dir")+"/target/examples.conf";
+    String confFile = System.getProperty("user.dir") + "/target/examples.conf";
     String instance = getClientInfo().getInstanceName();
     String keepers = getClientInfo().getZooKeepers();
     ExamplesIT.writeClientPropsFile(confFile, instance, keepers, "root", ROOT_PASSWORD);
     runTest(confFile, getClient(), getCluster());
   }
 
-  static void runTest(String confFile, AccumuloClient c, MiniAccumuloClusterImpl cluster) throws AccumuloException, AccumuloSecurityException, TableExistsException,
-      TableNotFoundException, MutationsRejectedException, IOException, InterruptedException, NoSuchAlgorithmException {
+  static void runTest(String confFile, AccumuloClient c, MiniAccumuloClusterImpl cluster)
+      throws AccumuloException, AccumuloSecurityException, TableExistsException,
+      TableNotFoundException, MutationsRejectedException, IOException, InterruptedException,
+      NoSuchAlgorithmException {
     c.tableOperations().create(tablename);
     BatchWriter bw = c.createBatchWriter(tablename, new BatchWriterConfig());
     for (int i = 0; i < 10; i++) {
@@ -87,7 +90,8 @@ public class MapReduceIT extends ConfigurableMacBase {
       bw.addMutation(m);
     }
     bw.close();
-    Process hash = cluster.exec(RowHash.class, Collections.singletonList(hadoopTmpDirArg), "-c", confFile, "-t", tablename, "--column", input_cfcq);
+    Process hash = cluster.exec(RowHash.class, Collections.singletonList(hadoopTmpDirArg), "-c",
+        confFile, "-t", tablename, "--column", input_cfcq);
     assertEquals(0, hash.waitFor());
 
     Scanner s = c.createScanner(tablename, Authorizations.EMPTY);
