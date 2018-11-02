@@ -18,7 +18,6 @@ package org.apache.accumulo.examples.client;
 
 import java.util.Map.Entry;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -37,6 +36,8 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.beust.jcommander.Parameter;
 
 /**
  * A demonstration of reading entire rows and deleting entire rows.
@@ -64,7 +65,8 @@ public class RowOperations {
     }
   }
 
-  private static void deleteRow(String row, AccumuloClient client, BatchWriter bw) throws MutationsRejectedException, TableNotFoundException {
+  private static void deleteRow(String row, AccumuloClient client, BatchWriter bw)
+      throws MutationsRejectedException, TableNotFoundException {
     Mutation mut = new Mutation(row);
     try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
       scanner.setRange(Range.exact(row));
@@ -81,7 +83,8 @@ public class RowOperations {
     String clientProps = "conf/accumulo-client.properties";
   }
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     Opts opts = new Opts();
     opts.parseArgs(RowOperations.class.getName(), args);
 
@@ -137,7 +140,7 @@ public class RowOperations {
       printAll(client);
 
       deleteRow("row1", client, bw);
-   }
+    }
 
     log.info("This is just row3");
     printAll(client);

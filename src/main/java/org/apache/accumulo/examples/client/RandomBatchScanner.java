@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -41,6 +40,8 @@ import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.jcommander.Parameter;
+
 /**
  * Simple example for reading random batches of data from Accumulo.
  */
@@ -53,7 +54,8 @@ public class RandomBatchScanner {
     String clientProps = "conf/accumulo-client.properties";
   }
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     Opts opts = new Opts();
     opts.parseArgs(RandomBatchScanner.class.getName(), args);
 
@@ -83,7 +85,7 @@ public class RandomBatchScanner {
     log.info("Reading ranges using BatchScanner");
     try (BatchScanner scan = client.createBatchScanner("batch", Authorizations.EMPTY, 20)) {
       scan.setRanges(ranges);
-      for (Entry<Key, Value> entry : scan) {
+      for (Entry<Key,Value> entry : scan) {
         Key key = entry.getKey();
         Value value = entry.getValue();
         String row = key.getRow().toString();

@@ -37,7 +37,8 @@ import org.apache.hadoop.io.Text;
 import com.beust.jcommander.Parameter;
 
 /**
- * This program queries a set of terms in the shard table (populated by {@link Index}) using the {@link IntersectingIterator}.
+ * This program queries a set of terms in the shard table (populated by {@link Index}) using the
+ * {@link IntersectingIterator}.
  */
 public class Query {
 
@@ -49,7 +50,8 @@ public class Query {
     @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
     private String tableName;
 
-    @Parameter(names = {"--sample"}, description = "Do queries against sample, useful when sample is built using column qualifier")
+    @Parameter(names = {"--sample"},
+        description = "Do queries against sample, useful when sample is built using column qualifier")
     private boolean useSample = false;
 
     @Parameter(names = {"--sampleCutoff"},
@@ -93,8 +95,10 @@ public class Query {
 
     try (BatchScanner bs = client.createBatchScanner(opts.tableName, Authorizations.EMPTY, 10)) {
       if (opts.useSample) {
-        SamplerConfiguration samplerConfig = client.tableOperations().getSamplerConfiguration(opts.tableName);
-        CutoffIntersectingIterator.validateSamplerConfig(client.tableOperations().getSamplerConfiguration(opts.tableName));
+        SamplerConfiguration samplerConfig = client.tableOperations()
+            .getSamplerConfiguration(opts.tableName);
+        CutoffIntersectingIterator.validateSamplerConfig(
+            client.tableOperations().getSamplerConfiguration(opts.tableName));
         bs.setSamplerConfiguration(samplerConfig);
       }
       for (String entry : query(bs, opts.terms, opts.sampleCutoff)) {

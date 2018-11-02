@@ -18,7 +18,6 @@ package org.apache.accumulo.examples.helloworld;
 
 import java.util.Map.Entry;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -33,6 +32,8 @@ import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.jcommander.Parameter;
+
 /**
  * Reads all data between two rows
  */
@@ -45,7 +46,8 @@ public class ReadData {
     String clientProps = "conf/accumulo-client.properties";
   }
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     Opts opts = new Opts();
     opts.parseArgs(ReadData.class.getName(), args);
 
@@ -53,9 +55,10 @@ public class ReadData {
 
     try (Scanner scan = client.createScanner("hellotable", Authorizations.EMPTY)) {
       scan.setRange(new Range(new Key("row_0"), new Key("row_1002")));
-      for (Entry<Key, Value> e : scan) {
+      for (Entry<Key,Value> e : scan) {
         Key key = e.getKey();
-        log.trace(key.getRow() + " " + key.getColumnFamily() + " " + key.getColumnQualifier() + " " + e.getValue());
+        log.trace(key.getRow() + " " + key.getColumnFamily() + " " + key.getColumnQualifier() + " "
+            + e.getValue());
       }
     }
   }

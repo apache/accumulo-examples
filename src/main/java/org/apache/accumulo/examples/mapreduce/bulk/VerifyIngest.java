@@ -35,8 +35,10 @@ import org.slf4j.LoggerFactory;
 public class VerifyIngest {
   private static final Logger log = LoggerFactory.getLogger(VerifyIngest.class);
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
     Scanner scanner = client.createScanner(SetupTable.tableName, Authorizations.EMPTY);
 
     scanner.setRange(new Range(String.format("row_%010d", 0), null));
@@ -51,12 +53,14 @@ public class VerifyIngest {
         Entry<Key,Value> entry = si.next();
 
         if (!entry.getKey().getRow().toString().equals(String.format("row_%010d", i))) {
-          log.error("unexpected row key " + entry.getKey().getRow().toString() + " expected " + String.format("row_%010d", i));
+          log.error("unexpected row key " + entry.getKey().getRow().toString() + " expected "
+              + String.format("row_%010d", i));
           ok = false;
         }
 
         if (!entry.getValue().toString().equals(String.format("value_%010d", i))) {
-          log.error("unexpected value " + entry.getValue().toString() + " expected " + String.format("value_%010d", i));
+          log.error("unexpected value " + entry.getValue().toString() + " expected "
+              + String.format("value_%010d", i));
           ok = false;
         }
 

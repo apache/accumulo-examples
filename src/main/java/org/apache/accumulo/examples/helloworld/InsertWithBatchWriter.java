@@ -16,7 +16,6 @@
  */
 package org.apache.accumulo.examples.helloworld;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -30,6 +29,8 @@ import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.jcommander.Parameter;
+
 /**
  * Inserts 10K rows (50K entries) into accumulo with each row having 5 entries.
  */
@@ -42,7 +43,8 @@ public class InsertWithBatchWriter {
     String clientProps = "conf/accumulo-client.properties";
   }
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     Opts opts = new Opts();
     opts.parseArgs(InsertWithBatchWriter.class.getName(), args);
 
@@ -58,7 +60,8 @@ public class InsertWithBatchWriter {
       for (int i = 0; i < 10000; i++) {
         Mutation m = new Mutation(String.format("row_%d", i));
         for (int j = 0; j < 5; j++) {
-          m.put("colfam", String.format("colqual_%d", j), new Value((String.format("value_%d_%d", i, j)).getBytes()));
+          m.put("colfam", String.format("colqual_%d", j),
+              new Value((String.format("value_%d_%d", i, j)).getBytes()));
         }
         bw.addMutation(m);
         if (i % 100 == 0) {

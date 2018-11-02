@@ -18,7 +18,6 @@ package org.apache.accumulo.examples.client;
 
 import java.util.Random;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -28,10 +27,11 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-
 import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.beust.jcommander.Parameter;
 
 /**
  * Simple example for writing random data in sequential order to Accumulo.
@@ -60,10 +60,12 @@ public class SequentialBatchWriter {
   }
 
   /**
-   * Writes 1000 entries to Accumulo using a {@link BatchWriter}. The rows of the entries will be sequential starting from 0.
-   * The column families will be "foo" and column qualifiers will be "1". The values will be random 50 byte arrays.
+   * Writes 1000 entries to Accumulo using a {@link BatchWriter}. The rows of the entries will be
+   * sequential starting from 0. The column families will be "foo" and column qualifiers will be
+   * "1". The values will be random 50 byte arrays.
    */
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     Opts opts = new Opts();
     opts.parseArgs(SequentialBatchWriter.class.getName(), args);
 

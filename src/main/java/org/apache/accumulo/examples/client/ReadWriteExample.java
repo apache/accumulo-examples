@@ -18,7 +18,6 @@ package org.apache.accumulo.examples.client;
 
 import java.util.Map.Entry;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -32,6 +31,8 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.beust.jcommander.Parameter;
 
 public class ReadWriteExample {
 
@@ -72,7 +73,7 @@ public class ReadWriteExample {
 
     // read data
     try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
-      for (Entry<Key, Value> entry : scanner) {
+      for (Entry<Key,Value> entry : scanner) {
         log.info(entry.getKey().toString() + " -> " + entry.getValue().toString());
       }
     }

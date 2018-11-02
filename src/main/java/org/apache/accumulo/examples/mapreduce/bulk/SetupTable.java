@@ -28,7 +28,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 
-
 public class SetupTable {
 
   static String[] splits = {"row_00000333", "row_00000666"};
@@ -37,11 +36,12 @@ public class SetupTable {
   static String outputFile = "bulk/test_1.txt";
 
   public static void main(String[] args) throws Exception {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
     try {
       client.tableOperations().create(tableName);
     } catch (TableExistsException e) {
-      //ignore
+      // ignore
     }
 
     // create a table with initial partitions
@@ -52,7 +52,8 @@ public class SetupTable {
     client.tableOperations().addSplits(tableName, intialPartitions);
 
     FileSystem fs = FileSystem.get(new Configuration());
-    try (PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(outputFile))))) {
+    try (PrintStream out = new PrintStream(
+        new BufferedOutputStream(fs.create(new Path(outputFile))))) {
       // create some data in outputFile
       for (int i = 0; i < numRows; i++) {
         out.println(String.format("row_%010d\tvalue_%010d", i, i));

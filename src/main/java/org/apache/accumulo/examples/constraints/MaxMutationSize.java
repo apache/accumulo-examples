@@ -51,8 +51,10 @@ public class MaxMutationSize implements Constraint {
     return violations;
   }
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
     try {
       client.tableOperations().create("testConstraints");
     } catch (TableExistsException e) {
@@ -60,9 +62,11 @@ public class MaxMutationSize implements Constraint {
     }
 
     /**
-     * Add the {@link MaxMutationSize} constraint to the table. Be sure to use the fully qualified class name
+     * Add the {@link MaxMutationSize} constraint to the table. Be sure to use the fully qualified
+     * class name
      */
-    int num = client.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.MaxMutationSize");
+    int num = client.tableOperations().addConstraint("testConstraints",
+        "org.apache.accumulo.examples.constraints.MaxMutationSize");
 
     System.out.println("Attempting to write a lot of mutations to testConstraints");
     try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
@@ -71,7 +75,8 @@ public class MaxMutationSize implements Constraint {
         m.put("cf" + i % 5000, "cq" + i, new Value(("value" + i).getBytes()));
       bw.addMutation(m);
     } catch (MutationsRejectedException e) {
-      e.getConstraintViolationSummaries().forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
+      e.getConstraintViolationSummaries()
+          .forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
     }
 
     client.tableOperations().removeConstraint("testConstraints", num);

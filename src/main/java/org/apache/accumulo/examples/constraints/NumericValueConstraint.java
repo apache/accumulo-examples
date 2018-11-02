@@ -42,7 +42,8 @@ public class NumericValueConstraint implements Constraint {
   static final short NON_NUMERIC_VALUE = 1;
   static final String VIOLATION_MESSAGE = "Value is not numeric";
 
-  private static final List<Short> VIOLATION_LIST = Collections.unmodifiableList(Arrays.asList(NON_NUMERIC_VALUE));
+  private static final List<Short> VIOLATION_LIST = Collections
+      .unmodifiableList(Arrays.asList(NON_NUMERIC_VALUE));
 
   private boolean isNumeric(byte bytes[]) {
     for (byte b : bytes) {
@@ -77,8 +78,10 @@ public class NumericValueConstraint implements Constraint {
     return null;
   }
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
     try {
       client.tableOperations().create("testConstraints");
     } catch (TableExistsException e) {
@@ -86,9 +89,11 @@ public class NumericValueConstraint implements Constraint {
     }
 
     /**
-     * Add the {@link NumericValueConstraint} constraint to the table.  Be sure to use the fully qualified class name
+     * Add the {@link NumericValueConstraint} constraint to the table. Be sure to use the fully
+     * qualified class name
      */
-    int num = client.tableOperations().addConstraint("testConstraints", "org.apache.accumulo.examples.constraints.NumericValueConstraint");
+    int num = client.tableOperations().addConstraint("testConstraints",
+        "org.apache.accumulo.examples.constraints.NumericValueConstraint");
 
     System.out.println("Attempting to write non numeric data to testConstraints");
     try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
@@ -96,7 +101,8 @@ public class NumericValueConstraint implements Constraint {
       m.put("cf1", "cq1", new Value(("value1--$$@@%%").getBytes()));
       bw.addMutation(m);
     } catch (MutationsRejectedException e) {
-      e.getConstraintViolationSummaries().forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
+      e.getConstraintViolationSummaries()
+          .forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
     }
 
     client.tableOperations().removeConstraint("testConstraints", num);

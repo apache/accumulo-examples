@@ -32,8 +32,10 @@ import org.apache.accumulo.examples.client.RandomBatchWriter;
 
 public class BloomFilters {
 
-  public static void main(String[] args) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+  public static void main(String[] args)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
     try {
       System.out.println("Creating bloom_test1 and bloom_test2");
       client.tableOperations().create("bloom_test1");
@@ -64,8 +66,8 @@ public class BloomFilters {
   }
 
   // write a million random rows
-  static void writeData(AccumuloClient client, String tableName, int seed) throws TableNotFoundException,
-        MutationsRejectedException{
+  static void writeData(AccumuloClient client, String tableName, int seed)
+      throws TableNotFoundException, MutationsRejectedException {
     Random r = new Random(seed);
     try (BatchWriter bw = client.createBatchWriter(tableName)) {
       for (int x = 0; x < 1_000_000; x++) {

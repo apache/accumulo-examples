@@ -35,7 +35,8 @@ import com.beust.jcommander.Parameter;
 /**
  * This program indexes a set of documents given on the command line into a shard table.
  *
- * What it writes to the table is row = partition id, column family = term, column qualifier = document id.
+ * What it writes to the table is row = partition id, column family = term, column qualifier =
+ * document id.
  */
 public class Index {
 
@@ -43,7 +44,8 @@ public class Index {
     return new Text(String.format("%08x", Math.abs(partition)));
   }
 
-  public static void index(int numPartitions, Text docId, String doc, String splitRegex, BatchWriter bw) throws Exception {
+  public static void index(int numPartitions, Text docId, String doc, String splitRegex,
+      BatchWriter bw) throws Exception {
 
     String[] tokens = doc.split(splitRegex);
 
@@ -66,7 +68,8 @@ public class Index {
       bw.addMutation(m);
   }
 
-  public static void index(int numPartitions, File src, String splitRegex, BatchWriter bw) throws Exception {
+  public static void index(int numPartitions, File src, String splitRegex, BatchWriter bw)
+      throws Exception {
     if (src.isDirectory()) {
       File[] files = src.listFiles();
       if (files != null) {
@@ -97,7 +100,8 @@ public class Index {
     @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
     private String tableName;
 
-    @Parameter(names = "--partitions", required = true, description = "the number of shards to create")
+    @Parameter(names = "--partitions", required = true,
+        description = "the number of shards to create")
     int partitions;
 
     @Parameter(required = true, description = "<file> { <file> ... }")
@@ -110,7 +114,8 @@ public class Index {
 
     String splitRegex = "\\W+";
 
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties").build();
+    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
+        .build();
 
     try (BatchWriter bw = client.createBatchWriter(opts.tableName)) {
       for (String filename : opts.files) {
