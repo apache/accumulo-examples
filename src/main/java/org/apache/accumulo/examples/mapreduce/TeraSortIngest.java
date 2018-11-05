@@ -392,7 +392,6 @@ public class TeraSortIngest extends Configured implements Tool {
     opts.setAccumuloConfigs(job);
     BatchWriterConfig bwConfig = new BatchWriterConfig().setMaxMemory(10L * 1000 * 1000);
     AccumuloOutputFormat.setBatchWriterOptions(job, bwConfig);
-    AccumuloOutputFormat.setClientInfo(job, opts.getClientInfo());
 
     Configuration conf = job.getConfiguration();
     conf.setLong(NUMROWS, opts.numRows);
