@@ -53,7 +53,7 @@ class CountingVerifyingReceiver {
           + new String(expectedValue, UTF_8) + " got : " + new String(value.get(), UTF_8));
     }
 
-    if (!expectedRows.containsKey(key.getRow())) {
+    if (!expectedRows.containsKey(key.getRow().toString())) {
       log.error("Got unexpected key " + key);
     } else {
       expectedRows.put(key.getRow().toString(), true);

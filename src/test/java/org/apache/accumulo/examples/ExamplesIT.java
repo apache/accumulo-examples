@@ -192,7 +192,8 @@ public class ExamplesIT extends AccumuloClusterHarness {
       count++;
     }
     assertTrue(count > 0);
-    assertTrue("Output did not contain myApp@myHost", pair.getValue().contains("myApp@myHost"));
+    assertTrue("Output [" + pair.getValue() + "] did not contain myApp@myHost",
+        pair.getValue().contains("myApp@myHost"));
     if (ClusterType.MINI == getClusterType() && null != trace) {
       trace.destroy();
     }
@@ -438,17 +439,13 @@ public class ExamplesIT extends AccumuloClusterHarness {
   }
 
   @Test
-  public void testSequentialBatchWriter() throws Exception {
-    goodExec(SequentialBatchWriter.class, "-c", getClientPropsFile());
-  }
-
-  @Test
   public void testReadWriteAndDelete() throws Exception {
     goodExec(ReadWriteExample.class, "-c", getClientPropsFile());
   }
 
   @Test
-  public void testRandomBatchScanner() throws Exception {
+  public void testBatch() throws Exception {
+    goodExec(SequentialBatchWriter.class, "-c", getClientPropsFile());
     goodExec(RandomBatchScanner.class, "-c", getClientPropsFile());
   }
 

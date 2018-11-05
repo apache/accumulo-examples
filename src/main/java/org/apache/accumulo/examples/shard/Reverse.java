@@ -40,10 +40,13 @@ public class Reverse {
 
   static class Opts extends Help {
 
-    @Parameter(names = "--shardTable")
+    @Parameter(names = "-c", description = "Accumulo client properties file")
+    String clientProps = "conf/accumulo-client.properties";
+
+    @Parameter(names = "--shardTable", description = "name of the shard table")
     String shardTable = "shard";
 
-    @Parameter(names = "--doc2Term")
+    @Parameter(names = "--doc2Term", description = "name of the doc2Term table")
     String doc2TermTable = "doc2Term";
   }
 
@@ -51,8 +54,7 @@ public class Reverse {
     Opts opts = new Opts();
     opts.parseArgs(Reverse.class.getName(), args);
 
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
+    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
 
     try (Scanner scanner = client.createScanner(opts.shardTable, Authorizations.EMPTY);
         BatchWriter bw = client.createBatchWriter(opts.doc2TermTable)) {
