@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import org.apache.accumulo.core.cli.Help;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -32,7 +33,6 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.IntersectingIterator;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.examples.cli.Help;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -46,6 +46,9 @@ import com.google.common.collect.Iterators;
 public class ContinuousQuery {
 
   static class Opts extends Help {
+
+    @Parameter(names = "-c", description = "Accumulo client properties file")
+    String clientProps = "conf/accumulo-client.properties";
 
     @Parameter(names = "--shardTable", required = true, description = "name of the shard table")
     String tableName = null;
@@ -64,8 +67,7 @@ public class ContinuousQuery {
     Opts opts = new Opts();
     opts.parseArgs(ContinuousQuery.class.getName(), args);
 
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
+    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
 
     ArrayList<Text[]> randTerms = findRandomTerms(
         client.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);

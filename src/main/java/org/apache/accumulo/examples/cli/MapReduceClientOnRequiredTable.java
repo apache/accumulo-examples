@@ -17,6 +17,7 @@
 package org.apache.accumulo.examples.cli;
 
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.ClientConfiguration;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
@@ -38,6 +39,12 @@ public class MapReduceClientOnRequiredTable extends MapReduceClientOpts {
     super.setAccumuloConfigs(job);
 
     final String principal = getPrincipal(), tableName = getTableName();
+
+    ClientConfiguration cc = ClientConfiguration.create()
+        .withInstance(getClientInfo().getInstanceName())
+        .withZkHosts(getClientInfo().getZooKeepers());
+    AccumuloInputFormat.setZooKeeperInstance(job, cc);
+    AccumuloOutputFormat.setZooKeeperInstance(job, cc);
 
     if (tokenFile.isEmpty()) {
       AuthenticationToken token = getToken();
