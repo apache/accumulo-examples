@@ -24,7 +24,6 @@ import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -122,8 +121,7 @@ public class RandomBatchWriter {
   /**
    * Writes a specified number of entries to Accumulo using a {@link BatchWriter}.
    */
-  public static void main(String[] args)
-      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args) throws AccumuloException, TableNotFoundException {
     Opts opts = new Opts();
     BatchWriterOpts bwOpts = new BatchWriterOpts();
     opts.parseArgs(RandomBatchWriter.class.getName(), args, bwOpts);
@@ -141,24 +139,22 @@ public class RandomBatchWriter {
     else {
       r = new Random(opts.seed);
     }
-    AccumuloClient client = opts.getAccumuloClient();
-    BatchWriter bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
+    try (AccumuloClient client = opts.createAccumuloClient();
+        BatchWriter bw = client.createBatchWriter(opts.getTableName(),
+            bwOpts.getBatchWriterConfig())) {
 
-    // reuse the ColumnVisibility object to improve performance
-    ColumnVisibility cv = opts.visiblity;
+      // reuse the ColumnVisibility object to improve performance
+      ColumnVisibility cv = opts.visiblity;
 
-    // Generate num unique row ids in the given range
-    HashSet<Long> rowids = new HashSet<>(opts.num);
-    while (rowids.size() < opts.num) {
-      rowids.add((abs(r.nextLong()) % (opts.max - opts.min)) + opts.min);
-    }
-    for (long rowid : rowids) {
-      Mutation m = createMutation(rowid, opts.size, cv);
-      bw.addMutation(m);
-    }
-
-    try {
-      bw.close();
+      // Generate num unique row ids in the given range
+      HashSet<Long> rowids = new HashSet<>(opts.num);
+      while (rowids.size() < opts.num) {
+        rowids.add((abs(r.nextLong()) % (opts.max - opts.min)) + opts.min);
+      }
+      for (long rowid : rowids) {
+        Mutation m = createMutation(rowid, opts.size, cv);
+        bw.addMutation(m);
+      }
     } catch (MutationsRejectedException e) {
       if (e.getSecurityErrorCodes().size() > 0) {
         HashMap<String,Set<SecurityErrorCode>> tables = new HashMap<>();

@@ -63,85 +63,87 @@ public class SampleExample {
     BatchWriterOpts bwOpts = new BatchWriterOpts();
     opts.parseArgs(RandomBatchWriter.class.getName(), args, bwOpts);
 
-    AccumuloClient client = opts.getAccumuloClient();
+    try (AccumuloClient client = opts.createAccumuloClient()) {
 
-    if (!client.tableOperations().exists(opts.getTableName())) {
-      client.tableOperations().create(opts.getTableName());
-    } else {
-      System.out.println("Table exists, not doing anything.");
-      return;
-    }
+      if (!client.tableOperations().exists(opts.getTableName())) {
+        client.tableOperations().create(opts.getTableName());
+      } else {
+        System.out.println("Table exists, not doing anything.");
+        return;
+      }
 
-    // write some data
-    BatchWriter bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
-    bw.addMutation(createMutation("9225", "abcde", "file://foo.txt"));
-    bw.addMutation(createMutation("8934", "accumulo scales", "file://accumulo_notes.txt"));
-    bw.addMutation(
-        createMutation("2317", "milk, eggs, bread, parmigiano-reggiano", "file://groceries/9/txt"));
-    bw.addMutation(createMutation("3900", "EC2 ate my homework", "file://final_project.txt"));
-    bw.flush();
+      // write some data
+      BatchWriter bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
+      bw.addMutation(createMutation("9225", "abcde", "file://foo.txt"));
+      bw.addMutation(createMutation("8934", "accumulo scales", "file://accumulo_notes.txt"));
+      bw.addMutation(createMutation("2317", "milk, eggs, bread, parmigiano-reggiano",
+          "file://groceries/9/txt"));
+      bw.addMutation(createMutation("3900", "EC2 ate my homework", "file://final_project.txt"));
+      bw.flush();
 
-    SamplerConfiguration sc1 = new SamplerConfiguration(RowSampler.class.getName());
-    sc1.setOptions(ImmutableMap.of("hasher", "murmur3_32", "modulus", "3"));
+      SamplerConfiguration sc1 = new SamplerConfiguration(RowSampler.class.getName());
+      sc1.setOptions(ImmutableMap.of("hasher", "murmur3_32", "modulus", "3"));
 
-    client.tableOperations().setSamplerConfiguration(opts.getTableName(), sc1);
+      client.tableOperations().setSamplerConfiguration(opts.getTableName(), sc1);
 
-    Scanner scanner = client.createScanner(opts.getTableName(), Authorizations.EMPTY);
-    System.out.println("Scanning all data :");
-    print(scanner);
-    System.out.println();
-
-    System.out.println(
-        "Scanning with sampler configuration.  Data was written before sampler was set on table, scan should fail.");
-    scanner.setSamplerConfiguration(sc1);
-    try {
+      Scanner scanner = client.createScanner(opts.getTableName(), Authorizations.EMPTY);
+      System.out.println("Scanning all data :");
       print(scanner);
-    } catch (SampleNotPresentException e) {
-      System.out.println("  Saw sample not present exception as expected.");
-    }
-    System.out.println();
+      System.out.println();
 
-    // compact table to recreate sample data
-    client.tableOperations().compact(opts.getTableName(),
-        new CompactionConfig().setCompactionStrategy(NO_SAMPLE_STRATEGY));
+      System.out.println(
+          "Scanning with sampler configuration.  Data was written before sampler was set on table, scan should fail.");
+      scanner.setSamplerConfiguration(sc1);
+      try {
+        print(scanner);
+      } catch (SampleNotPresentException e) {
+        System.out.println("  Saw sample not present exception as expected.");
+      }
+      System.out.println();
 
-    System.out.println("Scanning after compaction (compaction should have created sample data) : ");
-    print(scanner);
-    System.out.println();
+      // compact table to recreate sample data
+      client.tableOperations().compact(opts.getTableName(),
+          new CompactionConfig().setCompactionStrategy(NO_SAMPLE_STRATEGY));
 
-    // update a document in the sample data
-    bw.addMutation(createMutation("2317", "milk, eggs, bread, parmigiano-reggiano, butter",
-        "file://groceries/9/txt"));
-    bw.close();
-    System.out.println(
-        "Scanning sample after updating content for docId 2317 (should see content change in sample data) : ");
-    print(scanner);
-    System.out.println();
-
-    // change tables sampling configuration...
-    SamplerConfiguration sc2 = new SamplerConfiguration(RowSampler.class.getName());
-    sc2.setOptions(ImmutableMap.of("hasher", "murmur3_32", "modulus", "2"));
-    client.tableOperations().setSamplerConfiguration(opts.getTableName(), sc2);
-    // compact table to recreate sample data using new configuration
-    client.tableOperations().compact(opts.getTableName(),
-        new CompactionConfig().setCompactionStrategy(NO_SAMPLE_STRATEGY));
-
-    System.out.println(
-        "Scanning with old sampler configuration.  Sample data was created using new configuration with a compaction.  Scan should fail.");
-    try {
-      // try scanning with old sampler configuration
+      System.out
+          .println("Scanning after compaction (compaction should have created sample data) : ");
       print(scanner);
-    } catch (SampleNotPresentException e) {
-      System.out.println("  Saw sample not present exception as expected ");
+      System.out.println();
+
+      // update a document in the sample data
+      bw.addMutation(createMutation("2317", "milk, eggs, bread, parmigiano-reggiano, butter",
+          "file://groceries/9/txt"));
+      bw.close();
+      System.out.println(
+          "Scanning sample after updating content for docId 2317 (should see content change in sample data) : ");
+      print(scanner);
+      System.out.println();
+
+      // change tables sampling configuration...
+      SamplerConfiguration sc2 = new SamplerConfiguration(RowSampler.class.getName());
+      sc2.setOptions(ImmutableMap.of("hasher", "murmur3_32", "modulus", "2"));
+      client.tableOperations().setSamplerConfiguration(opts.getTableName(), sc2);
+      // compact table to recreate sample data using new configuration
+      client.tableOperations().compact(opts.getTableName(),
+          new CompactionConfig().setCompactionStrategy(NO_SAMPLE_STRATEGY));
+
+      System.out.println(
+          "Scanning with old sampler configuration.  Sample data was created using new configuration with a compaction.  Scan should fail.");
+      try {
+        // try scanning with old sampler configuration
+        print(scanner);
+      } catch (SampleNotPresentException e) {
+        System.out.println("  Saw sample not present exception as expected ");
+      }
+      System.out.println();
+
+      // update expected sampler configuration on scanner
+      scanner.setSamplerConfiguration(sc2);
+
+      System.out.println("Scanning with new sampler configuration : ");
+      print(scanner);
+      System.out.println();
     }
-    System.out.println();
-
-    // update expected sampler configuration on scanner
-    scanner.setSamplerConfiguration(sc2);
-
-    System.out.println("Scanning with new sampler configuration : ");
-    print(scanner);
-    System.out.println();
 
   }
 

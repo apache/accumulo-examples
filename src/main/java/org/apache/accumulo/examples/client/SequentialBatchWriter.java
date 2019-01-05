@@ -27,11 +27,9 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.Help;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.beust.jcommander.Parameter;
 
 /**
  * Simple example for writing random data in sequential order to Accumulo.
@@ -54,11 +52,6 @@ public class SequentialBatchWriter {
     return new Value(value);
   }
 
-  static class Opts extends Help {
-    @Parameter(names = "-c")
-    String clientProps = "conf/accumulo-client.properties";
-  }
-
   /**
    * Writes 1000 entries to Accumulo using a {@link BatchWriter}. The rows of the entries will be
    * sequential starting from 0. The column families will be "foo" and column qualifiers will be
@@ -66,24 +59,25 @@ public class SequentialBatchWriter {
    */
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Opts opts = new Opts();
+    ClientOpts opts = new ClientOpts();
     opts.parseArgs(SequentialBatchWriter.class.getName(), args);
 
-    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
-    try {
-      client.tableOperations().create("batch");
-    } catch (TableExistsException e) {
-      // ignore
-    }
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      try {
+        client.tableOperations().create("batch");
+      } catch (TableExistsException e) {
+        // ignore
+      }
 
-    try (BatchWriter bw = client.createBatchWriter("batch")) {
-      for (int i = 0; i < 10000; i++) {
-        Mutation m = new Mutation(String.format("row_%010d", i));
-        // create a random value that is a function of row id for verification purposes
-        m.put("foo", "1", createValue(i));
-        bw.addMutation(m);
-        if (i % 1000 == 0) {
-          log.trace("wrote {} entries", i);
+      try (BatchWriter bw = client.createBatchWriter("batch")) {
+        for (int i = 0; i < 10000; i++) {
+          Mutation m = new Mutation(String.format("row_%010d", i));
+          // create a random value that is a function of row id for verification purposes
+          m.put("foo", "1", createValue(i));
+          bw.addMutation(m);
+          if (i % 1000 == 0) {
+            log.trace("wrote {} entries", i);
+          }
         }
       }
     }

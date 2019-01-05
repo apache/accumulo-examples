@@ -18,30 +18,22 @@ package org.apache.accumulo.examples.mapreduce;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.ExamplesIT;
-import org.apache.accumulo.minicluster.impl.MiniAccumuloClusterImpl;
-import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -75,34 +67,29 @@ public class MapReduceIT extends ConfigurableMacBase {
     String instance = getClientInfo().getInstanceName();
     String keepers = getClientInfo().getZooKeepers();
     ExamplesIT.writeClientPropsFile(confFile, instance, keepers, "root", ROOT_PASSWORD);
-    runTest(confFile, getClient(), getCluster());
+    try (AccumuloClient client = createClient()) {
+      client.tableOperations().create(tablename);
+      BatchWriter bw = client.createBatchWriter(tablename, new BatchWriterConfig());
+      for (int i = 0; i < 10; i++) {
+        Mutation m = new Mutation("" + i);
+        m.put(input_cf, input_cq, "row" + i);
+        bw.addMutation(m);
+      }
+      bw.close();
+      Process hash = getCluster().exec(RowHash.class, Collections.singletonList(hadoopTmpDirArg),
+          "-c", confFile, "-t", tablename, "--column", input_cfcq);
+      assertEquals(0, hash.waitFor());
+
+      Scanner s = client.createScanner(tablename, Authorizations.EMPTY);
+      s.fetchColumn(new Text(input_cf), new Text(output_cq));
+      int i = 0;
+      for (Entry<Key,Value> entry : s) {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] check = Base64.getEncoder().encode(md.digest(("row" + i).getBytes()));
+        assertEquals(entry.getValue().toString(), new String(check));
+        i++;
+      }
+    }
   }
 
-  static void runTest(String confFile, AccumuloClient c, MiniAccumuloClusterImpl cluster)
-      throws AccumuloException, AccumuloSecurityException, TableExistsException,
-      TableNotFoundException, MutationsRejectedException, IOException, InterruptedException,
-      NoSuchAlgorithmException {
-    c.tableOperations().create(tablename);
-    BatchWriter bw = c.createBatchWriter(tablename, new BatchWriterConfig());
-    for (int i = 0; i < 10; i++) {
-      Mutation m = new Mutation("" + i);
-      m.put(input_cf, input_cq, "row" + i);
-      bw.addMutation(m);
-    }
-    bw.close();
-    Process hash = cluster.exec(RowHash.class, Collections.singletonList(hadoopTmpDirArg), "-c",
-        confFile, "-t", tablename, "--column", input_cfcq);
-    assertEquals(0, hash.waitFor());
-
-    Scanner s = c.createScanner(tablename, Authorizations.EMPTY);
-    s.fetchColumn(new Text(input_cf), new Text(output_cq));
-    int i = 0;
-    for (Entry<Key,Value> entry : s) {
-      MessageDigest md = MessageDigest.getInstance("MD5");
-      byte[] check = Base64.getEncoder().encode(md.digest(("row" + i).getBytes()));
-      assertEquals(entry.getValue().toString(), new String(check));
-      i++;
-    }
-
-  }
 }

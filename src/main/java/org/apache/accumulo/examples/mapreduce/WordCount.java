@@ -17,49 +17,51 @@
 package org.apache.accumulo.examples.mapreduce;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
 
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.core.iterators.user.SummingCombiner;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
 /**
- * A simple map reduce job that inserts word counts into accumulo. See the README for instructions
- * on how to run this.
- *
+ * A simple MapReduce job that inserts word counts into Accumulo. See docs/mapred.md
  */
-public class WordCount extends Configured implements Tool {
+public class WordCount {
 
   private static final Logger log = LoggerFactory.getLogger(WordCount.class);
 
-  static class Opts extends MapReduceClientOnRequiredTable {
-    @Parameter(names = "--input", description = "input directory")
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, description = "Name of output Accumulo table")
+    String tableName = "wordCount";
+    @Parameter(names = {"-i", "--input"}, required = true, description = "HDFS input directory")
     String inputDirectory;
   }
 
   public static class MapClass extends Mapper<LongWritable,Text,Text,Mutation> {
     @Override
     public void map(LongWritable key, Text value, Context output) throws IOException {
+      String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
       String[] words = value.toString().split("\\s+");
 
       for (String word : words) {
-
-        Mutation mutation = new Mutation(new Text(word));
-        mutation.put(new Text("count"), new Text("20080906"), new Value("1".getBytes()));
+        Mutation mutation = new Mutation(word);
+        mutation.at().family("count").qualifier(today).put("1");
 
         try {
           output.write(null, mutation);
@@ -70,31 +72,37 @@ public class WordCount extends Configured implements Tool {
     }
   }
 
-  @Override
-  public int run(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(WordCount.class.getName(), args);
 
-    Job job = Job.getInstance(getConf());
-    job.setJobName(WordCount.class.getName());
-    job.setJarByClass(this.getClass());
+    // Create Accumulo table and attach Summing iterator
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      client.tableOperations().create(opts.tableName);
+      IteratorSetting is = new IteratorSetting(10, SummingCombiner.class);
+      SummingCombiner.setColumns(is,
+          Collections.singletonList(new IteratorSetting.Column("count")));
+      SummingCombiner.setEncodingType(is, SummingCombiner.Type.STRING);
+      client.tableOperations().attachIterator(opts.tableName, is);
+    } catch (TableExistsException e) {
+      // ignore
+    }
 
+    // Create M/R job
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(WordCount.class.getName());
+    job.setJarByClass(WordCount.class);
     job.setInputFormatClass(TextInputFormat.class);
     TextInputFormat.setInputPaths(job, new Path(opts.inputDirectory));
 
     job.setMapperClass(MapClass.class);
-
     job.setNumReduceTasks(0);
-
     job.setOutputFormatClass(AccumuloOutputFormat.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Mutation.class);
-    opts.setAccumuloConfigs(job);
-    job.waitForCompletion(true);
-    return 0;
-  }
 
-  public static void main(String[] args) throws Exception {
-    ToolRunner.run(new Configuration(), new WordCount(), args);
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
+        .defaultTable(opts.tableName).store(job);
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }

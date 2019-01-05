@@ -21,12 +21,12 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
 import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.accumulo.tracer.TraceDump;
-import org.apache.accumulo.tracer.TraceDump.Printer;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,6 @@ import com.beust.jcommander.Parameter;
 
 /**
  * Example of using the TraceDump class to print a formatted view of a Trace
- *
  */
 public class TraceDumpExample {
   private static final Logger log = LoggerFactory.getLogger(TraceDumpExample.class);
@@ -57,36 +56,32 @@ public class TraceDumpExample {
       throw new IllegalArgumentException("--traceid option is required");
     }
 
-    final AccumuloClient client = opts.getAccumuloClient();
-    final String principal = opts.getPrincipal();
-    final String table = opts.getTableName();
-    if (!client.securityOperations().hasTablePermission(principal, table, TablePermission.READ)) {
-      client.securityOperations().grantTablePermission(principal, table, TablePermission.READ);
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException(e);
-      }
-      while (!client.securityOperations().hasTablePermission(principal, table,
-          TablePermission.READ)) {
-        log.info("{} didn't propagate read permission on {}", principal, table);
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      final String principal = ClientProperty.AUTH_PRINCIPAL.getValue(opts.getClientProperties());
+      final String table = opts.getTableName();
+      if (!client.securityOperations().hasTablePermission(principal, table, TablePermission.READ)) {
+        client.securityOperations().grantTablePermission(principal, table, TablePermission.READ);
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           throw new RuntimeException(e);
         }
+        while (!client.securityOperations().hasTablePermission(principal, table,
+            TablePermission.READ)) {
+          log.info("{} didn't propagate read permission on {}", principal, table);
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+          }
+        }
       }
+      Scanner scanner = client.createScanner(table, opts.auths);
+      scanner.setRange(new Range(new Text(opts.traceId)));
+      TraceDump.printTrace(scanner, System.out::println);
     }
-    Scanner scanner = client.createScanner(table, opts.auths);
-    scanner.setRange(new Range(new Text(opts.traceId)));
-    TraceDump.printTrace(scanner, new Printer() {
-      @Override
-      public void print(String line) {
-        System.out.println(line);
-      }
-    });
   }
 
   public static void main(String[] args)

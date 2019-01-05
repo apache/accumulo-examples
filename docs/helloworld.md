@@ -18,12 +18,12 @@ limitations under the License.
 
 This tutorial uses the following Java classes:
 
- * [InsertWithBatchWriter.java] - Inserts 10K rows (50K entries) into accumulo with each row having 5 entries
- * [ReadData.java] - Reads data between two rows
+ * [Insert.java] - Inserts 10K rows (50K entries) into accumulo with each row having 5 entries
+ * [Read.java] - Reads data between two rows
 
 Inserts data with a BatchWriter:
 
-    $ ./bin/runex helloworld.InsertWithBatchWriter
+    $ ./bin/runex helloworld.Insert
 
 On the accumulo status page at the URL below (where 'master' is replaced with the name or IP of your accumulo master), you should see 50K entries
 
@@ -36,7 +36,7 @@ To view the entries, use the shell (run `accumulo shell -u username -p password`
 
 You can also use a Java class to scan the table:
 
-    $ ./bin/runex helloworld.ReadData
+    $ ./bin/runex helloworld.Read
 
-[InsertWithBatchWriter.java]: ../src/main/java/org/apache/accumulo/examples/helloworld/InsertWithBatchWriter.java
-[ReadData.java]: ../src/main/java/org/apache/accumulo/examples/helloworld/ReadData.java
+[Insert.java]: ../src/main/java/org/apache/accumulo/examples/helloworld/Insert.java
+[Read.java]: ../src/main/java/org/apache/accumulo/examples/helloworld/Read.java

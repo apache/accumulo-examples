@@ -34,6 +34,7 @@ import org.apache.accumulo.core.constraints.Constraint;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.cli.ClientOpts;
 
 /**
  * This class is an accumulo constraint that ensures all fields of a key are alpha numeric.
@@ -104,31 +105,34 @@ public class AlphaNumKeyConstraint implements Constraint {
 
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
-    try {
-      client.tableOperations().create("testConstraints");
-    } catch (TableExistsException e) {
-      // ignore
+    ClientOpts opts = new ClientOpts();
+    opts.parseArgs(AlphaNumKeyConstraint.class.getName(), args);
+
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      try {
+        client.tableOperations().create("testConstraints");
+      } catch (TableExistsException e) {
+        // ignore
+      }
+
+      /**
+       * Add the {@link AlphaNumKeyConstraint} to the table. Be sure to use the fully qualified
+       * class name.
+       */
+      int num = client.tableOperations().addConstraint("testConstraints",
+          "org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint");
+
+      System.out.println("Attempting to write non alpha numeric data to testConstraints");
+      try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
+        Mutation m = new Mutation("r1--$$@@%%");
+        m.put("cf1", "cq1", new Value(("value1").getBytes()));
+        bw.addMutation(m);
+      } catch (MutationsRejectedException e) {
+        e.getConstraintViolationSummaries().forEach(violationSummary -> System.out
+            .println("Constraint violated: " + violationSummary.constrainClass));
+      }
+
+      client.tableOperations().removeConstraint("testConstraints", num);
     }
-
-    /**
-     * Add the {@link AlphaNumKeyConstraint} to the table. Be sure to use the fully qualified class
-     * name.
-     */
-    int num = client.tableOperations().addConstraint("testConstraints",
-        "org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint");
-
-    System.out.println("Attempting to write non alpha numeric data to testConstraints");
-    try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
-      Mutation m = new Mutation("r1--$$@@%%");
-      m.put("cf1", "cq1", new Value(("value1").getBytes()));
-      bw.addMutation(m);
-    } catch (MutationsRejectedException e) {
-      e.getConstraintViolationSummaries().forEach(violationSummary -> System.out
-          .println("Constraint violated: " + violationSummary.constrainClass));
-    }
-
-    client.tableOperations().removeConstraint("testConstraints", num);
   }
 }

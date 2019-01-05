@@ -25,27 +25,27 @@ import java.util.Random;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.ClientOpts;
 
 /**
  * Simple example for reading random batches of data from Accumulo.
  */
 public class BloomBatchScanner {
 
-  public static void main(String[] args)
-      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
+  public static void main(String[] args) throws TableNotFoundException {
+    ClientOpts opts = new ClientOpts();
+    opts.parseArgs(BloomBatchScanner.class.getName(), args);
 
-    scan(client, "bloom_test1", 7);
-    scan(client, "bloom_test2", 7);
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      scan(client, "bloom_test1", 7);
+      scan(client, "bloom_test2", 7);
+    }
   }
 
   static void scan(AccumuloClient client, String tableName, int seed)

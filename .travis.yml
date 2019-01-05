@@ -19,4 +19,4 @@ cache:
 jdk:
   - openjdk8
 install: true
-script: mvn clean verify -DskipITs
+script: mvn clean verify

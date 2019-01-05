@@ -18,36 +18,34 @@ package org.apache.accumulo.examples.mapreduce;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.Pair;
 import org.apache.accumulo.core.util.format.DefaultFormatter;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.InputFormatBuilder;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 
 import com.beust.jcommander.Parameter;
 
 /**
  * Takes a table and outputs the specified column to a set of part files on hdfs
- * {@code accumulo accumulo.examples.mapreduce.TableToFile <username> <password> <tablename> <column> <hdfs-output-path>}
  */
-public class TableToFile extends Configured implements Tool {
+public class TableToFile {
 
-  static class Opts extends MapReduceClientOnRequiredTable {
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = "--output", description = "output directory", required = true)
     String output;
     @Parameter(names = "--columns", description = "columns to extract, in cf:cq{,cf:cq,...} form")
@@ -66,48 +64,36 @@ public class TableToFile extends Configured implements Tool {
     }
   }
 
-  @Override
-  public int run(String[] args)
-      throws IOException, InterruptedException, ClassNotFoundException, AccumuloSecurityException {
-    Job job = Job.getInstance(getConf());
-    job.setJobName(this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
-    job.setJarByClass(this.getClass());
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
-    opts.parseArgs(getClass().getName(), args);
+    opts.parseArgs(TableToFile.class.getName(), args);
 
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(TableToFile.class.getSimpleName() + "_" + System.currentTimeMillis());
+    job.setJarByClass(TableToFile.class);
     job.setInputFormatClass(AccumuloInputFormat.class);
-    opts.setAccumuloConfigs(job);
+    InputFormatBuilder.InputFormatOptions<Job> inputOpts = AccumuloInputFormat.configure()
+        .clientProperties(opts.getClientProperties()).table(opts.tableName);
 
-    HashSet<Pair<Text,Text>> columnsToFetch = new HashSet<>();
+    List<IteratorSetting.Column> columnsToFetch = new ArrayList<>();
     for (String col : opts.columns.split(",")) {
       int idx = col.indexOf(":");
-      Text cf = new Text(idx < 0 ? col : col.substring(0, idx));
-      Text cq = idx < 0 ? null : new Text(col.substring(idx + 1));
-      if (cf.getLength() > 0)
-        columnsToFetch.add(new Pair<>(cf, cq));
+      String cf = idx < 0 ? col : col.substring(0, idx);
+      String cq = idx < 0 ? null : col.substring(idx + 1);
+      if (!cf.isEmpty())
+        columnsToFetch.add(new IteratorSetting.Column(cf, cq));
     }
     if (!columnsToFetch.isEmpty())
-      AccumuloInputFormat.fetchColumns(job, columnsToFetch);
+      inputOpts.fetchColumns(columnsToFetch);
+    inputOpts.store(job);
 
     job.setMapperClass(TTFMapper.class);
     job.setMapOutputKeyClass(NullWritable.class);
     job.setMapOutputValueClass(Text.class);
-
     job.setNumReduceTasks(0);
-
     job.setOutputFormatClass(TextOutputFormat.class);
     TextOutputFormat.setOutputPath(job, new Path(opts.output));
 
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
-  }
-
-  /**
-   *
-   * @param args
-   *          instanceName zookeepers username password table columns outputpath
-   */
-  public static void main(String[] args) throws Exception {
-    ToolRunner.run(new Configuration(), new TableToFile(), args);
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }

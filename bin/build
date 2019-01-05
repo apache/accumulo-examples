@@ -18,26 +18,14 @@
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ex_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 
-function print_usage() {
-  cat <<EOF
-
-Usage: runex <application> args..
-EOF
-}
-
-if [ -z "$1" ]; then
-  echo "ERROR: <application> needs to be set"
-  print_usage
-  exit 1
-fi
-
 if [ -f "$ex_home/conf/env.sh" ]; then
   . "$ex_home"/conf/env.sh
 else
   . "$ex_home"/conf/env.sh.example
 fi
 
-# Build shaded jar (if not built already)
-"$ex_home"/bin/build
-
-java -cp $EXAMPLES_JAR_PATH -Dlog4j.configuration="file:$EXAMPLES_LOG4J" "org.apache.accumulo.examples.$1" ${*:2}
+if [[ ! -f "$EXAMPLES_JAR_PATH" ]]; then
+  echo "Building $EXAMPLES_JAR_PATH"
+  cd "${ex_home}" || exit 1
+  mvn clean package -P create-shade-jar -D skipTests -D accumulo.version="$ACCUMULO_VERSION" -D hadoop.version="$HADOOP_VERSION" -D zookeeper.version="$ZOOKEEPER_VERSION"
+fi

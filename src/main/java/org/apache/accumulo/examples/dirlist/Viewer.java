@@ -35,6 +35,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.examples.filedata.FileDataQuery;
 import org.slf4j.Logger;
@@ -99,12 +100,12 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
     }
   }
 
-  public Viewer(Opts opts) throws Exception {
+  public Viewer(AccumuloClient client, Opts opts) throws Exception {
     super("File Viewer");
     setSize(1000, 800);
     setDefaultCloseOperation(EXIT_ON_CLOSE);
-    q = new QueryUtil(opts);
-    fdq = new FileDataQuery(opts.getAccumuloClient(), opts.dataTable, opts.auths);
+    q = new QueryUtil(client, opts);
+    fdq = new FileDataQuery(client, opts.dataTable, opts.auths);
     this.topPath = opts.path;
   }
 
@@ -210,9 +211,10 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(Viewer.class.getName(), args);
-
-    Viewer v = new Viewer(opts);
-    v.init();
-    v.setVisible(true);
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      Viewer v = new Viewer(client, opts);
+      v.init();
+      v.setVisible(true);
+    }
   }
 }

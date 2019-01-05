@@ -16,49 +16,51 @@
  */
 package org.apache.accumulo.examples.helloworld;
 
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.examples.cli.Help;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.beust.jcommander.Parameter;
-
 /**
- * Reads all data between two rows
+ * Inserts 10K rows (50K entries) into accumulo with each row having 5 entries.
  */
-public class ReadData {
+public class Insert {
 
-  private static final Logger log = LoggerFactory.getLogger(ReadData.class);
-
-  static class Opts extends Help {
-    @Parameter(names = "-c")
-    String clientProps = "conf/accumulo-client.properties";
-  }
+  private static final Logger log = LoggerFactory.getLogger(Insert.class);
 
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Opts opts = new Opts();
-    opts.parseArgs(ReadData.class.getName(), args);
+    ClientOpts opts = new ClientOpts();
+    opts.parseArgs(Insert.class.getName(), args);
 
-    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      try {
+        client.tableOperations().create("hellotable");
+      } catch (TableExistsException e) {
+        // ignore
+      }
 
-    try (Scanner scan = client.createScanner("hellotable", Authorizations.EMPTY)) {
-      scan.setRange(new Range(new Key("row_0"), new Key("row_1002")));
-      for (Entry<Key,Value> e : scan) {
-        Key key = e.getKey();
-        log.trace(key.getRow() + " " + key.getColumnFamily() + " " + key.getColumnQualifier() + " "
-            + e.getValue());
+      try (BatchWriter bw = client.createBatchWriter("hellotable")) {
+        log.trace("writing ...");
+        for (int i = 0; i < 10000; i++) {
+          Mutation m = new Mutation(String.format("row_%d", i));
+          for (int j = 0; j < 5; j++) {
+            m.put("colfam", String.format("colqual_%d", j),
+                new Value((String.format("value_%d_%d", i, j)).getBytes()));
+          }
+          bw.addMutation(m);
+          if (i % 100 == 0) {
+            log.trace(String.valueOf(i));
+          }
+        }
       }
     }
   }

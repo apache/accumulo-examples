@@ -21,14 +21,7 @@ This example uses mapreduce to extract specified columns from an existing table.
 To run this example you will need some data in a table. The following will
 put a trivial amount of data into accumulo using the accumulo shell:
 
-    $ accumulo shell -u username -p password
-    Shell - Apache Accumulo Interactive Shell
-    - version: 1.5.0
-    - instance name: instance
-    - instance id: 00000000-0000-0000-0000-000000000000
-    -
-    - type 'help' for a list of available commands
-    -
+    $ accumulo shell
     username@instance> createtable input
     username@instance> insert dog cf cq dogvalue
     username@instance> insert cat cf cq catvalue
@@ -40,7 +33,7 @@ write the key/value pairs to a file in HDFS.
 
 The following will extract the rows containing the column "cf:cq":
 
-    $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.TableToFile -c ./examples.conf -t input --columns cf:cq --output /tmp/output
+    $ ./bin/run-mapred mapreduce.TableToFile -t input --columns cf:cq --output /tmp/output
 
     $ hadoop fs -ls /tmp/output
     -rw-r--r--   1 username supergroup          0 2013-01-10 14:44 /tmp/output/_SUCCESS

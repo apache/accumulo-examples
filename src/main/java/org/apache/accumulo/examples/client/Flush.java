@@ -17,6 +17,9 @@
 package org.apache.accumulo.examples.client;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 
 /**
@@ -24,14 +27,12 @@ import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
  */
 public class Flush {
 
-  public static void main(String[] args) {
+  public static void main(String[] args)
+      throws AccumuloSecurityException, AccumuloException, TableNotFoundException {
     ClientOnRequiredTable opts = new ClientOnRequiredTable();
     opts.parseArgs(Flush.class.getName(), args);
-    try {
-      AccumuloClient client = opts.getAccumuloClient();
+    try (AccumuloClient client = opts.createAccumuloClient()) {
       client.tableOperations().flush(opts.getTableName(), null, null, true);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 }

@@ -97,7 +97,7 @@ public class TokenFileWordCount extends Configured implements Tool {
     AccumuloOutputFormat.setDefaultTableName(job, tableName);
 
     job.waitForCompletion(true);
-    return 0;
+    return job.isSuccessful() ? 0 : 1;
   }
 
   public static void main(String[] args) throws Exception {

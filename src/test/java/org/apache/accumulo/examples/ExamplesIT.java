@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -38,7 +37,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.accumulo.cluster.standalone.StandaloneAccumuloCluster;
-import org.apache.accumulo.cluster.standalone.StandaloneClusterControl;
 import org.apache.accumulo.core.cli.BatchWriterOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -53,7 +51,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.AgeOffFilter;
-import org.apache.accumulo.core.iterators.user.SummingCombiner;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.client.RandomBatchScanner;
 import org.apache.accumulo.examples.client.ReadWriteExample;
@@ -65,8 +62,8 @@ import org.apache.accumulo.examples.combiner.StatsCombiner;
 import org.apache.accumulo.examples.constraints.MaxMutationSize;
 import org.apache.accumulo.examples.dirlist.Ingest;
 import org.apache.accumulo.examples.dirlist.QueryUtil;
-import org.apache.accumulo.examples.helloworld.InsertWithBatchWriter;
-import org.apache.accumulo.examples.helloworld.ReadData;
+import org.apache.accumulo.examples.helloworld.Insert;
+import org.apache.accumulo.examples.helloworld.Read;
 import org.apache.accumulo.examples.isolation.InterferenceTest;
 import org.apache.accumulo.examples.mapreduce.RegexExample;
 import org.apache.accumulo.examples.mapreduce.RowHash;
@@ -79,16 +76,14 @@ import org.apache.accumulo.examples.shard.Query;
 import org.apache.accumulo.examples.shard.Reverse;
 import org.apache.accumulo.harness.AccumuloClusterHarness;
 import org.apache.accumulo.minicluster.MemoryUnit;
-import org.apache.accumulo.minicluster.impl.MiniAccumuloClusterImpl;
-import org.apache.accumulo.minicluster.impl.MiniAccumuloClusterImpl.LogWriter;
-import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl;
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl.LogWriter;
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.TestIngest;
 import org.apache.accumulo.tracer.TraceServer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.util.Tool;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -120,11 +115,11 @@ public class ExamplesIT extends AccumuloClusterHarness {
   }
 
   @Before
-  public void getClusterInfo() throws Exception {
-    c = getAccumuloClient();
-    String user = c.info().getPrincipal();
-    String instance = c.info().getInstanceName();
-    String keepers = c.info().getZooKeepers();
+  public void setupTest() throws Exception {
+    c = createAccumuloClient();
+    String user = c.whoami();
+    String instance = getClientInfo().getInstanceName();
+    String keepers = getClientInfo().getZooKeepers();
     AuthenticationToken token = getAdminToken();
     if (token instanceof PasswordToken) {
       String passwd = new String(((PasswordToken) getAdminToken()).getPassword(), UTF_8);
@@ -140,11 +135,11 @@ public class ExamplesIT extends AccumuloClusterHarness {
   }
 
   @After
-  public void resetAuths() throws Exception {
+  public void teardownTest() throws Exception {
     if (null != origAuths) {
-      getAccumuloClient().securityOperations().changeUserAuthorizations(getAdminPrincipal(),
-          origAuths);
+      c.securityOperations().changeUserAuthorizations(getAdminPrincipal(), origAuths);
     }
+    c.close();
   }
 
   public static void writeClientPropsFile(String file, String instance, String keepers, String user,
@@ -189,11 +184,10 @@ public class ExamplesIT extends AccumuloClusterHarness {
     while (matcher.find()) {
       args = new String[] {"-c", getClientPropsFile(), "--traceid", matcher.group(1)};
       pair = cluster.getClusterControl().execWithStdout(TraceDumpExample.class, args);
+      assertEquals(0, pair.getKey().intValue());
       count++;
     }
     assertTrue(count > 0);
-    assertTrue("Output [" + pair.getValue() + "] did not contain myApp@myHost",
-        pair.getValue().contains("myApp@myHost"));
     if (ClusterType.MINI == getClusterType() && null != trace) {
       trace.destroy();
     }
@@ -363,7 +357,6 @@ public class ExamplesIT extends AccumuloClusterHarness {
 
   @Test
   public void testTeraSortAndRead() throws Exception {
-    // TODO Figure out a way to run M/R with Kerberos
     assumeTrue(getAdminToken() instanceof PasswordToken);
     String tableName = getUniqueNames(1)[0];
     String[] args = new String[] {"--count", (1000 * 1000) + "", "-nk", "10", "-xk", "10", "-nv",
@@ -389,23 +382,14 @@ public class ExamplesIT extends AccumuloClusterHarness {
 
   @Test
   public void testWordCount() throws Exception {
-    // TODO Figure out a way to run M/R with Kerberos
     assumeTrue(getAdminToken() instanceof PasswordToken);
-    String tableName = getUniqueNames(1)[0];
-    c.tableOperations().create(tableName);
-    is = new IteratorSetting(10, SummingCombiner.class);
-    SummingCombiner.setColumns(is,
-        Collections.singletonList(new IteratorSetting.Column(new Text("count"))));
-    SummingCombiner.setEncodingType(is, SummingCombiner.Type.STRING);
-    c.tableOperations().attachIterator(tableName, is);
-    Path readme = new Path(new Path(System.getProperty("user.dir")).getParent(), "README.md");
+    Path readme = new Path(new Path(System.getProperty("user.dir")), "README.md");
     if (!new File(readme.toString()).exists()) {
-      log.info("Not running test: README.md does not exist)");
-      return;
+      Assert.fail("README.md does not exist!");
     }
     fs.copyFromLocalFile(readme, new Path(dir + "/tmp/wc/README.md"));
-    String[] args;
-    args = new String[] {"-c", getClientPropsFile(), "--input", dir + "/tmp/wc", "-t", tableName};
+    String[] args = new String[] {"-c", getClientPropsFile(), "-i", dir + "/tmp/wc", "-t",
+        getUniqueNames(1)[0]};
     goodExec(WordCount.class, args);
   }
 
@@ -413,8 +397,8 @@ public class ExamplesIT extends AccumuloClusterHarness {
   public void testInsertWithBatchWriterAndReadData() throws Exception {
     String[] args;
     args = new String[] {"-c", getClientPropsFile()};
-    goodExec(InsertWithBatchWriter.class, args);
-    goodExec(ReadData.class, args);
+    goodExec(Insert.class, args);
+    goodExec(Read.class, args);
   }
 
   @Test
@@ -449,17 +433,11 @@ public class ExamplesIT extends AccumuloClusterHarness {
     goodExec(RandomBatchScanner.class, "-c", getClientPropsFile());
   }
 
-  private void goodExec(Class<?> theClass, String... args)
-      throws InterruptedException, IOException {
+  private void goodExec(Class<?> theClass, String... args) throws IOException {
     Entry<Integer,String> pair;
-    if (Tool.class.isAssignableFrom(theClass) && ClusterType.STANDALONE == getClusterType()) {
-      StandaloneClusterControl control = (StandaloneClusterControl) getClusterControl();
-      pair = control.execMapreduceWithStdout(theClass, args);
-    } else {
-      // We're already slurping stdout into memory (not redirecting to file). Might as well add it
-      // to error message.
-      pair = getClusterControl().execWithStdout(theClass, args);
-    }
+    // We're already slurping stdout into memory (not redirecting to file). Might as well add it
+    // to error message.
+    pair = getClusterControl().execWithStdout(theClass, args);
     Assert.assertEquals("stdout=" + pair.getValue(), 0, pair.getKey().intValue());
   }
 }
