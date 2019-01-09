@@ -31,7 +31,7 @@ put a trivial amount of data into accumulo using the accumulo shell:
 The RowHash class will insert a hash for each row in the database if it contains a
 specified colum. Here's how you run the map/reduce job
 
-    $ ./bin/run-mapred mapreduce.RowHash -t rowhash --column cf:cq
+    $ ./bin/runmr mapreduce.RowHash -t rowhash --column cf:cq
 
 Now we can scan the table and see the hashes:
 

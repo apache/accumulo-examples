@@ -21,7 +21,7 @@ ex_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 function print_usage() {
   cat <<EOF
 
-Usage: run-mapred <application> args..
+Usage: runmr <mapreduce ap> args..
 EOF
 }
 

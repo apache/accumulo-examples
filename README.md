@@ -47,8 +47,9 @@ Follow the steps below to run the Accumulo examples:
 
 When running the examples, remember the tips below:
 
-* Examples are run using the `runex` or `run-mapred` commands which are located in the `bin/` directory
-  of this repo. The `runex` command is a simple wrapper around the Maven Exec plugin.
+* Examples are run using the `runex` or `runmr` commands which are located in the `bin/` directory
+  of this repo. The `runex` command is a simple script that use the examples shaded jar to run a
+  a class. The `runmr` starts a MapReduce job in YARN.
 * Commands intended to be run in bash are prefixed by '$' and should be run from the root of this
   repository.
 * Several examples use the `accumulo` and `accumulo-util` commands which are expected to be on your 

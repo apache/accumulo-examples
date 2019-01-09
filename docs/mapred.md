@@ -35,7 +35,7 @@ Verify that the file was created:
 
 After creating the table, run the WordCount MapReduce job with your HDFS input directory:
 
-    $ ./bin/run-mapred mapreduce.WordCount -i /wc
+    $ ./bin/runmr mapreduce.WordCount -i /wc
 
 [WordCount.java] creates an Accumulo table (named with a SummingCombiner iterator
 attached to it. It runs a map-only M/R job that reads the specified HDFS directory containing text files and
@@ -96,14 +96,14 @@ Because the basic WordCount example uses Opts to parse its arguments
 the basic WordCount example by calling the same command as explained above
 except replacing the password with the token file (rather than -p, use -tf).
 
-  $ ./bin/run-mapred mapreduce.WordCount --input /user/username/wc -t wordCount -u username -tf tokenfile
+  $ ./bin/runmr mapreduce.WordCount --input /user/username/wc -t wordCount -u username -tf tokenfile
 
 In the above examples, username was 'root' and tokenfile was 'root.pw'
 
 However, if you don't want to use the Opts class to parse arguments,
 the TokenFileWordCount is an example of using the token file manually.
 
-  $ ./bin/run-mapred mapreduce.TokenFileWordCount instance zookeepers username tokenfile /user/username/wc wordCount
+  $ ./bin/runmr mapreduce.TokenFileWordCount instance zookeepers username tokenfile /user/username/wc wordCount
 
 The results should be the same as the WordCount example except that the
 authentication token was not stored in the configuration. It was instead

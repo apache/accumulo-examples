@@ -22,7 +22,7 @@ hadoop terasort benchmark.
 
 To run this example you run it with arguments describing the amount of data:
 
-    $ ./bin/run-mapred mapreduce.TeraSortIngest --count 10 --minKeySize 10 --maxKeySize 10 \
+    $ ./bin/runmr mapreduce.TeraSortIngest --count 10 --minKeySize 10 --maxKeySize 10 \
     --minValueSize 78 --maxValueSize 78 --table sort --splits 10 \
 
 After the map reduce job completes, scan the data:

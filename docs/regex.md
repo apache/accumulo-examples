@@ -34,7 +34,7 @@ in parallel and will store the results in files in hdfs.
 
 The following will search for any rows in the input table that starts with "dog":
 
-    $ ./bin/run-mapred mapreduce.RegexExample -t regex --rowRegex 'dog.*' --output /tmp/output
+    $ ./bin/runmr mapreduce.RegexExample -t regex --rowRegex 'dog.*' --output /tmp/output
 
     $ hdfs dfs -ls /tmp/output
     Found 3 items

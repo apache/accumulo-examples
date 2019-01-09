@@ -40,7 +40,7 @@ Open the accumulo shell and look at the data. The row is the MD5 hash of the fil
 
 Run the CharacterHistogram MapReduce to add some information about the file.
 
-    $ ./bin/run-mapred filedata.CharacterHistogram -t dataTable --auths exampleVis --vis exampleVis
+    $ ./bin/runmr filedata.CharacterHistogram -t dataTable --auths exampleVis --vis exampleVis
 
 Scan again to see the histogram stored in the 'info' column family.
 
