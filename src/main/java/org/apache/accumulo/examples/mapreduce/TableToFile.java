@@ -46,9 +46,9 @@ public class TableToFile {
   static class Opts extends ClientOpts {
     @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
     String tableName;
-    @Parameter(names = "--output", description = "output directory", required = true)
+    @Parameter(names = "--output", required = true, description = "output directory")
     String output;
-    @Parameter(names = "--columns", description = "columns to extract, in cf:cq{,cf:cq,...} form")
+    @Parameter(names = "--columns", required = true, description = "columns to extract, in cf:cq{,cf:cq,...} form")
     String columns = "";
   }
 
@@ -68,13 +68,6 @@ public class TableToFile {
     Opts opts = new Opts();
     opts.parseArgs(TableToFile.class.getName(), args);
 
-    Job job = Job.getInstance(opts.getHadoopConfig());
-    job.setJobName(TableToFile.class.getSimpleName() + "_" + System.currentTimeMillis());
-    job.setJarByClass(TableToFile.class);
-    job.setInputFormatClass(AccumuloInputFormat.class);
-    InputFormatBuilder.InputFormatOptions<Job> inputOpts = AccumuloInputFormat.configure()
-        .clientProperties(opts.getClientProperties()).table(opts.tableName);
-
     List<IteratorSetting.Column> columnsToFetch = new ArrayList<>();
     for (String col : opts.columns.split(",")) {
       int idx = col.indexOf(":");
@@ -83,10 +76,16 @@ public class TableToFile {
       if (!cf.isEmpty())
         columnsToFetch.add(new IteratorSetting.Column(cf, cq));
     }
-    if (!columnsToFetch.isEmpty())
-      inputOpts.fetchColumns(columnsToFetch);
-    inputOpts.store(job);
+    if (!columnsToFetch.isEmpty()) {
+      throw new IllegalArgumentException("Failed to parse columns: " + opts.columns);
+    }
 
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(TableToFile.class.getSimpleName() + "_" + System.currentTimeMillis());
+    job.setJarByClass(TableToFile.class);
+    job.setInputFormatClass(AccumuloInputFormat.class);
+    AccumuloInputFormat.configure().clientProperties(opts.getClientProperties())
+        .table(opts.tableName).fetchColumns(columnsToFetch).store(job);
     job.setMapperClass(TTFMapper.class);
     job.setMapOutputKeyClass(NullWritable.class);
     job.setMapOutputValueClass(Text.class);

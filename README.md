@@ -28,7 +28,7 @@ Follow the steps below to run the Accumulo examples:
 
 2. Follow [Accumulo's quickstart][quickstart] to install and run an Accumulo instance.
    Accumulo has an [accumulo-client.properties] in `conf/` that must be configured as
-   the examples will you use this file to connect to your instance.
+   the examples will use this file to connect to your instance.
 
 3. Review [env.sh.example] in to see if you need to customize it. If `ACCUMULO_HOME` & `HADOOP_HOME`
    are set in your shell, you may be able skip this step. Make sure `ACCUMULO_CLIENT_PROPS` is
