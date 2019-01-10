@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Random;
 
-import org.apache.accumulo.core.cli.Help;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -33,6 +32,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.IntersectingIterator;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -45,10 +45,7 @@ import com.google.common.collect.Iterators;
  */
 public class ContinuousQuery {
 
-  static class Opts extends Help {
-
-    @Parameter(names = "-c", description = "Accumulo client properties file")
-    String clientProps = "conf/accumulo-client.properties";
+  static class Opts extends ClientOpts {
 
     @Parameter(names = "--shardTable", required = true, description = "name of the shard table")
     String tableName = null;
@@ -67,30 +64,31 @@ public class ContinuousQuery {
     Opts opts = new Opts();
     opts.parseArgs(ContinuousQuery.class.getName(), args);
 
-    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
 
-    ArrayList<Text[]> randTerms = findRandomTerms(
-        client.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
+      ArrayList<Text[]> randTerms = findRandomTerms(
+          client.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
 
-    Random rand = new Random();
+      Random rand = new Random();
 
-    try (BatchScanner bs = client.createBatchScanner(opts.tableName, Authorizations.EMPTY, 5)) {
-      for (long i = 0; i < opts.iterations; i += 1) {
-        Text[] columns = randTerms.get(rand.nextInt(randTerms.size()));
+      try (BatchScanner bs = client.createBatchScanner(opts.tableName, Authorizations.EMPTY, 5)) {
+        for (long i = 0; i < opts.iterations; i += 1) {
+          Text[] columns = randTerms.get(rand.nextInt(randTerms.size()));
 
-        bs.clearScanIterators();
-        bs.clearColumns();
+          bs.clearScanIterators();
+          bs.clearColumns();
 
-        IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
-        IntersectingIterator.setColumnFamilies(ii, columns);
-        bs.addScanIterator(ii);
-        bs.setRanges(Collections.singleton(new Range()));
+          IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
+          IntersectingIterator.setColumnFamilies(ii, columns);
+          bs.addScanIterator(ii);
+          bs.setRanges(Collections.singleton(new Range()));
 
-        long t1 = System.currentTimeMillis();
-        int count = Iterators.size(bs.iterator());
-        long t2 = System.currentTimeMillis();
+          long t1 = System.currentTimeMillis();
+          int count = Iterators.size(bs.iterator());
+          long t2 = System.currentTimeMillis();
 
-        System.out.printf("  %s %,d %6.3f%n", Arrays.asList(columns), count, (t2 - t1) / 1000.0);
+          System.out.printf("  %s %,d %6.3f%n", Arrays.asList(columns), count, (t2 - t1) / 1000.0);
+        }
       }
     }
   }
@@ -117,7 +115,6 @@ public class ContinuousQuery {
       }
 
       words.add(key.getColumnFamily());
-
     }
 
     selectRandomWords(words, ret, rand, numTerms);

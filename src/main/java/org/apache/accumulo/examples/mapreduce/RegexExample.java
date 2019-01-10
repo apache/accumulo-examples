@@ -19,23 +19,24 @@ package org.apache.accumulo.examples.mapreduce;
 import java.io.IOException;
 
 import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
-public class RegexExample extends Configured implements Tool {
+public class RegexExample {
+
+  private static final Logger log = LoggerFactory.getLogger(RegexExample.class);
+
   public static class RegexMapper extends Mapper<Key,Value,Key,Value> {
     @Override
     public void map(Key row, Value data, Context context) throws IOException, InterruptedException {
@@ -43,7 +44,9 @@ public class RegexExample extends Configured implements Tool {
     }
   }
 
-  static class Opts extends MapReduceClientOnRequiredTable {
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = "--rowRegex")
     String rowRegex;
     @Parameter(names = "--columnFamilyRegex")
@@ -56,44 +59,35 @@ public class RegexExample extends Configured implements Tool {
     String destination;
   }
 
-  @Override
-  public int run(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
-    opts.parseArgs(getClass().getName(), args);
+    opts.parseArgs(RegexExample.class.getName(), args);
 
-    Job job = Job.getInstance(getConf());
-    job.setJobName(getClass().getSimpleName());
-    job.setJarByClass(getClass());
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(RegexExample.class.getSimpleName());
+    job.setJarByClass(RegexExample.class);
 
     job.setInputFormatClass(AccumuloInputFormat.class);
-    opts.setAccumuloConfigs(job);
 
     IteratorSetting regex = new IteratorSetting(50, "regex", RegExFilter.class);
     RegExFilter.setRegexs(regex, opts.rowRegex, opts.columnFamilyRegex, opts.columnQualifierRegex,
         opts.valueRegex, false);
-    AccumuloInputFormat.addIterator(job, regex);
+
+    AccumuloInputFormat.configure().clientProperties(opts.getClientProperties())
+        .table(opts.tableName).addIterator(regex).store(job);
 
     job.setMapperClass(RegexMapper.class);
     job.setMapOutputKeyClass(Key.class);
     job.setMapOutputValueClass(Value.class);
-
     job.setNumReduceTasks(0);
-
     job.setOutputFormatClass(TextOutputFormat.class);
     TextOutputFormat.setOutputPath(job, new Path(opts.destination));
 
-    System.out.println("setRowRegex: " + opts.rowRegex);
-    System.out.println("setColumnFamilyRegex: " + opts.columnFamilyRegex);
-    System.out.println("setColumnQualifierRegex: " + opts.columnQualifierRegex);
-    System.out.println("setValueRegex: " + opts.valueRegex);
+    log.info("setRowRegex: " + opts.rowRegex);
+    log.info("setColumnFamilyRegex: " + opts.columnFamilyRegex);
+    log.info("setColumnQualifierRegex: " + opts.columnQualifierRegex);
+    log.info("setValueRegex: " + opts.valueRegex);
 
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
-  }
-
-  public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(new Configuration(), new RegexExample(), args);
-    if (res != 0)
-      System.exit(res);
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }

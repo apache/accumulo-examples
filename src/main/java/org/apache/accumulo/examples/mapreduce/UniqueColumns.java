@@ -21,21 +21,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 
 import com.beust.jcommander.Parameter;
 
@@ -43,7 +39,7 @@ import com.beust.jcommander.Parameter;
  * A simple map reduce job that computes the unique column families and column qualifiers in a
  * table. This example shows one way to run against an offline table.
  */
-public class UniqueColumns extends Configured implements Tool {
+public class UniqueColumns {
 
   private static final Text EMPTY = new Text();
 
@@ -75,7 +71,9 @@ public class UniqueColumns extends Configured implements Tool {
     }
   }
 
-  static class Opts extends MapReduceClientOnRequiredTable {
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = "--output", description = "output directory")
     String output;
     @Parameter(names = "--reducers", description = "number of reducers to use", required = true)
@@ -84,64 +82,48 @@ public class UniqueColumns extends Configured implements Tool {
     boolean offline = false;
   }
 
-  @Override
-  public int run(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(UniqueColumns.class.getName(), args);
 
-    String jobName = this.getClass().getSimpleName() + "_" + System.currentTimeMillis();
+    try (AccumuloClient client = opts.createAccumuloClient()) {
 
-    Job job = Job.getInstance(getConf());
-    job.setJobName(jobName);
-    job.setJarByClass(this.getClass());
+      Job job = Job.getInstance(opts.getHadoopConfig());
+      String jobName = UniqueColumns.class.getSimpleName() + "_" + System.currentTimeMillis();
+      job.setJobName(UniqueColumns.class.getSimpleName() + "_" + System.currentTimeMillis());
+      job.setJarByClass(UniqueColumns.class);
+      job.setInputFormatClass(AccumuloInputFormat.class);
 
-    String clone = opts.getTableName();
-    AccumuloClient client = null;
+      String table = opts.tableName;
+      if (opts.offline) {
+        /*
+         * this example clones the table and takes it offline. If you plan to run map reduce jobs
+         * over a table many times, it may be more efficient to compact the table, clone it, and
+         * then keep using the same clone as input for map reduce.
+         */
+        table = opts.tableName + "_" + jobName;
+        client.tableOperations().clone(opts.tableName, table, true, new HashMap<>(),
+            new HashSet<>());
+        client.tableOperations().offline(table);
+      }
 
-    opts.setAccumuloConfigs(job);
+      AccumuloInputFormat.configure().clientProperties(opts.getClientProperties()).table(table)
+          .offlineScan(opts.offline).store(job);
+      job.setMapperClass(UMapper.class);
+      job.setMapOutputKeyClass(Text.class);
+      job.setMapOutputValueClass(Text.class);
 
-    if (opts.offline) {
-      /*
-       * this example clones the table and takes it offline. If you plan to run map reduce jobs over
-       * a table many times, it may be more efficient to compact the table, clone it, and then keep
-       * using the same clone as input for map reduce.
-       */
-
-      client = opts.getAccumuloClient();
-      clone = opts.getTableName() + "_" + jobName;
-      client.tableOperations().clone(opts.getTableName(), clone, true, new HashMap<String,String>(),
-          new HashSet<String>());
-      client.tableOperations().offline(clone);
-
-      AccumuloInputFormat.setOfflineTableScan(job, true);
-      AccumuloInputFormat.setInputTableName(job, clone);
+      job.setCombinerClass(UReducer.class);
+      job.setReducerClass(UReducer.class);
+      job.setNumReduceTasks(opts.reducers);
+      job.setOutputFormatClass(TextOutputFormat.class);
+      TextOutputFormat.setOutputPath(job, new Path(opts.output));
+      job.waitForCompletion(true);
+      if (opts.offline) {
+        client.tableOperations().delete(table);
+      }
+      System.exit(job.isSuccessful() ? 0 : 1);
     }
-
-    job.setInputFormatClass(AccumuloInputFormat.class);
-
-    job.setMapperClass(UMapper.class);
-    job.setMapOutputKeyClass(Text.class);
-    job.setMapOutputValueClass(Text.class);
-
-    job.setCombinerClass(UReducer.class);
-    job.setReducerClass(UReducer.class);
-
-    job.setNumReduceTasks(opts.reducers);
-
-    job.setOutputFormatClass(TextOutputFormat.class);
-    TextOutputFormat.setOutputPath(job, new Path(opts.output));
-
-    job.waitForCompletion(true);
-
-    if (opts.offline) {
-      client.tableOperations().delete(clone);
-    }
-
-    return job.isSuccessful() ? 0 : 1;
-  }
-
-  public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(new Configuration(), new UniqueColumns(), args);
-    System.exit(res);
+    System.exit(1);
   }
 }

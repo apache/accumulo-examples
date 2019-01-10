@@ -33,9 +33,8 @@ table called test_bulk which has two initial split points. Then 1000 rows of
 test data are created in HDFS. After that the 1000 rows are ingested into
 Accumulo. Then we verify the 1000 rows are in Accumulo. 
 
-    $ PKG=org.apache.accumulo.examples.mapreduce.bulk
-    $ accumulo $PKG.SetupTable
-    $ accumulo-util hadoop-jar target/accumulo-examples-*.jar $PKG.BulkIngestExample
+    $ ./bin/runex mapreduce.bulk.SetupTable
+    $ ./bin/runmr mapreduce.bulk.BulkIngestExample
     $ ./bin/runex mapreduce.bulk.VerifyIngest
 
 [SetupTable.java]: ../src/main/java/org/apache/accumulo/examples/mapreduce/bulk/SetupTable.java

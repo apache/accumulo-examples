@@ -21,8 +21,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -41,7 +39,7 @@ import com.beust.jcommander.Parameter;
  * and performing single wild card searches on file or directory names.
  */
 public class QueryUtil {
-  private AccumuloClient client = null;
+  private AccumuloClient client;
   private String tableName;
   private Authorizations auths;
   public static final Text DIR_COLF = new Text("dir");
@@ -50,8 +48,8 @@ public class QueryUtil {
   public static final Text INDEX_COLF = new Text("i");
   public static final Text COUNTS_COLQ = new Text("counts");
 
-  public QueryUtil(Opts opts) throws AccumuloException, AccumuloSecurityException {
-    client = opts.getAccumuloClient();
+  public QueryUtil(AccumuloClient client, Opts opts) {
+    this.client = client;
     this.tableName = opts.getTableName();
     this.auths = opts.auths;
   }
@@ -276,14 +274,16 @@ public class QueryUtil {
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(QueryUtil.class.getName(), args);
-    QueryUtil q = new QueryUtil(opts);
-    if (opts.search) {
-      for (Entry<Key,Value> e : q.singleWildCardSearch(opts.path)) {
-        System.out.println(e.getKey().getColumnQualifier());
-      }
-    } else {
-      for (Entry<String,Map<String,String>> e : q.getDirList(opts.path).entrySet()) {
-        System.out.println(e);
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      QueryUtil q = new QueryUtil(client, opts);
+      if (opts.search) {
+        for (Entry<Key,Value> e : q.singleWildCardSearch(opts.path)) {
+          System.out.println(e.getKey().getColumnQualifier());
+        }
+      } else {
+        for (Entry<String,Map<String,String>> e : q.getDirList(opts.path).entrySet()) {
+          System.out.println(e);
+        }
       }
     }
   }

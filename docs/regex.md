@@ -22,15 +22,8 @@ This is accomplished using a map-only mapreduce job and a scan-time iterator.
 To run this example you will need some data in a table. The following will
 put a trivial amount of data into accumulo using the accumulo shell:
 
-    $ accumulo shell -u username -p password
-    Shell - Apache Accumulo Interactive Shell
-    - version: 1.5.0
-    - instance name: instance
-    - instance id: 00000000-0000-0000-0000-000000000000
-    -
-    - type 'help' for a list of available commands
-    -
-    username@instance> createtable input
+    $ accumulo shell
+    username@instance> createtable regex
     username@instance> insert dogrow dogcf dogcq dogvalue
     username@instance> insert catrow catcf catcq catvalue
     username@instance> quit
@@ -41,9 +34,9 @@ in parallel and will store the results in files in hdfs.
 
 The following will search for any rows in the input table that starts with "dog":
 
-    $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.RegexExample -u user -p passwd -i instance -t input --rowRegex 'dog.*' --output /tmp/output
+    $ ./bin/runmr mapreduce.RegexExample -t regex --rowRegex 'dog.*' --output /tmp/output
 
-    $ hadoop fs -ls /tmp/output
+    $ hdfs dfs -ls /tmp/output
     Found 3 items
     -rw-r--r--   1 username supergroup          0 2013-01-10 14:11 /tmp/output/_SUCCESS
     drwxr-xr-x   - username supergroup          0 2013-01-10 14:10 /tmp/output/_logs
@@ -51,7 +44,5 @@ The following will search for any rows in the input table that starts with "dog"
 
 We can see the output of our little map-reduce job:
 
-    $ hadoop fs -text /tmp/output/part-m-00000
+    $ hdfs dfs -cat /tmp/output/part-m-00000
     dogrow dogcf:dogcq [] 1357844987994 false	dogvalue
-
-

@@ -33,11 +33,9 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.examples.cli.Help;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.beust.jcommander.Parameter;
 
 /**
  * A demonstration of reading entire rows and deleting entire rows.
@@ -78,73 +76,69 @@ public class RowOperations {
     bw.flush();
   }
 
-  static class Opts extends Help {
-    @Parameter(names = "-c")
-    String clientProps = "conf/accumulo-client.properties";
-  }
-
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    Opts opts = new Opts();
+    ClientOpts opts = new ClientOpts();
     opts.parseArgs(RowOperations.class.getName(), args);
 
-    AccumuloClient client = Accumulo.newClient().usingProperties(opts.clientProps).build();
-    try {
-      client.namespaceOperations().create(namespace);
-    } catch (NamespaceExistsException e) {
-      // ignore
-    }
-    try {
-      client.tableOperations().create(table);
-    } catch (TableExistsException e) {
-      // ignore
-    }
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      try {
+        client.namespaceOperations().create(namespace);
+      } catch (NamespaceExistsException e) {
+        // ignore
+      }
+      try {
+        client.tableOperations().create(table);
+      } catch (TableExistsException e) {
+        // ignore
+      }
 
-    // lets create 3 rows of information
-    Mutation mut1 = new Mutation("row1");
-    Mutation mut2 = new Mutation("row2");
-    Mutation mut3 = new Mutation("row3");
+      // lets create 3 rows of information
+      Mutation mut1 = new Mutation("row1");
+      Mutation mut2 = new Mutation("row2");
+      Mutation mut3 = new Mutation("row3");
 
-    mut1.put("col", "1", "v1");
-    mut1.put("col", "2", "v2");
-    mut1.put("col", "3", "v3");
+      mut1.put("col", "1", "v1");
+      mut1.put("col", "2", "v2");
+      mut1.put("col", "3", "v3");
 
-    mut2.put("col", "1", "v1");
-    mut2.put("col", "2", "v2");
-    mut2.put("col", "3", "v3");
+      mut2.put("col", "1", "v1");
+      mut2.put("col", "2", "v2");
+      mut2.put("col", "3", "v3");
 
-    mut3.put("col", "1", "v1");
-    mut3.put("col", "2", "v2");
-    mut3.put("col", "3", "v3");
+      mut3.put("col", "1", "v1");
+      mut3.put("col", "2", "v2");
+      mut3.put("col", "3", "v3");
 
-    // Now we'll make a Batch Writer
-    try (BatchWriter bw = client.createBatchWriter(table)) {
+      // Now we'll make a Batch Writer
+      try (BatchWriter bw = client.createBatchWriter(table)) {
 
-      // And add the mutations
-      bw.addMutation(mut1);
-      bw.addMutation(mut2);
-      bw.addMutation(mut3);
+        // And add the mutations
+        bw.addMutation(mut1);
+        bw.addMutation(mut2);
+        bw.addMutation(mut3);
 
-      // Force a send
-      bw.flush();
+        // Force a send
+        bw.flush();
 
-      log.info("This is only row2");
-      printRow("row2", client);
+        log.info("This is only row2");
+        printRow("row2", client);
 
-      log.info("This is everything");
+        log.info("This is everything");
+        printAll(client);
+
+        deleteRow("row2", client, bw);
+
+        log.info("This is row1 and row3");
+        printAll(client);
+
+        deleteRow("row1", client, bw);
+      }
+
+      log.info("This is just row3");
       printAll(client);
 
-      deleteRow("row2", client, bw);
-
-      log.info("This is row1 and row3");
-      printAll(client);
-
-      deleteRow("row1", client, bw);
+      client.tableOperations().delete(table);
     }
-
-    log.info("This is just row3");
-    printAll(client);
-
-    client.tableOperations().delete(table);
   }
 }

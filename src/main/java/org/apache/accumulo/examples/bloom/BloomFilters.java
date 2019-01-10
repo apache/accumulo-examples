@@ -28,41 +28,46 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.examples.client.RandomBatchWriter;
 
 public class BloomFilters {
 
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
-    try {
-      System.out.println("Creating bloom_test1 and bloom_test2");
-      client.tableOperations().create("bloom_test1");
-      client.tableOperations().setProperty("bloom_test1", "table.compaction.major.ratio", "7");
-      client.tableOperations().create("bloom_test2");
-      client.tableOperations().setProperty("bloom_test2", "table.bloom.enabled", "true");
-      client.tableOperations().setProperty("bloom_test2", "table.compaction.major.ratio", "7");
-    } catch (TableExistsException e) {
-      // ignore
+
+    ClientOpts opts = new ClientOpts();
+    opts.parseArgs(BloomFilters.class.getName(), args);
+
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      try {
+        System.out.println("Creating bloom_test1 and bloom_test2");
+        client.tableOperations().create("bloom_test1");
+        client.tableOperations().setProperty("bloom_test1", "table.compaction.major.ratio", "7");
+        client.tableOperations().create("bloom_test2");
+        client.tableOperations().setProperty("bloom_test2", "table.bloom.enabled", "true");
+        client.tableOperations().setProperty("bloom_test2", "table.compaction.major.ratio", "7");
+      } catch (TableExistsException e) {
+        // ignore
+      }
+
+      // Write a million rows 3 times flushing files to disk separately
+      System.out.println("Writing data to bloom_test1");
+      writeData(client, "bloom_test1", 7);
+      client.tableOperations().flush("bloom_test1", null, null, true);
+      writeData(client, "bloom_test1", 8);
+      client.tableOperations().flush("bloom_test1", null, null, true);
+      writeData(client, "bloom_test1", 9);
+      client.tableOperations().flush("bloom_test1", null, null, true);
+
+      System.out.println("Writing data to bloom_test2");
+      writeData(client, "bloom_test2", 7);
+      client.tableOperations().flush("bloom_test2", null, null, true);
+      writeData(client, "bloom_test2", 8);
+      client.tableOperations().flush("bloom_test2", null, null, true);
+      writeData(client, "bloom_test2", 9);
+      client.tableOperations().flush("bloom_test2", null, null, true);
     }
-
-    // Write a million rows 3 times flushing files to disk separately
-    System.out.println("Writing data to bloom_test1");
-    writeData(client, "bloom_test1", 7);
-    client.tableOperations().flush("bloom_test1", null, null, true);
-    writeData(client, "bloom_test1", 8);
-    client.tableOperations().flush("bloom_test1", null, null, true);
-    writeData(client, "bloom_test1", 9);
-    client.tableOperations().flush("bloom_test1", null, null, true);
-
-    System.out.println("Writing data to bloom_test2");
-    writeData(client, "bloom_test2", 7);
-    client.tableOperations().flush("bloom_test2", null, null, true);
-    writeData(client, "bloom_test2", 8);
-    client.tableOperations().flush("bloom_test2", null, null, true);
-    writeData(client, "bloom_test2", 9);
-    client.tableOperations().flush("bloom_test2", null, null, true);
   }
 
   // write a million random rows

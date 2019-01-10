@@ -22,19 +22,13 @@ import java.io.PrintStream;
 import java.util.Base64;
 import java.util.Collection;
 
-import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.ClientInfo;
-import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.core.client.mapreduce.lib.partition.RangePartitioner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.TextUtil;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat;
+import org.apache.accumulo.hadoop.mapreduce.partition.RangePartitioner;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FsShell;
 import org.apache.hadoop.fs.Path;
@@ -44,15 +38,12 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 
 /**
  * Example map reduce job that bulk ingest data into an accumulo table. The expected input is text
  * files containing tab separated key value pairs on each line.
  */
-
-public class BulkIngestExample extends Configured implements Tool {
+public class BulkIngestExample {
   static String workDir = "tmp/bulkWork";
   static String inputDir = "bulk";
 
@@ -104,45 +95,36 @@ public class BulkIngestExample extends Configured implements Tool {
     }
   }
 
-  @Override
-  public int run(String[] args) {
-    Configuration conf = getConf();
-    PrintStream out = null;
-    try {
-      Job job = Job.getInstance(conf);
-      job.setJobName("bulk ingest example");
-      job.setJarByClass(this.getClass());
+  public static void main(String[] args) throws Exception {
+    ClientOpts opts = new ClientOpts();
+    opts.parseArgs(BulkIngestExample.class.getName(), args);
 
-      job.setInputFormatClass(TextInputFormat.class);
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(BulkIngestExample.class.getSimpleName());
+    job.setJarByClass(BulkIngestExample.class);
 
-      job.setMapperClass(MapClass.class);
-      job.setMapOutputKeyClass(Text.class);
-      job.setMapOutputValueClass(Text.class);
+    job.setInputFormatClass(TextInputFormat.class);
 
-      job.setReducerClass(ReduceClass.class);
-      job.setOutputFormatClass(AccumuloFileOutputFormat.class);
+    job.setMapperClass(MapClass.class);
+    job.setMapOutputKeyClass(Text.class);
+    job.setMapOutputValueClass(Text.class);
 
-      ClientInfo info = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-          .info();
-      AccumuloClient client = Accumulo.newClient().usingClientInfo(info).build();
-      AccumuloInputFormat.setClientInfo(job, info);
-      AccumuloInputFormat.setInputTableName(job, SetupTable.tableName);
-      AccumuloInputFormat.setScanAuthorizations(job, Authorizations.EMPTY);
-      AccumuloOutputFormat.setCreateTables(job, true);
-      AccumuloOutputFormat.setDefaultTableName(job, SetupTable.tableName);
+    job.setReducerClass(ReduceClass.class);
+    job.setOutputFormatClass(AccumuloFileOutputFormat.class);
 
-      TextInputFormat.setInputPaths(job, new Path(inputDir));
-      AccumuloFileOutputFormat.setOutputPath(job, new Path(workDir + "/files"));
+    TextInputFormat.setInputPaths(job, new Path(inputDir));
+    AccumuloFileOutputFormat.configure().outputPath(new Path(workDir + "/files")).store(job);
 
-      FileSystem fs = FileSystem.get(conf);
-      out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))));
+    FileSystem fs = FileSystem.get(opts.getHadoopConfig());
+    try (AccumuloClient client = opts.createAccumuloClient()) {
 
-      Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
-      for (Text split : splits)
-        out.println(Base64.getEncoder().encodeToString(TextUtil.getBytes(split)));
-
-      job.setNumReduceTasks(splits.size() + 1);
-      out.close();
+      try (PrintStream out = new PrintStream(
+          new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))))) {
+        Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
+        for (Text split : splits)
+          out.println(Base64.getEncoder().encodeToString(TextUtil.getBytes(split)));
+        job.setNumReduceTasks(splits.size() + 1);
+      }
 
       job.setPartitionerClass(RangePartitioner.class);
       RangePartitioner.setSplitFile(job, workDir + "/splits.txt");
@@ -152,23 +134,11 @@ public class BulkIngestExample extends Configured implements Tool {
       fs.delete(failures, true);
       fs.mkdirs(new Path(workDir, "failures"));
       // With HDFS permissions on, we need to make sure the Accumulo user can read/move the rfiles
-      FsShell fsShell = new FsShell(conf);
+      FsShell fsShell = new FsShell(opts.getHadoopConfig());
       fsShell.run(new String[] {"-chmod", "-R", "777", workDir});
       client.tableOperations().importDirectory(SetupTable.tableName, workDir + "/files",
           workDir + "/failures", false);
-
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    } finally {
-      if (out != null)
-        out.close();
     }
-
-    return 0;
-  }
-
-  public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(new Configuration(), new BulkIngestExample(), args);
-    System.exit(res);
+    System.exit(job.isSuccessful() ? 0 : 1);
   }
 }

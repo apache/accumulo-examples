@@ -20,42 +20,36 @@ limitations under the License.
 
 ## Setup instructions
 
-Before running any of the examples, the following steps must be performed.
+Follow the steps below to run the Accumulo examples:
 
-1. Install and run Accumulo via the instructions found in [INSTALL.md] of Accumulo's tarball. 
-   Remember the instance name. It will be referred to as "instance" throughout the examples. A
-   comma-separated list of zookeeper servers will be referred to as "zookeepers".
+1. Clone this repository
 
-2. Create an Accumulo user (for help see the 'User Administration' section of the 
-   [user manual][manual]), or use the root user. This user and their password should replace any
-   reference to "username" or "password" in the examples. This user needs the ability to create
-   tables.
+      git clone https://github.com/apache/accumulo-examples.git
 
-3. Clone and build this repository.
+2. Follow [Accumulo's quickstart][quickstart] to install and run an Accumulo instance.
+   Accumulo has an [accumulo-client.properties] in `conf/` that must be configured as
+   the examples will use this file to connect to your instance.
 
-        git clone https://github.com/apache/accumulo-examples.git
-        mvn clean package
+3. Review [env.sh.example] in to see if you need to customize it. If `ACCUMULO_HOME` & `HADOOP_HOME`
+   are set in your shell, you may be able skip this step. Make sure `ACCUMULO_CLIENT_PROPS` is
+   set to the location of your [accumulo-client.properties].
 
-4. Specify Accumulo connection information in `conf/accumulo-client.properties`.  Some old examples
-   still read connection information from an examples.conf file so that should also be configured.
+      cp conf/env.sh.example conf/env.sh
+      vim conf/env.sh
 
-        cd accumulo-examples
-        nano conf/accumulo-client.properties
-        cp examples.conf.template examples.conf
-        nano examples.conf
+3. Build the examples repo and copy the examples jar to Accumulo's `lib/ext` directory:
 
-5. The examples have some custom iterators that need to be executed by Accumulo tablet servers.
-   Make them available by copying the accumulo-examples.jar to Accumulo's `lib/ext` directory.
+      ./bin/build
+      cp target/accumulo-examples.jar /path/to/accumulo/lib/ext/
 
-        cp target/accumulo-examples-X.Y.Z.jar /path/accumulo/lib/ext/
-
-6. Each Accumulo example has its own documentation and instructions for running the example which
+4. Each Accumulo example has its own documentation and instructions for running the example which
    are linked to below.
 
 When running the examples, remember the tips below:
 
-* Examples are run using the `runex` command which is located in the `bin/` directory of this repo.
-  The `runex` command is a simple wrapper around the Maven Exec plugin.
+* Examples are run using the `runex` or `runmr` commands which are located in the `bin/` directory
+  of this repo. The `runex` command is a simple script that use the examples shaded jar to run a
+  a class. The `runmr` starts a MapReduce job in YARN.
 * Commands intended to be run in bash are prefixed by '$' and should be run from the root of this
   repository.
 * Several examples use the `accumulo` and `accumulo-util` commands which are expected to be on your 
@@ -99,6 +93,9 @@ Each example below highlights a feature of Apache Accumulo.
 This repository can be used to test Accumulo release candidates.  See
 [docs/release-testing.md](docs/release-testing.md).
 
+[quickstart]: https://accumulo.apache.org/docs/2.x/getting-started/quickstart
+[accumulo-client.properties]: https://accumulo.apache.org/docs/2.x/configuration/files#accumulo-clientproperties
+[env.sh.example]: conf/env.sh.example
 [manual]: https://accumulo.apache.org/latest/accumulo_user_manual/
 [INSTALL.md]: https://github.com/apache/accumulo/blob/master/INSTALL.md
 [batch]: docs/batch.md

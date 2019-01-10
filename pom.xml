@@ -29,7 +29,7 @@
   <name>Apache Accumulo Examples</name>
   <description>Example code and corresponding documentation for using Apache Accumulo</description>
   <properties>
-    <accumulo.version>2.0.0-alpha-1</accumulo.version>
+    <accumulo.version>2.0.0-SNAPSHOT</accumulo.version>
     <hadoop.version>3.1.1</hadoop.version>
     <slf4j.version>1.7.21</slf4j.version>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -68,12 +68,12 @@
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-client-mapreduce</artifactId>
+      <artifactId>accumulo-core</artifactId>
       <version>${accumulo.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-core</artifactId>
+      <artifactId>accumulo-hadoop-mapreduce</artifactId>
       <version>${accumulo.version}</version>
     </dependency>
     <dependency>
@@ -110,12 +110,6 @@
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-start</artifactId>
-      <version>${accumulo.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-test</artifactId>
       <version>${accumulo.version}</version>
       <scope>test</scope>
@@ -128,6 +122,7 @@
     </dependency>
   </dependencies>
   <build>
+    <finalName>${project.artifactId}</finalName>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -260,4 +255,50 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>create-shade-jar</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>example-shade-jar</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <finalName>${project.artifactId}-shaded</finalName>
+                  <shadedArtifactAttached>true</shadedArtifactAttached>
+                  <shadedClassifierName>shaded</shadedClassifierName>
+                  <artifactSet>
+                    <excludes>
+                      <exclude>org.apache.accumulo:accumulo-native</exclude>
+                    </excludes>
+                  </artifactSet>
+                  <filters>
+                    <filter>
+                      <artifact>*:*</artifact>
+                      <excludes>
+                        <exclude>META-INF/*.SF</exclude>
+                        <exclude>META-INF/*.DSA</exclude>
+                        <exclude>META-INF/*.RSA</exclude>
+                      </excludes>
+                    </filter>
+                  </filters>
+                  <transformers>
+                    <!-- Hadoop uses service loader to find filesystem impls, without this may not find them -->
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"></transformer>
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

@@ -22,20 +22,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.SummingArrayCombiner;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 
 import com.beust.jcommander.Parameter;
 
@@ -44,12 +40,9 @@ import com.beust.jcommander.Parameter;
  * alongside the file data. The {@link ChunkInputFormat} is used to read the file data from
  * Accumulo.
  */
-public class CharacterHistogram extends Configured implements Tool {
-  public static final String VIS = "vis";
+public class CharacterHistogram {
 
-  public static void main(String[] args) throws Exception {
-    System.exit(ToolRunner.run(new Configuration(), new CharacterHistogram(), args));
-  }
+  private static final String VIS = "vis";
 
   public static class HistMapper extends Mapper<List<Entry<Key,Value>>,InputStream,Text,Mutation> {
     private ColumnVisibility cv;
@@ -59,10 +52,10 @@ public class CharacterHistogram extends Configured implements Tool {
         throws IOException, InterruptedException {
       Long[] hist = new Long[256];
       for (int i = 0; i < hist.length; i++)
-        hist[i] = 0l;
+        hist[i] = 0L;
       int b = v.read();
       while (b >= 0) {
-        hist[b] += 1l;
+        hist[b] += 1L;
         b = v.read();
       }
       v.close();
@@ -73,29 +66,27 @@ public class CharacterHistogram extends Configured implements Tool {
     }
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(Context context) {
       cv = new ColumnVisibility(context.getConfiguration().get(VIS, ""));
     }
   }
 
-  static class Opts extends MapReduceClientOnRequiredTable {
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = "--vis")
     String visibilities = "";
   }
 
-  @Override
-  public int run(String[] args) throws Exception {
-    Job job = Job.getInstance(getConf());
-    job.setJobName(this.getClass().getSimpleName());
-    job.setJarByClass(this.getClass());
-
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(CharacterHistogram.class.getName(), args);
 
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(CharacterHistogram.class.getSimpleName());
+    job.setJarByClass(CharacterHistogram.class);
     job.setInputFormatClass(ChunkInputFormat.class);
-    opts.setAccumuloConfigs(job);
-    job.getConfiguration().set(VIS, opts.visibilities.toString());
-
+    job.getConfiguration().set(VIS, opts.visibilities);
     job.setMapperClass(HistMapper.class);
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Mutation.class);
@@ -103,8 +94,9 @@ public class CharacterHistogram extends Configured implements Tool {
     job.setNumReduceTasks(0);
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
+        .defaultTable(opts.tableName).createTables(true);
 
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }

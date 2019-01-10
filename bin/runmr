@@ -21,7 +21,7 @@ ex_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 function print_usage() {
   cat <<EOF
 
-Usage: runex <application> args..
+Usage: runmr <mapreduce ap> args..
 EOF
 }
 
@@ -40,4 +40,5 @@ fi
 # Build shaded jar (if not built already)
 "$ex_home"/bin/build
 
-java -cp $EXAMPLES_JAR_PATH -Dlog4j.configuration="file:$EXAMPLES_LOG4J" "org.apache.accumulo.examples.$1" ${*:2}
+export HADOOP_USE_CLIENT_CLASSLOADER=true
+yarn jar $EXAMPLES_JAR_PATH "org.apache.accumulo.examples.$1" ${*:2}

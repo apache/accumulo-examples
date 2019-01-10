@@ -22,19 +22,12 @@ hadoop terasort benchmark.
 
 To run this example you run it with arguments describing the amount of data:
 
-    $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.TeraSortIngest \
-    -c ./examples.conf \
-    --count 10 \
-    --minKeySize 10 \
-    --maxKeySize 10 \
-    --minValueSize 78 \
-    --maxValueSize 78 \
-    --table sort \
-    --splits 10 \
+    $ ./bin/runmr mapreduce.TeraSortIngest --count 10 --minKeySize 10 --maxKeySize 10 \
+    --minValueSize 78 --maxValueSize 78 --table sort --splits 10 \
 
 After the map reduce job completes, scan the data:
 
-    $ accumulo shell -u username -p password
+    $ accumulo shell
     username@instance> scan -t sort
     +l-$$OE/ZH c:         4 []    GGGGGGGGGGWWWWWWWWWWMMMMMMMMMMCCCCCCCCCCSSSSSSSSSSIIIIIIIIIIYYYYYYYYYYOOOOOOOO
     ,C)wDw//u= c:        10 []    CCCCCCCCCCSSSSSSSSSSIIIIIIIIIIYYYYYYYYYYOOOOOOOOOOEEEEEEEEEEUUUUUUUUUUKKKKKKKK

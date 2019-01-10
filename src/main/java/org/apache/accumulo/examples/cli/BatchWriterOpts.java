@@ -16,16 +16,52 @@
  */
 package org.apache.accumulo.examples.cli;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.examples.cli.ClientOpts.MemoryConverter;
-import org.apache.accumulo.examples.cli.ClientOpts.TimeConverter;
 
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
 public class BatchWriterOpts {
   private static final BatchWriterConfig BWDEFAULTS = new BatchWriterConfig();
+
+  public static class TimeConverter implements IStringConverter<Long> {
+    @Override
+    public Long convert(String value) {
+      if (value.matches("[0-9]+"))
+        value = "PT" + value + "S"; // if only numbers then assume seconds
+      return Duration.parse(value).toMillis();
+    }
+  }
+
+  public static class MemoryConverter implements IStringConverter<Long> {
+    @Override
+    public Long convert(String str) {
+      try {
+        char lastChar = str.charAt(str.length() - 1);
+        int multiplier = 0;
+        switch (Character.toUpperCase(lastChar)) {
+          case 'G':
+            multiplier += 10;
+          case 'M':
+            multiplier += 10;
+          case 'K':
+            multiplier += 10;
+          case 'B':
+            break;
+          default:
+            return Long.parseLong(str);
+        }
+        return Long.parseLong(str.substring(0, str.length() - 1)) << multiplier;
+      } catch (Exception ex) {
+        throw new IllegalArgumentException(
+            "The value '" + str + "' is not a valid memory setting. A valid value would a number "
+                + "possibily followed by an optional 'G', 'M', 'K', or 'B'.");
+      }
+    }
+  }
 
   @Parameter(names = "--batchThreads",
       description = "Number of threads to use when writing large batches")

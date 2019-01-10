@@ -25,13 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -44,8 +42,8 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
@@ -65,10 +63,11 @@ import com.beust.jcommander.Parameter;
  * 10000000000 rows and 10/10 byte key length and 78/78 byte value length. Along with the 10 byte
  * row id and \r\n this gives you 100 byte row * 10000000000 rows = 1tb. Min/Max ranges for key and
  * value parameters are inclusive/inclusive respectively.
- *
- *
  */
-public class TeraSortIngest extends Configured implements Tool {
+public class TeraSortIngest {
+
+  private static final Logger log = LoggerFactory.getLogger(TeraSortIngest.class);
+
   /**
    * An input format that assigns ranges of longs to each mapper.
    */
@@ -159,7 +158,6 @@ public class TeraSortIngest extends Configured implements Tool {
     @Override
     public RecordReader<LongWritable,NullWritable> createRecordReader(InputSplit split,
         TaskAttemptContext context) throws IOException {
-      // reporter.setStatus("Creating record reader");
       return new RangeRecordReader((RangeInputSplit) split);
     }
 
@@ -171,7 +169,7 @@ public class TeraSortIngest extends Configured implements Tool {
       long totalRows = job.getConfiguration().getLong(NUMROWS, 0);
       int numSplits = job.getConfiguration().getInt(NUMSPLITS, 1);
       long rowsPerSplit = totalRows / numSplits;
-      System.out.println(
+      log.info(
           "Generating " + totalRows + " using " + numSplits + " maps with step of " + rowsPerSplit);
       ArrayList<InputSplit> splits = new ArrayList<>(numSplits);
       long currentRow = 0;
@@ -180,10 +178,9 @@ public class TeraSortIngest extends Configured implements Tool {
         currentRow += rowsPerSplit;
       }
       splits.add(new RangeInputSplit(currentRow, totalRows - currentRow));
-      System.out.println("Done Generating.");
+      log.info("Done Generating.");
       return splits;
     }
-
   }
 
   private static String NUMSPLITS = "terasort.overridesplits";
@@ -225,7 +222,7 @@ public class TeraSortIngest extends Configured implements Tool {
     }
 
     long next() {
-      seed = (seed * 3141592621l + 663896637) & mask32;
+      seed = (seed * 3141592621L + 663896637) & mask32;
       return seed;
     }
   }
@@ -354,11 +351,9 @@ public class TeraSortIngest extends Configured implements Tool {
     }
   }
 
-  public static void main(String[] args) throws Exception {
-    ToolRunner.run(new Configuration(), new TeraSortIngest(), args);
-  }
-
-  static class Opts extends MapReduceClientOnRequiredTable {
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = "--count", description = "number of rows to ingest", required = true)
     long numRows;
     @Parameter(names = {"-nk", "--minKeySize"}, description = "miniumum key size", required = true)
@@ -373,14 +368,13 @@ public class TeraSortIngest extends Configured implements Tool {
     int splits = 0;
   }
 
-  @Override
-  public int run(String[] args) throws Exception {
-    Job job = Job.getInstance(getConf());
-    job.setJobName("TeraSortCloud");
-    job.setJarByClass(this.getClass());
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(TeraSortIngest.class.getName(), args);
 
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(TeraSortIngest.class.getName());
+    job.setJarByClass(TeraSortIngest.class);
     job.setInputFormatClass(RangeInputFormat.class);
     job.setMapperClass(SortGenMapper.class);
     job.setMapOutputKeyClass(Text.class);
@@ -389,9 +383,8 @@ public class TeraSortIngest extends Configured implements Tool {
     job.setNumReduceTasks(0);
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    opts.setAccumuloConfigs(job);
-    BatchWriterConfig bwConfig = new BatchWriterConfig().setMaxMemory(10L * 1000 * 1000);
-    AccumuloOutputFormat.setBatchWriterOptions(job, bwConfig);
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
+        .defaultTable(opts.tableName).createTables(true).store(job);
 
     Configuration conf = job.getConfiguration();
     conf.setLong(NUMROWS, opts.numRows);
@@ -399,12 +392,11 @@ public class TeraSortIngest extends Configured implements Tool {
     conf.setInt("cloudgen.maxkeylength", opts.maxKeyLength);
     conf.setInt("cloudgen.minvaluelength", opts.minValueLength);
     conf.setInt("cloudgen.maxvaluelength", opts.maxValueLength);
-    conf.set("cloudgen.tablename", opts.getTableName());
+    conf.set("cloudgen.tablename", opts.tableName);
 
     if (opts.splits != 0)
       conf.setInt(NUMSPLITS, opts.splits);
 
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }

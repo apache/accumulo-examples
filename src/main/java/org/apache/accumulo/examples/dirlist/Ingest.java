@@ -145,35 +145,37 @@ public class Ingest {
     BatchWriterOpts bwOpts = new BatchWriterOpts();
     opts.parseArgs(Ingest.class.getName(), args, bwOpts);
 
-    AccumuloClient client = opts.getAccumuloClient();
-    if (!client.tableOperations().exists(opts.nameTable))
-      client.tableOperations().create(opts.nameTable);
-    if (!client.tableOperations().exists(opts.indexTable))
-      client.tableOperations().create(opts.indexTable);
-    if (!client.tableOperations().exists(opts.dataTable)) {
-      client.tableOperations().create(opts.dataTable);
-      client.tableOperations().attachIterator(opts.dataTable,
-          new IteratorSetting(1, ChunkCombiner.class));
-    }
-
-    BatchWriter dirBW = client.createBatchWriter(opts.nameTable, bwOpts.getBatchWriterConfig());
-    BatchWriter indexBW = client.createBatchWriter(opts.indexTable, bwOpts.getBatchWriterConfig());
-    BatchWriter dataBW = client.createBatchWriter(opts.dataTable, bwOpts.getBatchWriterConfig());
-    FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
-    for (String dir : opts.directories) {
-      recurse(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
-
-      // fill in parent directory info
-      int slashIndex = -1;
-      while ((slashIndex = dir.lastIndexOf("/")) > 0) {
-        dir = dir.substring(0, slashIndex);
-        ingest(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      if (!client.tableOperations().exists(opts.nameTable))
+        client.tableOperations().create(opts.nameTable);
+      if (!client.tableOperations().exists(opts.indexTable))
+        client.tableOperations().create(opts.indexTable);
+      if (!client.tableOperations().exists(opts.dataTable)) {
+        client.tableOperations().create(opts.dataTable);
+        client.tableOperations().attachIterator(opts.dataTable,
+            new IteratorSetting(1, ChunkCombiner.class));
       }
-    }
-    ingest(new File("/"), opts.visibility, dirBW, indexBW, fdi, dataBW);
 
-    dirBW.close();
-    indexBW.close();
-    dataBW.close();
+      BatchWriter dirBW = client.createBatchWriter(opts.nameTable, bwOpts.getBatchWriterConfig());
+      BatchWriter indexBW = client.createBatchWriter(opts.indexTable,
+          bwOpts.getBatchWriterConfig());
+      BatchWriter dataBW = client.createBatchWriter(opts.dataTable, bwOpts.getBatchWriterConfig());
+      FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
+      for (String dir : opts.directories) {
+        recurse(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
+
+        // fill in parent directory info
+        int slashIndex = -1;
+        while ((slashIndex = dir.lastIndexOf("/")) > 0) {
+          dir = dir.substring(0, slashIndex);
+          ingest(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
+        }
+      }
+      ingest(new File("/"), opts.visibility, dirBW, indexBW, fdi, dataBW);
+
+      dirBW.close();
+      indexBW.close();
+      dataBW.close();
+    }
   }
 }

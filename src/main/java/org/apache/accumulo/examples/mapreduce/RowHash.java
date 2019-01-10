@@ -20,25 +20,23 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Collections;
 
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.Pair;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.hadoop.mapreduce.InputFormatBuilder;
 import org.apache.hadoop.io.MD5Hash;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 
 import com.beust.jcommander.Parameter;
 
-public class RowHash extends Configured implements Tool {
+public class RowHash {
+
   /**
    * The Mapper class that given a row number, will generate the appropriate output line.
    */
@@ -56,41 +54,42 @@ public class RowHash extends Configured implements Tool {
     public void setup(Context job) {}
   }
 
-  private static class Opts extends MapReduceClientOnRequiredTable {
+  private static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = "--column", required = true)
     String column;
   }
 
-  @Override
-  public int run(String[] args) throws Exception {
-    Job job = Job.getInstance(getConf());
-    job.setJobName(this.getClass().getName());
-    job.setJarByClass(this.getClass());
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(RowHash.class.getName(), args);
+
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(RowHash.class.getName());
+    job.setJarByClass(RowHash.class);
     job.setInputFormatClass(AccumuloInputFormat.class);
-    opts.setAccumuloConfigs(job);
+    InputFormatBuilder.InputFormatOptions<Job> inputOpts = AccumuloInputFormat.configure()
+        .clientProperties(opts.getClientProperties()).table(opts.tableName);
 
     String col = opts.column;
     int idx = col.indexOf(":");
     Text cf = new Text(idx < 0 ? col : col.substring(0, idx));
     Text cq = idx < 0 ? null : new Text(col.substring(idx + 1));
-    if (cf.getLength() > 0)
-      AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<>(cf, cq)));
+    if (cf.getLength() > 0) {
+      inputOpts.fetchColumns(Collections.singleton(new IteratorSetting.Column(cf, cq)));
+    }
+    inputOpts.store(job);
 
     job.setMapperClass(HashDataMapper.class);
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Mutation.class);
-
     job.setNumReduceTasks(0);
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
+        .defaultTable(opts.tableName).store(job);
 
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
-  }
-
-  public static void main(String[] args) throws Exception {
-    ToolRunner.run(new Configuration(), new RowHash(), args);
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }

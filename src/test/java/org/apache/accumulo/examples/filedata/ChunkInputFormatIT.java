@@ -39,7 +39,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.harness.AccumuloClusterHarness;
-import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.mapreduce.Job;
@@ -47,6 +47,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -75,9 +76,14 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
 
   @Before
   public void setupInstance() throws Exception {
-    client = getAccumuloClient();
+    client = createAccumuloClient();
     tableName = getUniqueNames(1)[0];
     client.securityOperations().changeUserAuthorizations(client.whoami(), AUTHS);
+  }
+
+  @After
+  public void teardown() {
+    client.close();
   }
 
   @BeforeClass

@@ -161,25 +161,26 @@ public class InterferenceTest {
     if (opts.iterations < 1)
       opts.iterations = Long.MAX_VALUE;
 
-    AccumuloClient client = opts.getAccumuloClient();
-    if (!client.tableOperations().exists(opts.getTableName()))
-      client.tableOperations().create(opts.getTableName());
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      if (!client.tableOperations().exists(opts.getTableName()))
+        client.tableOperations().create(opts.getTableName());
 
-    Thread writer = new Thread(
-        new Writer(client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig()),
-            opts.iterations));
-    writer.start();
-    Reader r;
-    if (opts.isolated)
-      r = new Reader(new IsolatedScanner(client.createScanner(opts.getTableName(), opts.auths)));
-    else
-      r = new Reader(client.createScanner(opts.getTableName(), opts.auths));
-    Thread reader;
-    reader = new Thread(r);
-    reader.start();
-    writer.join();
-    r.stopNow();
-    reader.join();
-    System.out.println("finished");
+      Thread writer = new Thread(
+          new Writer(client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig()),
+              opts.iterations));
+      writer.start();
+      Reader r;
+      if (opts.isolated)
+        r = new Reader(new IsolatedScanner(client.createScanner(opts.getTableName(), opts.auths)));
+      else
+        r = new Reader(client.createScanner(opts.getTableName(), opts.auths));
+      Thread reader;
+      reader = new Thread(r);
+      reader.start();
+      writer.join();
+      r.stopNow();
+      reader.join();
+      System.out.println("finished");
+    }
   }
 }

@@ -301,13 +301,14 @@ public class ARS {
       } else if (tokens[0].equals("quit") && tokens.length == 1) {
         break;
       } else if (tokens[0].equals("connect") && tokens.length == 6 && ars == null) {
-        AccumuloClient client = Accumulo.newClient().forInstance(tokens[1], tokens[2])
-            .usingPassword(tokens[3], tokens[4]).build();
-        if (client.tableOperations().exists(tokens[5])) {
-          ars = new ARS(client, tokens[5]);
-          reader.println("  connected");
-        } else
-          reader.println("  No Such Table");
+        try (AccumuloClient client = Accumulo.newClient().to(tokens[1], tokens[2])
+            .as(tokens[3], tokens[4]).build()) {
+          if (client.tableOperations().exists(tokens[5])) {
+            ars = new ARS(client, tokens[5]);
+            reader.println("  connected");
+          } else
+            reader.println("  No Such Table");
+        }
       } else {
         System.out.println("  Commands : ");
         if (ars == null) {

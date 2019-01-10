@@ -16,17 +16,14 @@
  */
 package org.apache.accumulo.examples.cli;
 
-import java.io.File;
-import java.time.Duration;
+import java.nio.file.Paths;
+import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientInfo;
-import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.hadoop.conf.Configuration;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
@@ -47,87 +44,43 @@ public class ClientOpts extends Help {
     }
   }
 
-  public static class TimeConverter implements IStringConverter<Long> {
-    @Override
-    public Long convert(String value) {
-      if (value.matches("[0-9]+"))
-        value = "PT" + value + "S"; // if only numbers then assume seconds
-      return Duration.parse(value).toMillis();
-    }
-  }
-
-  public static class MemoryConverter implements IStringConverter<Long> {
-    @Override
-    public Long convert(String str) {
-      try {
-        char lastChar = str.charAt(str.length() - 1);
-        int multiplier = 0;
-        switch (Character.toUpperCase(lastChar)) {
-          case 'G':
-            multiplier += 10;
-          case 'M':
-            multiplier += 10;
-          case 'K':
-            multiplier += 10;
-          case 'B':
-            break;
-          default:
-            return Long.parseLong(str);
-        }
-        return Long.parseLong(str.substring(0, str.length() - 1)) << multiplier;
-      } catch (Exception ex) {
-        throw new IllegalArgumentException(
-            "The value '" + str + "' is not a valid memory setting. A valid value would a number "
-                + "possibily followed by an optional 'G', 'M', 'K', or 'B'.");
-      }
-    }
-  }
-
-  public static class PropertiesConverter implements IStringConverter<File> {
-    @Override
-    public File convert(String filename) {
-      try {
-        return new File(filename);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  @Parameter(names = {"-c", "--conf"}, required = true, converter = PropertiesConverter.class,
-      description = "Accumulo client properties file.  See README.md for details.")
-  private File config = null;
+  @Parameter(names = {"-c", "--conf"}, description = "Path to accumulo-client.properties."
+      + "If not set, defaults to path set by env variable ACCUMULO_CLIENT_PROPS.")
+  private String propsPath = null;
 
   @Parameter(names = {"-auths", "--auths"}, converter = AuthConverter.class,
       description = "the authorizations to use when reading or writing")
   public Authorizations auths = Authorizations.EMPTY;
 
-  private ClientInfo cachedInfo = null;
-  private AccumuloClient cachedAccumuloClient = null;
+  private Properties cachedProps = null;
 
-  public AccumuloClient getAccumuloClient() {
-    if (cachedAccumuloClient == null) {
-      try {
-        cachedAccumuloClient = Accumulo.newClient().usingClientInfo(getClientInfo()).build();
-      } catch (AccumuloException | AccumuloSecurityException e) {
-        throw new IllegalArgumentException(e);
+  public AccumuloClient createAccumuloClient() {
+    return Accumulo.newClient().from(getClientPropsPath()).build();
+  }
+
+  public String getClientPropsPath() {
+    if (propsPath == null) {
+      propsPath = System.getenv("ACCUMULO_CLIENT_PROPS");
+      if (propsPath == null) {
+        throw new IllegalArgumentException("accumulo-client.properties must be set!");
+      }
+      if (!Paths.get(propsPath).toFile().exists()) {
+        throw new IllegalArgumentException(propsPath + " does not exist!");
       }
     }
-    return cachedAccumuloClient;
+    return propsPath;
   }
 
-  public ClientInfo getClientInfo() {
-    if (cachedInfo == null) {
-      cachedInfo = Accumulo.newClient().usingProperties(config.getAbsolutePath()).info();
+  public Properties getClientProperties() {
+    if (cachedProps == null) {
+      cachedProps = Accumulo.newClientProperties().from(getClientPropsPath()).build();
     }
-    return cachedInfo;
+    return cachedProps;
   }
 
-  public String getPrincipal() {
-    return getClientInfo().getPrincipal();
-  }
-
-  public AuthenticationToken getToken() {
-    return getClientInfo().getAuthenticationToken();
+  public Configuration getHadoopConfig() {
+    Configuration config = new Configuration();
+    config.set("mapreduce.job.classloader", "true");
+    return config;
   }
 }

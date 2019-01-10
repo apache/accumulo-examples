@@ -23,6 +23,7 @@ import java.util.TreeSet;
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -36,27 +37,30 @@ public class SetupTable {
   static String outputFile = "bulk/test_1.txt";
 
   public static void main(String[] args) throws Exception {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
-    try {
-      client.tableOperations().create(tableName);
-    } catch (TableExistsException e) {
-      // ignore
-    }
+    ClientOpts opts = new ClientOpts();
+    opts.parseArgs(SetupTable.class.getName(), args);
 
-    // create a table with initial partitions
-    TreeSet<Text> intialPartitions = new TreeSet<>();
-    for (String split : splits) {
-      intialPartitions.add(new Text(split));
-    }
-    client.tableOperations().addSplits(tableName, intialPartitions);
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      try {
+        client.tableOperations().create(tableName);
+      } catch (TableExistsException e) {
+        // ignore
+      }
 
-    FileSystem fs = FileSystem.get(new Configuration());
-    try (PrintStream out = new PrintStream(
-        new BufferedOutputStream(fs.create(new Path(outputFile))))) {
-      // create some data in outputFile
-      for (int i = 0; i < numRows; i++) {
-        out.println(String.format("row_%010d\tvalue_%010d", i, i));
+      // create a table with initial partitions
+      TreeSet<Text> intialPartitions = new TreeSet<>();
+      for (String split : splits) {
+        intialPartitions.add(new Text(split));
+      }
+      client.tableOperations().addSplits(tableName, intialPartitions);
+
+      FileSystem fs = FileSystem.get(new Configuration());
+      try (PrintStream out = new PrintStream(
+          new BufferedOutputStream(fs.create(new Path(outputFile))))) {
+        // create some data in outputFile
+        for (int i = 0; i < numRows; i++) {
+          out.println(String.format("row_%010d\tvalue_%010d", i, i));
+        }
       }
     }
   }

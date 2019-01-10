@@ -21,63 +21,65 @@ import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class VerifyIngest {
+
   private static final Logger log = LoggerFactory.getLogger(VerifyIngest.class);
 
-  public static void main(String[] args)
-      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
-    Scanner scanner = client.createScanner(SetupTable.tableName, Authorizations.EMPTY);
+  public static void main(String[] args) throws TableNotFoundException {
 
-    scanner.setRange(new Range(String.format("row_%010d", 0), null));
+    ClientOpts opts = new ClientOpts();
+    opts.parseArgs(VerifyIngest.class.getName(), args);
 
-    Iterator<Entry<Key,Value>> si = scanner.iterator();
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build();
+        Scanner scanner = client.createScanner(SetupTable.tableName, Authorizations.EMPTY)) {
 
-    boolean ok = true;
+      scanner.setRange(new Range(String.format("row_%010d", 0), null));
 
-    for (int i = 0; i < SetupTable.numRows; i++) {
+      Iterator<Entry<Key,Value>> si = scanner.iterator();
 
-      if (si.hasNext()) {
-        Entry<Key,Value> entry = si.next();
+      boolean ok = true;
 
-        if (!entry.getKey().getRow().toString().equals(String.format("row_%010d", i))) {
-          log.error("unexpected row key " + entry.getKey().getRow().toString() + " expected "
-              + String.format("row_%010d", i));
+      for (int i = 0; i < SetupTable.numRows; i++) {
+
+        if (si.hasNext()) {
+          Entry<Key,Value> entry = si.next();
+
+          if (!entry.getKey().getRow().toString().equals(String.format("row_%010d", i))) {
+            log.error("unexpected row key " + entry.getKey().getRow().toString() + " expected "
+                + String.format("row_%010d", i));
+            ok = false;
+          }
+
+          if (!entry.getValue().toString().equals(String.format("value_%010d", i))) {
+            log.error("unexpected value " + entry.getValue().toString() + " expected "
+                + String.format("value_%010d", i));
+            ok = false;
+          }
+
+        } else {
+          log.error("no more rows, expected " + String.format("row_%010d", i));
           ok = false;
+          break;
         }
 
-        if (!entry.getValue().toString().equals(String.format("value_%010d", i))) {
-          log.error("unexpected value " + entry.getValue().toString() + " expected "
-              + String.format("value_%010d", i));
-          ok = false;
-        }
-
-      } else {
-        log.error("no more rows, expected " + String.format("row_%010d", i));
-        ok = false;
-        break;
       }
 
-    }
-
-    if (ok) {
-      System.out.println("OK");
-      System.exit(0);
-    } else {
-      System.exit(1);
+      if (ok) {
+        System.out.println("OK");
+        System.exit(0);
+      } else {
+        System.exit(1);
+      }
     }
   }
-
 }

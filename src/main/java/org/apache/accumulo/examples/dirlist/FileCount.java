@@ -300,8 +300,10 @@ public class FileCount {
     String programName = FileCount.class.getName();
     opts.parseArgs(programName, args, scanOpts, bwOpts);
 
-    FileCount fileCount = new FileCount(opts.getAccumuloClient(), opts.getTableName(), opts.auths,
-        opts.visibility, scanOpts, bwOpts);
-    fileCount.run();
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      FileCount fileCount = new FileCount(client, opts.getTableName(), opts.auths, opts.visibility,
+          scanOpts, bwOpts);
+      fileCount.run();
+    }
   }
 }

@@ -16,78 +16,40 @@ limitations under the License.
 -->
 # Apache Accumulo MapReduce Example
 
-This example uses MapReduce and Accumulo to compute word counts for a set of
-documents. This is accomplished using a map-only MapReduce job and a
-Accumulo table with combiners.
+## WordCount Example
 
-To run this example, you will need a directory in HDFS containing text files.
-The accumulo readme will be used to show how to run this example.
+The WordCount example ([WordCount.java]) uses MapReduce and Accumulo to compute
+word counts for a set of documents. This is accomplished using a map-only MapReduce
+job and a Accumulo table with combiners.
 
-    $ hadoop fs -copyFromLocal /path/to/accumulo/README.md /user/username/wc/Accumulo.README
-    $ hadoop fs -ls /user/username/wc
-    Found 1 items
-    -rw-r--r--   2 username supergroup       9359 2009-07-15 17:54 /user/username/wc/Accumulo.README
 
-The first part of running this example is to create a table with a combiner
-for the column family count.
+To run this example, create a directory in HDFS containing text files. You can
+use the Accumulo README for data:
 
-    $ accumulo shell -u username -p password
-    Shell - Apache Accumulo Interactive Shell
-    - version: 1.5.0
-    - instance name: instance
-    - instance id: 00000000-0000-0000-0000-000000000000
-    -
-    - type 'help' for a list of available commands
-    -
-    username@instance> createtable wordCount
-    username@instance wordCount> setiter -class org.apache.accumulo.core.iterators.user.SummingCombiner -p 10 -t wordCount -majc -minc -scan
-    SummingCombiner interprets Values as Longs and adds them together. A variety of encodings (variable length, fixed length, or string) are available
-    ----------> set SummingCombiner parameter all, set to true to apply Combiner to every column, otherwise leave blank. if true, columns option will be ignored.: false
-    ----------> set SummingCombiner parameter columns, <col fam>[:<col qual>]{,<col fam>[:<col qual>]} escape non-alphanum chars using %<hex>.: count
-    ----------> set SummingCombiner parameter lossy, if true, failed decodes are ignored. Otherwise combiner will error on failed decodes (default false): <TRUE|FALSE>: false
-    ----------> set SummingCombiner parameter type, <VARLEN|FIXEDLEN|STRING|fullClassName>: STRING
-    username@instance wordCount> quit
+    $ hdfs dfs -mkdir /wc
+    $ hdfs dfs -copyFromLocal /path/to/accumulo/README.md /wc/README.md
 
-After creating the table, run the word count map reduce job.
+Verify that the file was created:
 
-    $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.WordCount -i instance -z zookeepers  --input /user/username/wc -t wordCount -u username -p password
+    $ hdfs dfs -ls /wc
 
-    11/02/07 18:20:11 INFO input.FileInputFormat: Total input paths to process : 1
-    11/02/07 18:20:12 INFO mapred.JobClient: Running job: job_201102071740_0003
-    11/02/07 18:20:13 INFO mapred.JobClient:  map 0% reduce 0%
-    11/02/07 18:20:20 INFO mapred.JobClient:  map 100% reduce 0%
-    11/02/07 18:20:22 INFO mapred.JobClient: Job complete: job_201102071740_0003
-    11/02/07 18:20:22 INFO mapred.JobClient: Counters: 6
-    11/02/07 18:20:22 INFO mapred.JobClient:   Job Counters
-    11/02/07 18:20:22 INFO mapred.JobClient:     Launched map tasks=1
-    11/02/07 18:20:22 INFO mapred.JobClient:     Data-local map tasks=1
-    11/02/07 18:20:22 INFO mapred.JobClient:   FileSystemCounters
-    11/02/07 18:20:22 INFO mapred.JobClient:     HDFS_BYTES_READ=10487
-    11/02/07 18:20:22 INFO mapred.JobClient:   Map-Reduce Framework
-    11/02/07 18:20:22 INFO mapred.JobClient:     Map input records=255
-    11/02/07 18:20:22 INFO mapred.JobClient:     Spilled Records=0
-    11/02/07 18:20:22 INFO mapred.JobClient:     Map output records=1452
+After creating the table, run the WordCount MapReduce job with your HDFS input directory:
 
-After the map reduce job completes, query the accumulo table to see word
-counts.
+    $ ./bin/runmr mapreduce.WordCount -i /wc
 
-    $ accumulo shell -u username -p password
+[WordCount.java] creates an Accumulo table (named with a SummingCombiner iterator
+attached to it. It runs a map-only M/R job that reads the specified HDFS directory containing text files and
+writes word counts to Accumulo table.
+
+After the MapReduce job completes, query the Accumulo table to see word counts.
+
+    $ accumulo shell
     username@instance> table wordCount
     username@instance wordCount> scan -b the
     the count:20080906 []    75
     their count:20080906 []    2
     them count:20080906 []    1
     then count:20080906 []    1
-    there count:20080906 []    1
-    these count:20080906 []    3
-    this count:20080906 []    6
-    through count:20080906 []    1
-    time count:20080906 []    3
-    time. count:20080906 []    1
-    to count:20080906 []    27
-    total count:20080906 []    1
-    tserver, count:20080906 []    1
-    tserver.compaction.major.concurrent.max count:20080906 []    1
     ...
 
 Another example to look at is
@@ -134,14 +96,14 @@ Because the basic WordCount example uses Opts to parse its arguments
 the basic WordCount example by calling the same command as explained above
 except replacing the password with the token file (rather than -p, use -tf).
 
-  $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.WordCount -i instance -z zookeepers  --input /user/username/wc -t wordCount -u username -tf tokenfile
+  $ ./bin/runmr mapreduce.WordCount --input /user/username/wc -t wordCount -u username -tf tokenfile
 
 In the above examples, username was 'root' and tokenfile was 'root.pw'
 
 However, if you don't want to use the Opts class to parse arguments,
 the TokenFileWordCount is an example of using the token file manually.
 
-  $ accumulo-util hadoop-jar target/accumulo-examples.jar org.apache.accumulo.examples.mapreduce.TokenFileWordCount instance zookeepers username tokenfile /user/username/wc wordCount
+  $ ./bin/runmr mapreduce.TokenFileWordCount instance zookeepers username tokenfile /user/username/wc wordCount
 
 The results should be the same as the WordCount example except that the
 authentication token was not stored in the configuration. It was instead
@@ -149,6 +111,4 @@ stored in a file that the map-reduce job pulled into the distributed cache.
 (If you ran either of these on the same table right after the
 WordCount example, then the resulting counts should just double.)
 
-
-
-
+[WordCount.java]: ../src/main/java/org/apache/accumulo/examples/mapreduce/WordCount.java

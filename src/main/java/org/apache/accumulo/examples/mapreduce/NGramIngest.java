@@ -20,20 +20,17 @@ import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.MapReduceClientOnRequiredTable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +40,14 @@ import com.beust.jcommander.Parameter;
  * Map job to ingest n-gram files from
  * http://storage.googleapis.com/books/ngrams/books/datasetsv2.html
  */
-public class NGramIngest extends Configured implements Tool {
+public class NGramIngest {
 
   private static final Logger log = LoggerFactory.getLogger(NGramIngest.class);
 
-  static class Opts extends MapReduceClientOnRequiredTable {
-    @Parameter(names = "--input", required = true)
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
+    @Parameter(names = {"-i", "--input"}, required = true, description = "HDFS input directory")
     String inputDirectory;
   }
 
@@ -67,18 +66,18 @@ public class NGramIngest extends Configured implements Tool {
     }
   }
 
-  @Override
-  public int run(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
-    opts.parseArgs(getClass().getName(), args);
+    opts.parseArgs(NGramIngest.class.getName(), args);
 
-    Job job = Job.getInstance(getConf());
-    job.setJobName(getClass().getSimpleName());
-    job.setJarByClass(getClass());
+    Job job = Job.getInstance(opts.getHadoopConfig());
+    job.setJobName(NGramIngest.class.getSimpleName());
+    job.setJarByClass(NGramIngest.class);
 
-    opts.setAccumuloConfigs(job);
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(AccumuloOutputFormat.class);
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
+        .defaultTable(opts.tableName).store(job);
 
     job.setMapperClass(NGramMapper.class);
     job.setMapOutputKeyClass(Text.class);
@@ -87,30 +86,24 @@ public class NGramIngest extends Configured implements Tool {
     job.setNumReduceTasks(0);
     job.setSpeculativeExecution(false);
 
-    if (!opts.getAccumuloClient().tableOperations().exists(opts.getTableName())) {
-      log.info("Creating table " + opts.getTableName());
-      opts.getAccumuloClient().tableOperations().create(opts.getTableName());
-      SortedSet<Text> splits = new TreeSet<>();
-      String numbers[] = "1 2 3 4 5 6 7 8 9".split("\\s");
-      String lower[] = "a b c d e f g h i j k l m n o p q r s t u v w x y z".split("\\s");
-      String upper[] = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split("\\s");
-      for (String[] array : new String[][] {numbers, lower, upper}) {
-        for (String s : array) {
-          splits.add(new Text(s));
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      if (!client.tableOperations().exists(opts.tableName)) {
+        log.info("Creating table " + opts.tableName);
+        client.tableOperations().create(opts.tableName);
+        SortedSet<Text> splits = new TreeSet<>();
+        String numbers[] = "1 2 3 4 5 6 7 8 9".split("\\s");
+        String lower[] = "a b c d e f g h i j k l m n o p q r s t u v w x y z".split("\\s");
+        String upper[] = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split("\\s");
+        for (String[] array : new String[][] {numbers, lower, upper}) {
+          for (String s : array) {
+            splits.add(new Text(s));
+          }
         }
+        client.tableOperations().addSplits(opts.tableName, splits);
       }
-      opts.getAccumuloClient().tableOperations().addSplits(opts.getTableName(), splits);
     }
 
     TextInputFormat.addInputPath(job, new Path(opts.inputDirectory));
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
-
-  public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(new Configuration(), new NGramIngest(), args);
-    if (res != 0)
-      System.exit(res);
-  }
-
 }

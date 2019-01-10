@@ -27,7 +27,7 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.Help;
+import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -95,7 +95,7 @@ public class Index {
 
   }
 
-  static class IndexOpts extends Help {
+  static class IndexOpts extends ClientOpts {
 
     @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
     private String tableName;
@@ -114,14 +114,11 @@ public class Index {
 
     String splitRegex = "\\W+";
 
-    AccumuloClient client = Accumulo.newClient().usingProperties("conf/accumulo-client.properties")
-        .build();
-
-    try (BatchWriter bw = client.createBatchWriter(opts.tableName)) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build();
+        BatchWriter bw = client.createBatchWriter(opts.tableName)) {
       for (String filename : opts.files) {
         index(opts.partitions, new File(filename), splitRegex, bw);
       }
     }
   }
-
 }

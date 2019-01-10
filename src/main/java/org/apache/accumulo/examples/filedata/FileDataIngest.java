@@ -193,19 +193,19 @@ public class FileDataIngest {
     BatchWriterOpts bwOpts = new BatchWriterOpts();
     opts.parseArgs(FileDataIngest.class.getName(), args, bwOpts);
 
-    AccumuloClient client = opts.getAccumuloClient();
-    if (!client.tableOperations().exists(opts.getTableName())) {
-      client.tableOperations().create(opts.getTableName());
-      client.tableOperations().attachIterator(opts.getTableName(),
-          new IteratorSetting(1, ChunkCombiner.class));
+    try (AccumuloClient client = opts.createAccumuloClient()) {
+      if (!client.tableOperations().exists(opts.getTableName())) {
+        client.tableOperations().create(opts.getTableName());
+        client.tableOperations().attachIterator(opts.getTableName(),
+            new IteratorSetting(1, ChunkCombiner.class));
+      }
+      try (BatchWriter bw = client.createBatchWriter(opts.getTableName(),
+          bwOpts.getBatchWriterConfig())) {
+        FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
+        for (String filename : opts.files) {
+          fdi.insertFileData(filename, bw);
+        }
+      }
     }
-    BatchWriter bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
-    FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
-    for (String filename : opts.files) {
-      fdi.insertFileData(filename, bw);
-    }
-    bw.close();
-    // TODO
-    // opts.stopTracing();
   }
 }
