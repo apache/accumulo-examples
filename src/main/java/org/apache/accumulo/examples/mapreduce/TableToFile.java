@@ -28,6 +28,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.format.DefaultFormatter;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.InputFormatBuilder;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -47,7 +48,7 @@ public class TableToFile {
     String tableName;
     @Parameter(names = "--output", required = true, description = "output directory")
     String output;
-    @Parameter(names = "--columns", required = true, description = "columns to extract, in cf:cq{,cf:cq,...} form")
+    @Parameter(names = "--columns", description = "columns to extract, in cf:cq{,cf:cq,...} form")
     String columns = "";
   }
 
@@ -75,16 +76,17 @@ public class TableToFile {
       if (!cf.isEmpty())
         columnsToFetch.add(new IteratorSetting.Column(cf, cq));
     }
-    if (!columnsToFetch.isEmpty()) {
-      throw new IllegalArgumentException("Failed to parse columns: " + opts.columns);
-    }
 
     Job job = Job.getInstance(opts.getHadoopConfig());
     job.setJobName(TableToFile.class.getSimpleName() + "_" + System.currentTimeMillis());
     job.setJarByClass(TableToFile.class);
     job.setInputFormatClass(AccumuloInputFormat.class);
-    AccumuloInputFormat.configure().clientProperties(opts.getClientProperties())
-        .table(opts.tableName).fetchColumns(columnsToFetch).store(job);
+    InputFormatBuilder.InputFormatOptions<Job> inputOpts = AccumuloInputFormat.configure()
+        .clientProperties(opts.getClientProperties()).table(opts.tableName);
+    if (!columnsToFetch.isEmpty()) {
+      inputOpts.fetchColumns(columnsToFetch);
+    }
+    inputOpts.store(job);
     job.setMapperClass(TTFMapper.class);
     job.setMapOutputKeyClass(NullWritable.class);
     job.setMapOutputValueClass(Text.class);
