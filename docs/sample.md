@@ -88,7 +88,7 @@ failure and fixiing the problem with a compaction.
 The example above is replicated in a java program using the Accumulo API.
 Below is the program name and the command to run it.
 
-    ./bin/runex sample.SampleExample -c ./examples.conf
+    ./bin/runex sample.SampleExample
 
 The commands below look under the hood to give some insight into how this
 feature works.  The commands determine what files the sampex table is using.
@@ -166,13 +166,13 @@ shard table based on the column qualifier.
 After enabling sampling, the command below counts the number of documents in
 the sample containing the words `import` and `int`.     
 
-    $ ./bin/runex shard.Query --sample -c ./examples.conf -t shard import int | fgrep '.java' | wc
+    $ ./bin/runex shard.Query --sample -t shard import int | fgrep '.java' | wc
          11      11    1246
 
 The command below counts the total number of documents containing the words
 `import` and `int`.
 
-    $ ./bin/runex shard.Query -c ./examples.conf -t shard import int | fgrep '.java' | wc
+    $ ./bin/runex shard.Query -t shard import int | fgrep '.java' | wc
        1085    1085  118175
 
 The counts 11 out of 1085 total are around what would be expected for a modulus
@@ -188,4 +188,4 @@ To experiment with this iterator, use the following command.  The
 `--sampleCutoff` option below will cause the query to return nothing if based
 on the sample it appears a query would return more than 1000 documents.
 
-    $ ./bin/runex shard.Query --sampleCutoff 1000 -c ./examples.conf -t shard import int | fgrep '.java' | wc
+    $ ./bin/runex shard.Query --sampleCutoff 1000 -t shard import int | fgrep '.java' | wc

@@ -24,7 +24,7 @@ Follow the steps below to run the Accumulo examples:
 
 1. Clone this repository
 
-      git clone https://github.com/apache/accumulo-examples.git
+        git clone https://github.com/apache/accumulo-examples.git
 
 2. Follow [Accumulo's quickstart][quickstart] to install and run an Accumulo instance.
    Accumulo has an [accumulo-client.properties] in `conf/` that must be configured as
@@ -34,13 +34,13 @@ Follow the steps below to run the Accumulo examples:
    are set in your shell, you may be able skip this step. Make sure `ACCUMULO_CLIENT_PROPS` is
    set to the location of your [accumulo-client.properties].
 
-      cp conf/env.sh.example conf/env.sh
-      vim conf/env.sh
+        cp conf/env.sh.example conf/env.sh
+        vim conf/env.sh
 
 3. Build the examples repo and copy the examples jar to Accumulo's `lib/ext` directory:
 
-      ./bin/build
-      cp target/accumulo-examples.jar /path/to/accumulo/lib/ext/
+        ./bin/build
+        cp target/accumulo-examples.jar /path/to/accumulo/lib/ext/
 
 4. Each Accumulo example has its own documentation and instructions for running the example which
    are linked to below.
@@ -76,7 +76,6 @@ Each example below highlights a feature of Apache Accumulo.
 | [filter] | Using the AgeOffFilter to remove records more than 30 seconds old. |
 | [helloworld] | Inserting records both inside map/reduce jobs and outside. And reading records between two rows. |
 | [isolation] | Using the isolated scanner to ensure partial changes are not seen. |
-| [mapred] | Using MapReduce to read from and write to Accumulo tables. |
 | [maxmutation] | Limiting mutation size to avoid running out of memory. |
 | [regex] | Using MapReduce and Accumulo to find data using regular expressions. |
 | [reservations] | Using conditional mutations to implement simple reservation system. |
@@ -86,7 +85,9 @@ Each example below highlights a feature of Apache Accumulo.
 | [shard] | Using the intersecting iterator with a term index partitioned by document. |
 | [tabletofile] | Using MapReduce to read a table and write one of its columns to a file in HDFS. |
 | [terasort] | Generating random data and sorting it using Accumulo. |
+| [uniquecols] | Use MapReduce to count unique columns in Accumulo |
 | [visibility] | Using visibilities (or combinations of authorizations). Also shows user permissions. |
+| [wordcount] | Use MapReduce and Accumulo to do a word count on text files |
 
 ## Release Testing
 
@@ -112,7 +113,6 @@ This repository can be used to test Accumulo release candidates.  See
 [filter]: docs/filter.md
 [helloworld]: docs/helloworld.md
 [isolation]: docs/isolation.md
-[mapred]: docs/mapred.md
 [maxmutation]: docs/maxmutation.md
 [regex]: docs/regex.md
 [reservations]: docs/reservations.md
@@ -122,6 +122,8 @@ This repository can be used to test Accumulo release candidates.  See
 [shard]: docs/shard.md
 [tabletofile]: docs/tabletofile.md
 [terasort]: docs/terasort.md
+[uniquecols]: docs/uniquecols.md
 [visibility]: docs/visibility.md
+[wordcount]: docs/wordcount.md
 [ti]: https://travis-ci.org/apache/accumulo-examples.svg?branch=master
 [tl]: https://travis-ci.org/apache/accumulo-examples

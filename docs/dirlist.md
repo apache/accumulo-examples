@@ -31,7 +31,7 @@ This example shows how to use Accumulo to store a file system history. It has th
 
 To begin, ingest some data with Ingest.java.
 
-    $ ./bin/runex dirlist.Ingest -c ./examples.conf --vis exampleVis --chunkSize 100000 /local/username/workspace
+    $ ./bin/runex dirlist.Ingest --vis exampleVis --chunkSize 100000 /local/username/workspace
 
 This may take some time if there are large files in the /local/username/workspace directory. If you use 0 instead of 100000 on the command line, the ingest will run much faster, but it will not put any file data into Accumulo (the dataTable will be empty).
 Note that running this example will create tables dirTable, indexTable, and dataTable in Accumulo that you should delete when you have completed the example.
@@ -43,26 +43,26 @@ To browse the data ingested, use Viewer.java. Be sure to give the "username" use
 
 then run the Viewer:
 
-    $ ./bin/runex dirlist.Viewer -c ./examples.conf -t dirTable --dataTable dataTable --auths exampleVis --path /local/username/workspace
+    $ ./bin/runex dirlist.Viewer -t dirTable --dataTable dataTable --auths exampleVis --path /local/username/workspace
 
 To list the contents of specific directories, use QueryUtil.java.
 
-    $ ./bin/runex dirlist.QueryUtil -c ./examples.conf -t dirTable --auths exampleVis --path /local/username
-    $ ./bin/runex dirlist.QueryUtil -c ./examples.conf -t dirTable --auths exampleVis --path /local/username/workspace
+    $ ./bin/runex dirlist.QueryUtil -t dirTable --auths exampleVis --path /local/username
+    $ ./bin/runex dirlist.QueryUtil -t dirTable --auths exampleVis --path /local/username/workspace
 
 To perform searches on file or directory names, also use QueryUtil.java. Search terms must contain no more than one wild card and cannot contain "/".
 *Note* these queries run on the _indexTable_ table instead of the dirTable table.
 
-    $ ./bin/runex dirlist.QueryUtil -c ./examples.conf -t indexTable --auths exampleVis --path filename --search
-    $ ./bin/runex dirlist.QueryUtil -c ./examples.conf -t indexTable --auths exampleVis --path 'filename*' --search
-    $ ./bin/runex dirlist.QueryUtil -c ./examples.conf -t indexTable --auths exampleVis --path '*jar' --search
-    $ ./bin/runex dirlist.QueryUtil -c ./examples.conf -t indexTable --auths exampleVis --path 'filename*jar' --search
+    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path filename --search
+    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path 'filename*' --search
+    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path '*jar' --search
+    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path 'filename*jar' --search
 
 To count the number of direct children (directories and files) and descendants (children and children's descendants, directories and files), run the FileCount over the dirTable table.
 The results are written back to the same table. FileCount reads from and writes to Accumulo. This requires scan authorizations for the read and a visibility for the data written.
 In this example, the authorizations and visibility are set to the same value, exampleVis. See the [visibility example][vis] for more information on visibility and authorizations.
 
-    $ ./bin/runex dirlist.FileCount -c ./examples.conf -t dirTable --auths exampleVis
+    $ ./bin/runex dirlist.FileCount -t dirTable --auths exampleVis
 
 ## Directory Table
 

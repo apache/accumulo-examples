@@ -63,7 +63,7 @@ public class MapReduceIT extends ConfigurableMacBase {
 
   @Test
   public void test() throws Exception {
-    String confFile = System.getProperty("user.dir") + "/target/examples.conf";
+    String confFile = System.getProperty("user.dir") + "/target/accumulo-client.properties";
     String instance = getClientInfo().getInstanceName();
     String keepers = getClientInfo().getZooKeepers();
     ExamplesIT.writeClientPropsFile(confFile, instance, keepers, "root", ROOT_PASSWORD);

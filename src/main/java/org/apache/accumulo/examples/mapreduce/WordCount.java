@@ -51,6 +51,9 @@ public class WordCount {
     String tableName = "wordCount";
     @Parameter(names = {"-i", "--input"}, required = true, description = "HDFS input directory")
     String inputDirectory;
+    @Parameter(names = {"-d", "--dfsPath"},
+        description = "HDFS Path where accumulo-client.properties exists")
+    String hdfsPath;
   }
 
   public static class MapClass extends Mapper<LongWritable,Text,Text,Mutation> {
@@ -101,8 +104,13 @@ public class WordCount {
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Mutation.class);
 
-    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
-        .defaultTable(opts.tableName).store(job);
+    if (opts.hdfsPath != null) {
+      AccumuloOutputFormat.configure().clientPropertiesPath(opts.hdfsPath)
+          .defaultTable(opts.tableName).store(job);
+    } else {
+      AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
+          .defaultTable(opts.tableName).store(job);
+    }
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
 }
