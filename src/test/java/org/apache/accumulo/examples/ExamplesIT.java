@@ -77,7 +77,6 @@ import org.apache.accumulo.examples.shard.Reverse;
 import org.apache.accumulo.harness.AccumuloClusterHarness;
 import org.apache.accumulo.minicluster.MemoryUnit;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl;
-import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl.LogWriter;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.TestIngest;
 import org.apache.accumulo.tracer.TraceServer;
@@ -100,12 +99,12 @@ public class ExamplesIT extends AccumuloClusterHarness {
   private static final String visibility = "A|B";
   private static final String auths = "A,B";
 
-  AccumuloClient c;
-  BatchWriter bw;
-  IteratorSetting is;
-  String dir;
-  FileSystem fs;
-  Authorizations origAuths;
+  private AccumuloClient c;
+  private BatchWriter bw;
+  private IteratorSetting is;
+  private String dir;
+  private FileSystem fs;
+  private Authorizations origAuths;
 
   @Override
   public void configureMiniCluster(MiniAccumuloConfigImpl cfg, Configuration hadoopConf) {
@@ -238,13 +237,6 @@ public class ExamplesIT extends AccumuloClusterHarness {
     args = new String[] {"-c", getClientPropsFile(), "-t", indexTable, "--auths", auths, "--search",
         "--path", expectedFile};
     entry = getClusterControl().execWithStdout(QueryUtil.class, args);
-    if (ClusterType.MINI == getClusterType()) {
-      MiniAccumuloClusterImpl impl = (MiniAccumuloClusterImpl) cluster;
-      for (LogWriter writer : impl.getLogWriters()) {
-        writer.flush();
-      }
-    }
-
     log.info("result " + entry.getValue());
     assertEquals(0, entry.getKey().intValue());
     assertTrue(entry.getValue().contains(expectedFile));
