@@ -28,12 +28,14 @@ import java.util.Map.Entry;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.KeyValue;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 
 public class ChunkInputStreamTest {
   private static final Logger log = LoggerFactory.getLogger(ChunkInputStream.class);
@@ -103,8 +105,7 @@ public class ChunkInputStreamTest {
   @Test
   public void testExceptionOnMultipleSetSourceWithoutClose() throws IOException {
     ChunkInputStream cis = new ChunkInputStream();
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(data.iterator());
-    pi = new PeekingIterator<>(data.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(data.iterator());
     cis.setSource(pi);
     try {
       cis.setSource(pi);
@@ -118,7 +119,7 @@ public class ChunkInputStreamTest {
   @Test
   public void testExceptionOnGetVisBeforeClose() throws IOException {
     ChunkInputStream cis = new ChunkInputStream();
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(data.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(data.iterator());
 
     cis.setSource(pi);
     try {
@@ -136,7 +137,7 @@ public class ChunkInputStreamTest {
     ChunkInputStream cis = new ChunkInputStream();
     byte[] b = new byte[5];
 
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(data.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(data.iterator());
 
     cis.setSource(pi);
     int read;
@@ -188,7 +189,7 @@ public class ChunkInputStreamTest {
     ChunkInputStream cis = new ChunkInputStream();
     byte[] b = new byte[20];
     int read;
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(data.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(data.iterator());
 
     cis.setSource(pi);
     assertEquals(read = cis.read(b), 8);
@@ -247,7 +248,7 @@ public class ChunkInputStreamTest {
     ChunkInputStream cis = new ChunkInputStream();
     byte[] b = new byte[20];
     int read;
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(baddata.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(baddata.iterator());
 
     cis.setSource(pi);
     assumeExceptionOnRead(cis, b);
@@ -293,7 +294,7 @@ public class ChunkInputStreamTest {
 
     assertFalse(pi.hasNext());
 
-    pi = new PeekingIterator<>(baddata.iterator());
+    pi = Iterators.peekingIterator(baddata.iterator());
     cis.setSource(pi);
     assumeExceptionOnClose(cis);
   }
@@ -303,7 +304,7 @@ public class ChunkInputStreamTest {
     ChunkInputStream cis = new ChunkInputStream();
     byte[] b = new byte[20];
     int read;
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(baddata.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(baddata.iterator());
 
     cis.setSource(pi);
     assumeExceptionOnRead(cis, b);
@@ -344,7 +345,7 @@ public class ChunkInputStreamTest {
 
     assertFalse(pi.hasNext());
 
-    pi = new PeekingIterator<>(baddata.iterator());
+    pi = Iterators.peekingIterator(baddata.iterator());
     cis.setSource(pi);
     assumeExceptionOnClose(cis);
   }
@@ -354,7 +355,7 @@ public class ChunkInputStreamTest {
     ChunkInputStream cis = new ChunkInputStream();
     byte[] b = new byte[20];
     int read;
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(multidata.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(multidata.iterator());
 
     b = new byte[20];
 
@@ -381,7 +382,7 @@ public class ChunkInputStreamTest {
   @Test
   public void testSingleByteRead() throws IOException {
     ChunkInputStream cis = new ChunkInputStream();
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(data.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(data.iterator());
 
     cis.setSource(pi);
     assertEquals((byte) 'a', (byte) cis.read());

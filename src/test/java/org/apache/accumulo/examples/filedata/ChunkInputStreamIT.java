@@ -40,7 +40,6 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.accumulo.harness.AccumuloClusterHarness;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.hadoop.conf.Configuration;
@@ -48,6 +47,9 @@ import org.apache.hadoop.io.Text;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 
 public class ChunkInputStreamIT extends AccumuloClusterHarness {
 
@@ -155,7 +157,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
     ChunkInputStream cis = new ChunkInputStream();
     byte[] b = new byte[20];
     int read;
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(scan.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(scan.iterator());
 
     cis.setSource(pi);
     assertEquals(read = cis.read(b), 8);
