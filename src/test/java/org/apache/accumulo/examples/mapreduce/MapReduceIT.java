@@ -33,6 +33,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.ExamplesIT;
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.conf.Configuration;
@@ -76,9 +77,10 @@ public class MapReduceIT extends ConfigurableMacBase {
         bw.addMutation(m);
       }
       bw.close();
-      Process hash = getCluster().exec(RowHash.class, Collections.singletonList(hadoopTmpDirArg),
-          "-c", confFile, "-t", tablename, "--column", input_cfcq);
-      assertEquals(0, hash.waitFor());
+      MiniAccumuloClusterImpl.ProcessInfo hash = getCluster().exec(RowHash.class,
+          Collections.singletonList(hadoopTmpDirArg), "-c", confFile, "-t", tablename, "--column",
+          input_cfcq);
+      assertEquals(0, hash.getProcess().waitFor());
 
       Scanner s = client.createScanner(tablename, Authorizations.EMPTY);
       s.fetchColumn(new Text(input_cf), new Text(output_cq));

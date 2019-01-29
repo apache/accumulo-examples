@@ -33,10 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.accumulo.cluster.standalone.StandaloneAccumuloCluster;
 import org.apache.accumulo.core.cli.BatchWriterOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -56,12 +53,8 @@ import org.apache.accumulo.examples.client.RandomBatchScanner;
 import org.apache.accumulo.examples.client.ReadWriteExample;
 import org.apache.accumulo.examples.client.RowOperations;
 import org.apache.accumulo.examples.client.SequentialBatchWriter;
-import org.apache.accumulo.examples.client.TraceDumpExample;
-import org.apache.accumulo.examples.client.TracingExample;
 import org.apache.accumulo.examples.combiner.StatsCombiner;
 import org.apache.accumulo.examples.constraints.MaxMutationSize;
-import org.apache.accumulo.examples.dirlist.Ingest;
-import org.apache.accumulo.examples.dirlist.QueryUtil;
 import org.apache.accumulo.examples.helloworld.Insert;
 import org.apache.accumulo.examples.helloworld.Read;
 import org.apache.accumulo.examples.isolation.InterferenceTest;
@@ -76,11 +69,8 @@ import org.apache.accumulo.examples.shard.Query;
 import org.apache.accumulo.examples.shard.Reverse;
 import org.apache.accumulo.harness.AccumuloClusterHarness;
 import org.apache.accumulo.minicluster.MemoryUnit;
-import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl;
-import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl.LogWriter;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.TestIngest;
-import org.apache.accumulo.tracer.TraceServer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -160,94 +150,6 @@ public class ExamplesIT extends AccumuloClusterHarness {
   @Override
   public int defaultTimeoutSeconds() {
     return 6 * 60;
-  }
-
-  @Test
-  public void testTrace() throws Exception {
-    Process trace = null;
-    if (ClusterType.MINI == getClusterType()) {
-      MiniAccumuloClusterImpl impl = (MiniAccumuloClusterImpl) cluster;
-      trace = impl.exec(TraceServer.class);
-      while (!c.tableOperations().exists("trace"))
-        sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-    }
-    String[] args = new String[] {"-c", getClientPropsFile(), "--createtable", "--deletetable",
-        "--create"};
-    Entry<Integer,String> pair = cluster.getClusterControl().execWithStdout(TracingExample.class,
-        args);
-    Assert.assertEquals("Expected return code of zero. STDOUT=" + pair.getValue(), 0,
-        pair.getKey().intValue());
-    String result = pair.getValue();
-    Pattern pattern = Pattern.compile("TraceID: ([0-9a-f]+)");
-    Matcher matcher = pattern.matcher(result);
-    int count = 0;
-    while (matcher.find()) {
-      args = new String[] {"-c", getClientPropsFile(), "--traceid", matcher.group(1)};
-      pair = cluster.getClusterControl().execWithStdout(TraceDumpExample.class, args);
-      assertEquals(0, pair.getKey().intValue());
-      count++;
-    }
-    assertTrue(count > 0);
-    if (ClusterType.MINI == getClusterType() && null != trace) {
-      trace.destroy();
-    }
-  }
-
-  @Test
-  public void testDirList() throws Exception {
-    String[] names = getUniqueNames(3);
-    String dirTable = names[0], indexTable = names[1], dataTable = names[2];
-    String[] args;
-    String dirListDirectory;
-    switch (getClusterType()) {
-      case MINI:
-        dirListDirectory = ((MiniAccumuloClusterImpl) getCluster()).getConfig().getDir()
-            .getAbsolutePath();
-        break;
-      case STANDALONE:
-        dirListDirectory = ((StandaloneAccumuloCluster) getCluster()).getAccumuloHome();
-        break;
-      default:
-        throw new RuntimeException("Unknown cluster type");
-    }
-    assumeTrue(new File(dirListDirectory).exists());
-    // Index a directory listing on /tmp. If this is running against a standalone cluster, we can't
-    // guarantee Accumulo source will be there.
-    args = new String[] {"-c", getClientPropsFile(), "--dirTable", dirTable, "--indexTable",
-        indexTable, "--dataTable", dataTable, "--vis", visibility, "--chunkSize",
-        Integer.toString(10000), dirListDirectory};
-
-    Entry<Integer,String> entry = getClusterControl().execWithStdout(Ingest.class, args);
-    assertEquals("Got non-zero return code. Stdout=" + entry.getValue(), 0,
-        entry.getKey().intValue());
-
-    String expectedFile;
-    switch (getClusterType()) {
-      case MINI:
-        // Should be present in a minicluster dir
-        expectedFile = "accumulo-site.xml";
-        break;
-      case STANDALONE:
-        // Should be in place on standalone installs (not having to follow symlinks)
-        expectedFile = "LICENSE";
-        break;
-      default:
-        throw new RuntimeException("Unknown cluster type");
-    }
-
-    args = new String[] {"-c", getClientPropsFile(), "-t", indexTable, "--auths", auths, "--search",
-        "--path", expectedFile};
-    entry = getClusterControl().execWithStdout(QueryUtil.class, args);
-    if (ClusterType.MINI == getClusterType()) {
-      MiniAccumuloClusterImpl impl = (MiniAccumuloClusterImpl) cluster;
-      for (LogWriter writer : impl.getLogWriters()) {
-        writer.flush();
-      }
-    }
-
-    log.info("result " + entry.getValue());
-    assertEquals(0, entry.getKey().intValue());
-    assertTrue(entry.getValue().contains(expectedFile));
   }
 
   @Test
