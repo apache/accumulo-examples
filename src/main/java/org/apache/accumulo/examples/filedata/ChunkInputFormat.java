@@ -25,11 +25,13 @@ import java.util.Map.Entry;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.accumulo.core.util.format.DefaultFormatter;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 
 /**
  * An InputFormat that turns the file data ingested with {@link FileDataIngest} into an InputStream
@@ -45,7 +47,7 @@ public class ChunkInputFormat extends InputFormatBase<List<Entry<Key,Value>>,Inp
       @Override
       public void initialize(InputSplit inSplit, TaskAttemptContext attempt) throws IOException {
         super.initialize(inSplit, attempt);
-        peekingScannerIterator = new PeekingIterator<>(scannerIterator);
+        peekingScannerIterator = Iterators.peekingIterator(scannerIterator);
         currentK = new ArrayList<>();
         currentV = new ChunkInputStream();
       }

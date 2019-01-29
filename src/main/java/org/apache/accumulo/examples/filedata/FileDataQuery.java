@@ -30,7 +30,9 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.PeekingIterator;
+
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 
 /**
  * Retrieves file data based on the hash of the file. Used by the
@@ -56,7 +58,7 @@ public class FileDataQuery {
     scanner.setRange(new Range(hash));
     scanner.setBatchSize(1);
     lastRefs.clear();
-    PeekingIterator<Entry<Key,Value>> pi = new PeekingIterator<>(scanner.iterator());
+    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(scanner.iterator());
     if (pi.hasNext()) {
       while (!pi.peek().getKey().getColumnFamily().equals(FileDataIngest.CHUNK_CF)) {
         lastRefs.add(pi.peek());
