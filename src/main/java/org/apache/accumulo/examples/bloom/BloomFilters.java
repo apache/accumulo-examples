@@ -76,7 +76,7 @@ public class BloomFilters {
     Random r = new Random(seed);
     try (BatchWriter bw = client.createBatchWriter(tableName)) {
       for (int x = 0; x < 1_000_000; x++) {
-        Long rowId = RandomBatchWriter.abs(r.nextLong()) % 1_000_000_000;
+        long rowId = RandomBatchWriter.abs(r.nextLong()) % 1_000_000_000;
         Mutation m = RandomBatchWriter.createMutation(rowId, 50, new ColumnVisibility());
         bw.addMutation(m);
       }
