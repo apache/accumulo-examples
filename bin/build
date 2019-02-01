@@ -27,5 +27,5 @@ fi
 if [[ ! -f "$EXAMPLES_JAR_PATH" ]]; then
   echo "Building $EXAMPLES_JAR_PATH"
   cd "${ex_home}" || exit 1
-  mvn clean package -P create-shade-jar -D skipTests -D accumulo.version="$ACCUMULO_VERSION" -D hadoop.version="$HADOOP_VERSION" -D zookeeper.version="$ZOOKEEPER_VERSION"
+  mvn clean verify -P create-shade-jar -D skipTests -D accumulo.version="$ACCUMULO_VERSION" -D hadoop.version="$HADOOP_VERSION" -D zookeeper.version="$ZOOKEEPER_VERSION"
 fi
