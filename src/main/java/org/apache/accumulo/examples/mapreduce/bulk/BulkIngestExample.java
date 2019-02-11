@@ -126,8 +126,9 @@ public class BulkIngestExample {
             out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
           }
           out.println(Base64.getEncoder().encodeToString(split.getBytes()));
-          job.setNumReduceTasks(splits.size() + 1);
         }
+        job.setNumReduceTasks(splits.size() + 1);
+
       }
 
       job.setPartitionerClass(RangePartitioner.class);
