@@ -120,8 +120,8 @@ public class BulkIngestExample {
       try (PrintStream out = new PrintStream(
           new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))))) {
         Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
-        for (Text split : splits) 
-            out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
+        for (Text split : splits)
+          out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
         job.setNumReduceTasks(splits.size() + 1);
       }
 
