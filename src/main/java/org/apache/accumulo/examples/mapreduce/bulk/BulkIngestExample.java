@@ -25,7 +25,6 @@ import java.util.Collection;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.TextUtil;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat;
 import org.apache.accumulo.hadoop.mapreduce.partition.RangePartitioner;
@@ -122,7 +121,7 @@ public class BulkIngestExample {
           new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))))) {
         Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
         for (Text split : splits)
-          out.println(Base64.getEncoder().encodeToString(TextUtil.getBytes(split)));
+          out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
         job.setNumReduceTasks(splits.size() + 1);
       }
 
