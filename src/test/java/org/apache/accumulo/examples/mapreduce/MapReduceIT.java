@@ -22,11 +22,13 @@ import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map.Entry;
+import java.util.Properties;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -65,12 +67,13 @@ public class MapReduceIT extends ConfigurableMacBase {
   @Test
   public void test() throws Exception {
     String confFile = System.getProperty("user.dir") + "/target/accumulo-client.properties";
-    String instance = getClientInfo().getInstanceName();
-    String keepers = getClientInfo().getZooKeepers();
+    Properties props = getClientProperties();
+    String instance = ClientProperty.INSTANCE_NAME.getValue(props);
+    String keepers = ClientProperty.INSTANCE_ZOOKEEPERS.getValue(props);
     ExamplesIT.writeClientPropsFile(confFile, instance, keepers, "root", ROOT_PASSWORD);
-    try (AccumuloClient client = createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
       client.tableOperations().create(tablename);
-      BatchWriter bw = client.createBatchWriter(tablename, new BatchWriterConfig());
+      BatchWriter bw = client.createBatchWriter(tablename);
       for (int i = 0; i < 10; i++) {
         Mutation m = new Mutation("" + i);
         m.put(input_cf, input_cq, "row" + i);
@@ -93,5 +96,4 @@ public class MapReduceIT extends ConfigurableMacBase {
       }
     }
   }
-
 }

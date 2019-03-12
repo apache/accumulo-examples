@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -71,6 +70,7 @@ import org.apache.accumulo.harness.AccumuloClusterHarness;
 import org.apache.accumulo.minicluster.MemoryUnit;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.TestIngest;
+import org.apache.accumulo.test.TestIngest.IngestParams;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -78,24 +78,19 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterators;
 
 public class ExamplesIT extends AccumuloClusterHarness {
-  private static final Logger log = LoggerFactory.getLogger(ExamplesIT.class);
-  private static final BatchWriterOpts bwOpts = new BatchWriterOpts();
   private static final BatchWriterConfig bwc = new BatchWriterConfig();
-  private static final String visibility = "A|B";
   private static final String auths = "A,B";
 
-  AccumuloClient c;
-  BatchWriter bw;
-  IteratorSetting is;
-  String dir;
-  FileSystem fs;
-  Authorizations origAuths;
+  private AccumuloClient c;
+  private BatchWriter bw;
+  private IteratorSetting is;
+  private String dir;
+  private FileSystem fs;
+  private Authorizations origAuths;
 
   @Override
   public void configureMiniCluster(MiniAccumuloConfigImpl cfg, Configuration hadoopConf) {
@@ -245,13 +240,10 @@ public class ExamplesIT extends AccumuloClusterHarness {
     String tableName = getUniqueNames(1)[0];
     c.tableOperations().create(tableName);
     c.tableOperations().addConstraint(tableName, MaxMutationSize.class.getName());
-    TestIngest.Opts opts = new TestIngest.Opts();
-    opts.rows = 1;
-    opts.cols = 1000;
-    opts.setTableName(tableName);
-    opts.setPrincipal(getAdminPrincipal());
+    IngestParams params = new IngestParams(c.properties(), tableName, 1);
+    params.cols = 1000;
     try {
-      TestIngest.ingest(c, opts, bwOpts);
+      TestIngest.ingest(c, params);
     } catch (MutationsRejectedException ex) {
       assertEquals(1, ex.getConstraintViolationSummaries().size());
     }

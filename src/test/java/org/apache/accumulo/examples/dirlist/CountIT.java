@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
@@ -55,7 +56,7 @@ public class CountIT extends ConfigurableMacBase {
   @Before
   public void setupInstance() throws Exception {
     tableName = getUniqueNames(1)[0];
-    client = createClient();
+    client = Accumulo.newClient().from(getClientProperties()).build();
     client.tableOperations().create(tableName);
     BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
     ColumnVisibility cv = new ColumnVisibility();
