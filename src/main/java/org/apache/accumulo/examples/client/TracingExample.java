@@ -32,7 +32,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.trace.DistributedTrace;
+// import org.apache.accumulo.core.trace.DistributedTrace;
 import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
 import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.htrace.Sampler;
@@ -74,7 +74,7 @@ public class TracingExample {
   }
 
   private void enableTracing() {
-    DistributedTrace.enable("myHost", "myApp");
+    // DistributedTrace.enable("myHost", "myApp");
   }
 
   private void execute(Opts opts) throws TableNotFoundException, AccumuloException,

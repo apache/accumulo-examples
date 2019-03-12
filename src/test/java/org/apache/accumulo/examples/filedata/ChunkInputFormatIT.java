@@ -119,7 +119,7 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
 
       @Override
       protected void map(List<Entry<Key,Value>> key, InputStream value, Context context)
-          throws IOException, InterruptedException {
+          throws IOException {
         String table = context.getConfiguration().get("MRTester_tableName");
         assertNotNull(table);
 
