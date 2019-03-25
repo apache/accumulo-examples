@@ -83,6 +83,7 @@ Each example below highlights a feature of Apache Accumulo.
 | [rowhash] | Using MapReduce to read a table and write to a new column in the same table. |
 | [sample] | Building and using sample data in Accumulo. |
 | [shard] | Using the intersecting iterator with a term index partitioned by document. |
+| [spark] | Using Accumulo as input and output for Apache Spark jobs |
 | [tabletofile] | Using MapReduce to read a table and write one of its columns to a file in HDFS. |
 | [terasort] | Generating random data and sorting it using Accumulo. |
 | [uniquecols] | Use MapReduce to count unique columns in Accumulo |
@@ -120,6 +121,7 @@ This repository can be used to test Accumulo release candidates.  See
 [rowhash]: docs/rowhash.md
 [sample]: docs/sample.md
 [shard]: docs/shard.md
+[spark]: spark/README.md
 [tabletofile]: docs/tabletofile.md
 [terasort]: docs/terasort.md
 [uniquecols]: docs/uniquecols.md
