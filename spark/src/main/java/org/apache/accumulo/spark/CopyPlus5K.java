@@ -47,7 +47,11 @@ public class CopyPlus5K {
     }
   }
 
-  private static void cleanupPreviousRuns(Properties props) throws Exception {
+  private static void cleanupAndCreateTables(Properties props) throws Exception {
+    FileSystem hdfs = FileSystem.get(new Configuration());
+    if (hdfs.exists(rootPath)) {
+      hdfs.delete(rootPath, true);
+    }
     try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
       if (client.tableOperations().exists(inputTable)) {
         client.tableOperations().delete(inputTable);
@@ -55,10 +59,18 @@ public class CopyPlus5K {
       if (client.tableOperations().exists(outputTable)) {
         client.tableOperations().delete(outputTable);
       }
-    }
-    FileSystem hdfs = FileSystem.get(new Configuration());
-    if (hdfs.exists(rootPath)) {
-      hdfs.delete(rootPath, true);
+      // Create tables
+      client.tableOperations().create(inputTable);
+      client.tableOperations().create(outputTable);
+
+      // Write data to input table
+      try (BatchWriter bw = client.createBatchWriter(inputTable)) {
+        for (int i = 0; i < 100; i++) {
+          Mutation m = new Mutation(String.format("%03d", i));
+          m.at().family("cf1").qualifier("cq1").put("" + i);
+          bw.addMutation(m);
+        }
+      }
     }
   }
 
@@ -76,22 +88,7 @@ public class CopyPlus5K {
     // Read client properties from file
     final Properties props = Accumulo.newClientProperties().from(args[1]).build();
 
-    cleanupPreviousRuns(props);
-
-    try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
-      // Create tables
-      client.tableOperations().create(inputTable);
-      client.tableOperations().create(outputTable);
-
-      // Write data to input table
-      try (BatchWriter bw = client.createBatchWriter(inputTable)) {
-        for (int i = 0; i < 100; i++) {
-          Mutation m = new Mutation(String.format("%03d", i));
-          m.at().family("cf1").qualifier("cq1").put("" + i);
-          bw.addMutation(m);
-        }
-      }
-    }
+    cleanupAndCreateTables(props);
 
     SparkConf conf = new SparkConf();
     conf.setAppName("CopyPlus5K");
@@ -143,11 +140,11 @@ public class CopyPlus5K {
       AccumuloFileOutputFormat.configure().outputPath(outputDir).store(job);
       Partitioner partitioner = new AccumuloRangePartitioner("3", "7");
       JavaPairRDD<Key, Value> partData = dataPlus5K.repartitionAndSortWithinPartitions(partitioner);
-      partData.saveAsNewAPIHadoopFile(outputDir.toString(), Key.class, Value.class, AccumuloFileOutputFormat.class);
+      partData.saveAsNewAPIHadoopFile(outputDir.toString(), Key.class, Value.class,
+          AccumuloFileOutputFormat.class);
 
       // Bulk import into Accumulo
       try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
-        client.tableOperations().create(outputTable);
         client.tableOperations().importDirectory(outputDir.toString()).to(outputTable).load();
       }
     } else {
