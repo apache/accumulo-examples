@@ -117,6 +117,7 @@
                   </artifactSet>
                   <relocations>
                     <relocation>
+                      <!-- Required as Accumulo uses a different version than Hadoop --> 
                       <pattern>com.google.common</pattern>
                       <shadedPattern>shaded.com.google.common</shadedPattern>
                     </relocation>

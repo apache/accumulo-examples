@@ -1,5 +1,8 @@
 package org.apache.accumulo.spark;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
@@ -15,11 +18,53 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.spark.Partitioner;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
 public class CopyPlus5K {
+
+  public static class AccumuloRangePartitioner extends Partitioner {
+
+    private static final long serialVersionUID = 1L;
+    private List<String> splits;
+
+    AccumuloRangePartitioner(String... listSplits) {
+      this.splits = Arrays.asList(listSplits);
+    }
+
+    @Override
+    public int getPartition(Object o) {
+      int index = Collections.binarySearch(splits, ((Key)o).getRow().toString());
+      index = index < 0 ? (index + 1) * -1 : index;
+      return index;
+    }
+
+    @Override
+    public int numPartitions() {
+      return splits.size() + 1;
+    }
+  }
+
+  private static void cleanupPreviousRuns(Properties props) throws Exception {
+    try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
+      if (client.tableOperations().exists(inputTable)) {
+        client.tableOperations().delete(inputTable);
+      }
+      if (client.tableOperations().exists(outputTable)) {
+        client.tableOperations().delete(outputTable);
+      }
+    }
+    FileSystem hdfs = FileSystem.get(new Configuration());
+    if (hdfs.exists(rootPath)) {
+      hdfs.delete(rootPath, true);
+    }
+  }
+
+  private static final String inputTable = "spark_example_input";
+  private static final String outputTable = "spark_example_output";
+  private static final Path rootPath = new Path("/spark_example/");
 
   public static void main(String[] args) throws Exception {
 
@@ -28,34 +73,33 @@ public class CopyPlus5K {
         System.exit(1);
     }
 
-    final String inputTable = "spark_example_input";
-    final String outputTable = "spark_example_output";
+    // Read client properties from file
     final Properties props = Accumulo.newClientProperties().from(args[1]).build();
 
+    cleanupPreviousRuns(props);
+
     try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
-      // Delete tables (if they exist) and create new tables
-      if (client.tableOperations().exists(inputTable)) {
-        client.tableOperations().delete(inputTable);
-      }
+      // Create tables
       client.tableOperations().create(inputTable);
-      if (client.tableOperations().exists(outputTable)) {
-        client.tableOperations().delete(outputTable);
-      }
       client.tableOperations().create(outputTable);
+
       // Write data to input table
       try (BatchWriter bw = client.createBatchWriter(inputTable)) {
         for (int i = 0; i < 100; i++) {
-          Mutation m = new Mutation(String.format("%09d", i));
+          Mutation m = new Mutation(String.format("%03d", i));
           m.at().family("cf1").qualifier("cq1").put("" + i);
           bw.addMutation(m);
         }
       }
     }
 
-    SparkConf sparkConf = new SparkConf();
-    sparkConf.setAppName("CopyPlus5K");
+    SparkConf conf = new SparkConf();
+    conf.setAppName("CopyPlus5K");
+    // KryoSerializer is required for serializing Key in bulk import
+    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+    conf.registerKryoClasses(new Class[]{Key.class});
 
-    JavaSparkContext sc = new JavaSparkContext(sparkConf);
+    JavaSparkContext sc = new JavaSparkContext(conf);
 
     Job job = Job.getInstance();
 
@@ -90,31 +134,21 @@ public class CopyPlus5K {
     } else if (args[0].equals("bulk")) {
       // Write output using bulk import
 
-      // Create HDFS directories for bulk import
+      // Create HDFS directory for bulk import
       FileSystem hdfs = FileSystem.get(new Configuration());
-      final String rootDir = "/spark_example/";
-      Path rootPath = new Path(rootDir);
-      if (hdfs.exists(rootPath)) {
-        hdfs.delete(rootPath, true);
-      }
-      Path outputDir = new Path(rootDir + "/output");
-      Path failDir = new Path(rootDir + "/fail");
       hdfs.mkdirs(rootPath);
-      hdfs.mkdirs(failDir);
+      Path outputDir = new Path(rootPath.toString() + "/output");
 
       // Write Spark output to HDFS
       AccumuloFileOutputFormat.configure().outputPath(outputDir).store(job);
-      dataPlus5K.saveAsNewAPIHadoopFile(outputDir.toString(), Key.class, Value.class,
-          AccumuloFileOutputFormat.class);
+      Partitioner partitioner = new AccumuloRangePartitioner("3", "7");
+      JavaPairRDD<Key, Value> partData = dataPlus5K.repartitionAndSortWithinPartitions(partitioner);
+      partData.saveAsNewAPIHadoopFile(outputDir.toString(), Key.class, Value.class, AccumuloFileOutputFormat.class);
 
       // Bulk import into Accumulo
       try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
-        if (client.tableOperations().exists(outputTable)) {
-          client.tableOperations().delete(outputTable);
-        }
         client.tableOperations().create(outputTable);
-        client.tableOperations().importDirectory(outputTable, outputDir.toString(),
-            failDir.toString(), false);
+        client.tableOperations().importDirectory(outputDir.toString()).to(outputTable).load();
       }
     } else {
       System.out.println("Unknown method to write output: " + args[0]);
