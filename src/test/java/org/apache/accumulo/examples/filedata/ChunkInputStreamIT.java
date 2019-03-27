@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -68,7 +69,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
 
   @Before
   public void setupInstance() throws Exception {
-    client = createAccumuloClient();
+    client = Accumulo.newClient().from(getClientProps()).build();
     tableName = getUniqueNames(1)[0];
     client.securityOperations().changeUserAuthorizations(client.whoami(), AUTHS);
   }
