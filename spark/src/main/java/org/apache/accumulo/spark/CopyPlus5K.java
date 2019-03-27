@@ -92,9 +92,9 @@ public class CopyPlus5K {
 
     SparkConf conf = new SparkConf();
     conf.setAppName("CopyPlus5K");
-    // KryoSerializer is required for serializing Key in bulk import
+    // KryoSerializer is needed for serializing Accumulo Key when partitioning data for bulk import
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-    conf.registerKryoClasses(new Class[]{Key.class});
+    conf.registerKryoClasses(new Class[]{Key.class, Value.class, Properties.class});
 
     JavaSparkContext sc = new JavaSparkContext(conf);
 
