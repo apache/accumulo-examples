@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -101,7 +102,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
 
   @Before
   public void setupTest() throws Exception {
-    c = createAccumuloClient();
+    c = Accumulo.newClient().from(getClientProps()).build();
     String user = c.whoami();
     String instance = getClientInfo().getInstanceName();
     String keepers = getClientInfo().getZooKeepers();
