@@ -112,6 +112,8 @@ public class CopyPlus5K {
     if (args[0].equals("batch")) {
       // Write output using batch writer
       dataPlus5K.foreachPartition(iter -> {
+        // Intentionally created an Accumulo client for each partition to avoid attempting to
+        // serialize it and send it to each remote process.
         try (AccumuloClient client = Accumulo.newClient().from(props).build();
              BatchWriter bw = client.createBatchWriter(outputTable)) {
           iter.forEachRemaining(kv -> {
