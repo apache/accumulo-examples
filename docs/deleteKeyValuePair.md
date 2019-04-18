@@ -29,17 +29,23 @@ This is an example of how to remove a key-value pair
     567890 name:last []    Smith
     username@instance deleteKeyValuePair> flush -w
     2019-04-18 11:01:47,444 [shell.Shell] INFO : Flush of table deleteKeyValuePair completed.
+
+Get the deleteKeyValuePair table id. 
+
+    username@instance deleteKeyValuePair> tables -l
+    accumulo.metadata    =>        !0
+    accumulo.replication =>      +rep
+    accumulo.root        =>        +r
+    deleteKeyValuePair   =>        1t
+
+Scan accumulo.metadata table to see the list of RFiles Accumulo is currently using.
+
+    username@instance deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
+    1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf
      
-To view the contents of RFile, we need to find the deleteKeyValuePair table name in Hadoop.  
-In localhost:9995/tables, click on deleteKeyValuePair in Table Name column.  The Hadoop table name is localhost:9995/tables/<table name\>
-
-    $ hadoop fs -ls hdfs://localhost/accumulo/tables/<table name>/default_tablet
-    Found 1 items
-    -rw-r--r--   3 username group        311 2019-04-18 11:01 hdfs://localhost/accumulo/tables/<table name>/default_tablet/F00007em.rf
-
 View the contents of RFile and verify each key-value pair's deletion flag is false.
     
-    $ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/<table name>/default_tablet/F00007em.rf
+    $ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007em.rf
     Locality group           : <DEFAULT>
     	Num   blocks           : 1
     	Index level 0          : 37 bytes  1 blocks
@@ -67,12 +73,10 @@ Delete a key-value pair and view a newly created RFile to verify the deletion fl
     username@instance> table deleteKeyValuePair
     username@instance deleteKeyValuePair> delete 567890 name first
     username@instance deleteKeyValuePair> flush -w
-    
-    $ hadoop fs -ls hdfs://localhost/accumulo/tables/<table name>/default_tablet
-    Found 2 items
-    -rw-r--r--   3 username group        311 2019-04-18 11:01 hdfs://localhost/accumulo/tables/<table name>/default_tablet/F00007em.rf
-    -rw-r--r--   3 username group        228 2019-04-18 11:56 hdfs://localhost/accumulo/tables/<table name>/default_tablet/F00007fq.rf
-    $ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/<table name>/default_tablet/F00007fq.rf
+    username@instance deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
+    1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf
+    1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007fq.rf
+    $ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007fq.rf
     Locality group           : <DEFAULT>
     	Num   blocks           : 1
     	Index level 0          : 38 bytes  1 blocks
@@ -101,14 +105,10 @@ Compact the RFiles and verify the key-value pair was removed.  The new RFile wil
     2019-04-17 08:17:16,143 [shell.Shell] INFO : Compaction of table deleteKeyValuePair completed for given range
     username@instance deleteKeyValuePair> flush -t deleteKeyValuePair -w
     INFO : Flush of table deleteKeyValuePair completed.
-    
-    $ hadoop fs -ls hdfs://localhost/accumulo/tables/<table name>/default_tablet
-    Found 3 items
-    -rw-r--r--   3 username group        293 2019-04-18 12:02 hdfs://localhost/accumulo/tables/<table name>/default_tablet/A00007g1.rf
-    -rw-r--r--   3 username group        311 2019-04-18 11:01 hdfs://localhost/accumulo/tables/<table name>/default_tablet/F00007em.rf
-    -rw-r--r--   3 username group        228 2019-04-18 11:56 hdfs://localhost/accumulo/tables/<table name>/default_tablet/F00007fq.rf
-
-    $ /path/to/accumulo rfile-info -v hdfs://localhost/accumulo/tables/<table name>/default_tablet/A00007g1.rf
+    username@instance deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
+    lt< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf
+        
+    $ /path/to/accumulo rfile-info -v hdfs://localhost/accumulo/tables/1t/default_tablet/A00007g1.rf
     Locality group           : <DEFAULT>
     	Num   blocks           : 1
     	Index level 0          : 37 bytes  1 blocks
