@@ -69,14 +69,13 @@ Each example below highlights a feature of Apache Accumulo.
 | [client] | Using table operations, reading and writing data in Java. |
 | [combiner] | Using example StatsCombiner to find min, max, sum, and count. |
 | [compactionStrategy] | Configuring a compaction strategy |
-| [constraints] | Using constraints with tables. |
+| [constraints] | Using constraints with tables. Limit the mutation size to avoid running out of memory |
 | [dirlist] | Storing filesystem information. |
 | [export] | Exporting and importing tables. |
 | [filedata] | Storing file data. |
 | [filter] | Using the AgeOffFilter to remove records more than 30 seconds old. |
 | [helloworld] | Inserting records both inside map/reduce jobs and outside. And reading records between two rows. |
 | [isolation] | Using the isolated scanner to ensure partial changes are not seen. |
-| [maxmutation] | Limiting mutation size to avoid running out of memory. |
 | [regex] | Using MapReduce and Accumulo to find data using regular expressions. |
 | [reservations] | Using conditional mutations to implement simple reservation system. |
 | [rgbalancer] | Using a balancer to spread groups of tablets within a table evenly |
