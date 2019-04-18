@@ -24,7 +24,7 @@ table reference that jar.
 
 Execute the following command in the shell.
 
-    $ hadoop fs -copyFromLocal /path/to/accumulo/test/src/test/resources/FooFilter.jar /user1/lib
+    $ hadoop fs -copyFromLocal /path/to/accumulo/test/src/main/resources/FooFilter.jar /user1/lib
 
 Execute following in Accumulo shell to setup classpath context
 
@@ -38,7 +38,7 @@ The following command makes this table use the configured classpath context
 
     root@test15 nofoo> config -t nofoo -s table.classpath.context=cx1
 
-The following command configures an iterator thats in FooFilter.jar
+The following command configures an iterator that's in FooFilter.jar
 
     root@test15 nofoo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
     Filter accepts or rejects each Key/Value pair
@@ -52,8 +52,8 @@ The commands below show the filter is working.
     noo1 f1:q1 []    v2
     root@test15 nofoo>
 
-Below, an attempt is made to add the FooFilter to a table thats not configured
-to use the clasppath context cx1. This fails util the table is configured to
+Below, an attempt is made to add the FooFilter to a table that's not configured
+to use the classpath context cx1. This fails util the table is configured to
 use cx1.
 
     root@test15 nofoo> createtable nofootwo

@@ -24,9 +24,16 @@ user. In the example below threads are spun up for alice, bob, eve, mallory,
 and trent to reserve room06 on 20140101. Bob ends up getting the reservation
 and everyone else is put on a wait list. The example code will take any string
 for what, when and who.
-
+    
+    $ /path/to/accumulo org.apache.accumulo.server.util.ListInstances
+    
+    Instance Name       | Instance ID                          | Master                        
+    ---------------------+--------------------------------------+-------------------------------
+        <instance name> | 9f8f2a97-432f-4e66-b153-861e2a1ca246 |                localhost:9999
+    
+    $ /path/to/accumulo shell -u root -p secret -e "createtable ars"
     $ ./bin/runex reservations.ARS
-    >connect test16 localhost root secret ars
+    >connect <instance name> localhost root secret ars
       connected
     >
       Commands :
