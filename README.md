@@ -70,6 +70,7 @@ Each example below highlights a feature of Apache Accumulo.
 | [combiner] | Using example StatsCombiner to find min, max, sum, and count. |
 | [compactionStrategy] | Configuring a compaction strategy |
 | [constraints] | Using constraints with tables. Limit the mutation size to avoid running out of memory |
+| [deleteKeyValuePair] | Deleting a key/value pair and verifying the deletion in RFile. |
 | [dirlist] | Storing filesystem information. |
 | [export] | Exporting and importing tables. |
 | [filedata] | Storing file data. |
@@ -107,6 +108,7 @@ This repository can be used to test Accumulo release candidates.  See
 [combiner]: docs/combiner.md
 [compactionStrategy]: docs/compactionStrategy.md
 [constraints]: docs/constraints.md
+[deleteKeyValuePair]: docs/deleteKeyValuePair.md
 [dirlist]: docs/dirlist.md
 [export]: docs/export.md
 [filedata]: docs/filedata.md
