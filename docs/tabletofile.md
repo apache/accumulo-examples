@@ -45,7 +45,7 @@ The following will extract the rows containing the column "cf:cq":
 
 We can see the output of our little map-reduce job:
 
-    $ hadoop fs -text /tmp/output/output/part-m-00000
+    $ hadoop fs -text /tmp/output/part-m-00000
     catrow cf:cq []	catvalue
     dogrow cf:cq []	dogvalue
     $

@@ -36,7 +36,7 @@ specified colum. Here's how you run the map/reduce job
 Now we can scan the table and see the hashes:
 
     $ accumulo shell
-    username@instance> scan -t input
+    username@instance> scan -t rowhash
     a-row cf:cq []    value
     a-row cf-HASHTYPE:cq-MD5BASE64 []    IGPBYI1uC6+AJJxC4r5YBA==
     b-row cf:cq []    value
