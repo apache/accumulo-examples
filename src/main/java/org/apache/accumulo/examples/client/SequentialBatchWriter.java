@@ -16,9 +16,7 @@
  */
 package org.apache.accumulo.examples.client;
 
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
+import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -27,7 +25,8 @@ import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.beust.jcommander.Parameter;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Simple example for writing random data in sequential order to Accumulo.
