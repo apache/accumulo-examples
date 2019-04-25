@@ -17,19 +17,17 @@
 package org.apache.accumulo.examples.client;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.client.Accumulo;
-import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.beust.jcommander.Parameter;
 
 /**
  * Simple example for writing random data in sequential order to Accumulo.
@@ -52,6 +50,35 @@ public class SequentialBatchWriter {
     return new Value(value);
   }
 
+  static class Opts extends ClientOpts {
+    private static final BatchWriterConfig BWDEFAULTS = new BatchWriterConfig();
+
+    @Parameter(names = {"-t"}, required = true, description = "table to use")
+    public String tableName;
+
+    @Parameter(names = {"--start"}, required = true,
+        description = "starting line for the compaction")
+    public Integer start;
+
+    @Parameter(names = {"--num"}, required = true, description = "number of lines")
+    public Integer num;
+
+    @Parameter(names = {"--size"}, required = true, description = "size of file")
+    public Integer size;
+
+    @Parameter(names = "--batchThreads",
+        description = "Number of threads to use when writing large batches")
+    public Integer batchThreads = BWDEFAULTS.getMaxWriteThreads();
+
+    @Parameter(names = "--batchLatency", converter = BatchWriterOpts.TimeConverter.class,
+        description = "The maximum time to wait before flushing data to servers when writing")
+    public Long batchLatency = BWDEFAULTS.getMaxLatency(TimeUnit.MILLISECONDS);
+
+    @Parameter(names = "--batchMemory", converter = BatchWriterOpts.MemoryConverter.class,
+        description = "memory used to batch data when writing")
+    public Long batchMemory = BWDEFAULTS.getMaxMemory();
+  }
+
   /**
    * Writes 1000 entries to Accumulo using a {@link BatchWriter}. The rows of the entries will be
    * sequential starting from 0. The column families will be "foo" and column qualifiers will be
@@ -59,7 +86,7 @@ public class SequentialBatchWriter {
    */
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    ClientOpts opts = new ClientOpts();
+    Opts opts = new Opts();
     opts.parseArgs(SequentialBatchWriter.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {

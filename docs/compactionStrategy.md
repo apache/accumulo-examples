@@ -38,9 +38,11 @@ The command below sets the compression for smaller files and minor compactions f
 
 The commands below will configure the TwoTierCompactionStrategy to use gz compression for files larger than 1M. 
 
-    $ accumulo shell -u root -p secret -e "config -s table.majc.compaction.strategy.opts.file.large.compress.threshold=1M -t test1"
-    $ accumulo shell -u root -p secret -e "config -s table.majc.compaction.strategy.opts.file.large.compress.type=gz -t test1"
-    $ accumulo shell -u root -p secret -e "config -s table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.TwoTierCompactionStrategy -t test1"
+    $ accumulo shell -u root -p secret -e "config -t test1 -s table.file.compress.type=snappy"
+    $ accumulo shell -u root -p secret -e "config -t test1 -s table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy"
+    $ accumulo shell -u root -p secret -e "config -t test1 -s table.majc.compaction.strategy.opts.filter.size=250M"
+    $ accumulo shell -u root -p secret -e "config -t test1 -s table.majc.compaction.strategy.opts.large.compress.threshold=100M"
+    $ accumulo shell -u root -p secret -e "config -t test1 -s table.majc.compaction.strategy.opts.large.compress.type=gz"
 
 Generate some data and files in order to test the strategy:
 
@@ -58,8 +60,9 @@ View the tserver log in <accumulo_home>/logs for the compaction and find the nam
     $ accumulo rfile-info <rfile>
 
 Details about the rfile will be printed and the compression type should match the type used in the compaction...
-Meta block     : RFile.index
-      Raw size             : 512 bytes
-      Compressed size      : 278 bytes
-      Compression type     : gz
+    
+    Meta block     : RFile.index
+          Raw size             : 319 bytes
+          Compressed size      : 180 bytes
+          Compression type     : gz
 
