@@ -56,8 +56,7 @@ public class SequentialBatchWriter {
     @Parameter(names = {"-t"}, required = true, description = "table to use")
     public String tableName;
 
-    @Parameter(names = {"--start"}, required = true,
-        description = "starting line for the compaction")
+    @Parameter(names = {"--start"}, required = true, description = "starting line for the compaction")
     public Integer start;
 
     @Parameter(names = {"--num"}, required = true, description = "number of lines")
