@@ -35,9 +35,9 @@ public class SequentialBatchWriter {
 
   private static final Logger log = LoggerFactory.getLogger(SequentialBatchWriter.class);
 
-  public static Value createValue(long rowId) {
+  public static Value createValue(long rowId, int size) {
     Random r = new Random(rowId);
-    byte value[] = new byte[50];
+    byte value[] = new byte[size];
 
     r.nextBytes(value);
 
@@ -53,28 +53,16 @@ public class SequentialBatchWriter {
     private static final BatchWriterConfig BWDEFAULTS = new BatchWriterConfig();
 
     @Parameter(names = {"-t"}, required = true, description = "table to use")
-    public String tableName;
+    public String tableName = "batch";
 
-    @Parameter(names = {"--start"}, required = true, description = "starting line for the compaction")
-    public Integer start;
+    @Parameter(names = {"--start"}, required = true, description = "starting row")
+    public Integer start = 0;
 
-    @Parameter(names = {"--num"}, required = true, description = "number of lines")
-    public Integer num;
+    @Parameter(names = {"--num"}, required = true, description = "number of rows")
+    public Integer num = 10_000;
 
-    @Parameter(names = {"--size"}, required = true, description = "size of file")
-    public Integer size;
-
-    @Parameter(names = "--batchThreads",
-        description = "Number of threads to use when writing large batches")
-    public Integer batchThreads = BWDEFAULTS.getMaxWriteThreads();
-
-    @Parameter(names = "--batchLatency", converter = BatchWriterOpts.TimeConverter.class,
-        description = "The maximum time to wait before flushing data to servers when writing")
-    public Long batchLatency = BWDEFAULTS.getMaxLatency(TimeUnit.MILLISECONDS);
-
-    @Parameter(names = "--batchMemory", converter = BatchWriterOpts.MemoryConverter.class,
-        description = "memory used to batch data when writing")
-    public Long batchMemory = BWDEFAULTS.getMaxMemory();
+    @Parameter(names = {"--size"}, required = true, description = "size of values")
+    public Integer size = 50;
   }
 
   /**
@@ -89,16 +77,17 @@ public class SequentialBatchWriter {
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
       try {
-        client.tableOperations().create("batch");
+        client.tableOperations().create(opts.tableName);
       } catch (TableExistsException e) {
         // ignore
       }
 
-      try (BatchWriter bw = client.createBatchWriter("batch")) {
-        for (int i = 0; i < 10000; i++) {
-          Mutation m = new Mutation(String.format("row_%010d", i));
+      try (BatchWriter bw = client.createBatchWriter(opts.tableName)) {
+        for (int i = 0; i < opts.num; i++) {
+          int row = i + opts.start;
+          Mutation m = new Mutation(String.format("row_%010d", row));
           // create a random value that is a function of row id for verification purposes
-          m.put("foo", "1", createValue(i));
+          m.put("foo", "1", createValue(row, opts.size));
           bw.addMutation(m);
           if (i % 1000 == 0) {
             log.trace("wrote {} entries", i);
