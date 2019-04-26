@@ -37,15 +37,9 @@ To begin, run the command to create a table for testing.
 $ accumulo shell -u <username> -p <password> -e "createtable test1"
 ```
 
-The command below sets the compression for smaller files and minor compactions for that table.
-
-```bash
-$ accumulo shell -u <username> -p <password> -e "config -s table.file.compress.type=snappy -t test1"
-```
-
 The commands below will configure the BasicCompactionStrategy to:
  - Avoid compacting files over 250M
- - Compact files over 100M using gzip
+ - Compact files over 100M using gz
  - Compact files less than 100M using snappy.
  
 ```bash
@@ -59,13 +53,13 @@ The commands below will configure the BasicCompactionStrategy to:
 Generate some data and files in order to test the strategy:
 
 ```bash
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 10000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 10000 --size 50
 $ accumulo shell -u <username> -p <password> -e "flush -t test1"
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 11000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 11000 --size 50
 $ accumulo shell -u <username> -p <password> -e "flush -t test1"
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 12000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 12000 --size 50
 $ accumulo shell -u <username> -p <password> -e "flush -t test1"
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 13000 --size 50 --batchMemory 20M --batchLatency 500 --batchThreads 20
+$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 13000 --size 50
 $ accumulo shell -u <username> -p <password> -e "flush -t test1"
 ```
 

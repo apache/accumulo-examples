@@ -20,13 +20,11 @@ import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Simple example for writing random data in sequential order to Accumulo.
@@ -50,18 +48,16 @@ public class SequentialBatchWriter {
   }
 
   static class Opts extends ClientOpts {
-    private static final BatchWriterConfig BWDEFAULTS = new BatchWriterConfig();
-
-    @Parameter(names = {"-t"}, required = true, description = "table to use")
+    @Parameter(names = {"-t"}, description = "table to use")
     public String tableName = "batch";
 
-    @Parameter(names = {"--start"}, required = true, description = "starting row")
+    @Parameter(names = {"--start"}, description = "starting row")
     public Integer start = 0;
 
-    @Parameter(names = {"--num"}, required = true, description = "number of rows")
+    @Parameter(names = {"--num"}, description = "number of rows")
     public Integer num = 10_000;
 
-    @Parameter(names = {"--size"}, required = true, description = "size of values")
+    @Parameter(names = {"--size"}, description = "size of values")
     public Integer size = 50;
   }
 
