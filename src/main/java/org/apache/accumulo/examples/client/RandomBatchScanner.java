@@ -86,7 +86,7 @@ public class RandomBatchScanner {
           String row = key.getRow().toString();
           long rowId = Integer.parseInt(row.split("_")[1]);
 
-          Value expectedValue = SequentialBatchWriter.createValue(rowId);
+          Value expectedValue = SequentialBatchWriter.createValue(rowId, 50);
 
           if (!Arrays.equals(expectedValue.get(), value.get())) {
             log.error("Unexpected value for key: {} expected: {} actual: {}", key,
