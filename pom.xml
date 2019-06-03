@@ -30,7 +30,7 @@
   <description>Example code and corresponding documentation for using Apache Accumulo</description>
   <properties>
     <accumulo.version>2.0.0-SNAPSHOT</accumulo.version>
-    <hadoop.version>3.1.1</hadoop.version>
+    <hadoop.version>3.2.0</hadoop.version>
     <slf4j.version>1.7.21</slf4j.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
