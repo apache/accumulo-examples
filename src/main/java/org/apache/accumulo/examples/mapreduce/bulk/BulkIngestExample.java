@@ -111,14 +111,22 @@ public class BulkIngestExample {
     job.setReducerClass(ReduceClass.class);
     job.setOutputFormatClass(AccumuloFileOutputFormat.class);
 
-    TextInputFormat.setInputPaths(job, new Path(inputDir));
-    AccumuloFileOutputFormat.configure().outputPath(new Path(workDir + "/files")).store(job);
-
     FileSystem fs = FileSystem.get(opts.getHadoopConfig());
+
+    // String hdfsInputDir = fs.getUri().toString() + inputDir;
+    String hdfsWorkDir = fs.getUri().toString() + workDir;
+
+    Path workPath = new Path(hdfsWorkDir);
+    if (fs.exists(workPath))
+      fs.delete(workPath, true);
+
+    TextInputFormat.setInputPaths(job, new Path(inputDir));
+    AccumuloFileOutputFormat.configure().outputPath(new Path(hdfsWorkDir + "/files")).store(job);
+
     try (AccumuloClient client = opts.createAccumuloClient()) {
 
       try (PrintStream out = new PrintStream(
-          new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))))) {
+          new BufferedOutputStream(fs.create(new Path(hdfsWorkDir + "/splits.txt"))))) {
         Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
         for (Text split : splits)
           out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
@@ -126,17 +134,17 @@ public class BulkIngestExample {
       }
 
       job.setPartitionerClass(RangePartitioner.class);
-      RangePartitioner.setSplitFile(job, workDir + "/splits.txt");
+      RangePartitioner.setSplitFile(job, hdfsWorkDir + "/splits.txt");
 
       job.waitForCompletion(true);
-      Path failures = new Path(workDir, "failures");
+      Path failures = new Path(hdfsWorkDir, "failures");
       fs.delete(failures, true);
-      fs.mkdirs(new Path(workDir, "failures"));
+      fs.mkdirs(new Path(hdfsWorkDir, "failures"));
       // With HDFS permissions on, we need to make sure the Accumulo user can read/move the rfiles
       FsShell fsShell = new FsShell(opts.getHadoopConfig());
-      fsShell.run(new String[] {"-chmod", "-R", "777", workDir});
-      client.tableOperations().importDirectory(SetupTable.tableName, workDir + "/files",
-          workDir + "/failures", false);
+      fsShell.run(new String[] {"-chmod", "-R", "777", hdfsWorkDir});
+      client.tableOperations().importDirectory(SetupTable.tableName, hdfsWorkDir + "/files",
+          hdfsWorkDir + "/failures", false);
     }
     System.exit(job.isSuccessful() ? 0 : 1);
   }

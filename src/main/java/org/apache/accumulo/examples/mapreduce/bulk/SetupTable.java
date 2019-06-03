@@ -39,6 +39,11 @@ public class SetupTable {
   public static void main(String[] args) throws Exception {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(SetupTable.class.getName(), args);
+    FileSystem fs = FileSystem.get(new Configuration());
+
+    Path inputPath = new Path("bulk");
+    if (fs.exists(inputPath))
+      fs.delete(inputPath, true);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
       try {
@@ -54,7 +59,6 @@ public class SetupTable {
       }
       client.tableOperations().addSplits(tableName, intialPartitions);
 
-      FileSystem fs = FileSystem.get(new Configuration());
       try (PrintStream out = new PrintStream(
           new BufferedOutputStream(fs.create(new Path(outputFile))))) {
         // create some data in outputFile
