@@ -43,8 +43,8 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
  * files containing tab separated key value pairs on each line.
  */
 public class BulkIngestExample {
-  static String workDir = "tmp/bulkWork";
-  static String inputDir = "bulk";
+  static String workDir = "./tmp/bulkWork";
+  static String inputDir = "./bulk";
 
   public static class MapClass extends Mapper<LongWritable,Text,Text,Text> {
     private Text outputKey = new Text();
