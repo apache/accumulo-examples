@@ -25,8 +25,8 @@ import java.util.Map;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.format.DefaultFormatter;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.examples.util.FormatUtil;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.hadoop.mapreduce.InputFormatBuilder;
 import org.apache.hadoop.fs.Path;
@@ -59,7 +59,7 @@ public class TableToFile {
     @Override
     public void map(Key row, Value data, Context context) throws IOException, InterruptedException {
       Map.Entry<Key,Value> entry = new SimpleImmutableEntry<>(row, data);
-      context.write(NullWritable.get(), new Text(DefaultFormatter.formatEntry(entry, false)));
+      context.write(NullWritable.get(), new Text(FormatUtil.formatTableEntry(entry, false)));
       context.setStatus("Outputed Value");
     }
   }
