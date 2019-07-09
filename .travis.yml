@@ -19,4 +19,8 @@ cache:
 jdk:
   - openjdk8
 install: true
-script: mvn clean verify
+env:
+  - BUILD_CMD="mvn clean verify -DskipITs"  # main build of unit tests
+  - BUILD_CMD="travis_wait 30 mvn clean verify -q # quiet run, just print errors
+script:
+  - $BUILD_CMD
