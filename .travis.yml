@@ -20,6 +20,6 @@ jdk:
   - openjdk8
 install: echo NOOP Skipping pre-fetch of Maven dependencies
 env:
-  - BUILD_CMD="mvn clean verify"  # main build of unit tests
+  - BUILD_CMD="mvn clean verify -q"  # main build of unit tests
 script:
   - $BUILD_CMD
