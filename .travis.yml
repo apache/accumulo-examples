@@ -18,9 +18,8 @@ cache:
     - $HOME/.m2
 jdk:
   - openjdk8
-install: true
+install: echo NOOP Skipping pre-fetch of Maven dependencies
 env:
-  - BUILD_CMD="mvn clean verify -DskipITs"  # main build of unit tests
-  - BUILD_CMD="travis_wait 30 mvn clean verify -q # quiet run, just print errors
+  - BUILD_CMD="mvn clean verify"  # main build of unit tests
 script:
   - $BUILD_CMD
