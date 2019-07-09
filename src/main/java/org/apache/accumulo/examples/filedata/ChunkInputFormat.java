@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.format.DefaultFormatter;
+import org.apache.accumulo.examples.util.FormatUtil;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -40,7 +40,7 @@ import com.google.common.collect.PeekingIterator;
 public class ChunkInputFormat extends InputFormatBase<List<Entry<Key,Value>>,InputStream> {
   @Override
   public RecordReader<List<Entry<Key,Value>>,InputStream> createRecordReader(InputSplit split,
-      TaskAttemptContext context) throws IOException, InterruptedException {
+      TaskAttemptContext context) {
     return new RecordReaderBase<List<Entry<Key,Value>>,InputStream>() {
       private PeekingIterator<Entry<Key,Value>> peekingScannerIterator;
 
@@ -53,7 +53,9 @@ public class ChunkInputFormat extends InputFormatBase<List<Entry<Key,Value>>,Inp
       }
 
       @Override
-      public boolean nextKeyValue() throws IOException, InterruptedException {
+      public boolean nextKeyValue() throws IOException {
+        log.debug("nextKeyValue called");
+
         currentK.clear();
         if (peekingScannerIterator.hasNext()) {
           ++numKeysRead;
@@ -61,14 +63,17 @@ public class ChunkInputFormat extends InputFormatBase<List<Entry<Key,Value>>,Inp
           while (!entry.getKey().getColumnFamily().equals(FileDataIngest.CHUNK_CF)) {
             currentK.add(entry);
             peekingScannerIterator.next();
-            if (!peekingScannerIterator.hasNext())
+            if (!peekingScannerIterator.hasNext()) {
               return true;
+            }
             entry = peekingScannerIterator.peek();
           }
           currentKey = entry.getKey();
           ((ChunkInputStream) currentV).setSource(peekingScannerIterator);
-          if (log.isTraceEnabled())
-            log.trace("Processing key/value pair: " + DefaultFormatter.formatEntry(entry, true));
+          if (log.isTraceEnabled()) {
+            log.trace("Processing key/value pair: " + FormatUtil.formatTableEntry(entry, true));
+          }
+
           return true;
         }
         return false;

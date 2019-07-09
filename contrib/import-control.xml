@@ -36,7 +36,6 @@
     <!-- TODO refactor code to remove the following exceptions -->
     <allow class="org.apache.accumulo.tracer.TraceDump"/>
     <allow class="org.apache.accumulo.core.trace.DistributedTrace"/>
-    <allow class="org.apache.accumulo.core.util.format.DefaultFormatter"/>
     <!-- End TODO section -->
 
     <!-- disallow everything else coming from accumulo -->
