@@ -24,9 +24,9 @@ This tutorial uses the following Java classes.
  * [BulkIngestExample.java] - ingest the data using map reduce
  * [VerifyIngest.java] - checks that the data was ingested
  
-Remember to copy the accumulo-examples-\*.jar to Accumulo's 'lib/ext' directory.
+Remember to copy the accumulo-examples\*.jar to Accumulo's 'lib/ext' directory.
 
-    $ cp target/accumulo-examples-*.jar /path/accumulo/lib/ext
+    $ cp target/accumulo-examples*.jar /path/accumulo/lib/ext
 
 The following commands show how to run this example. This example creates a
 table called test_bulk which has two initial split points. Then 1000 rows of
