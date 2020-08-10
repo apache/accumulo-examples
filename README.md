@@ -99,7 +99,6 @@ This repository can be used to test Accumulo release candidates.  See
 [accumulo-client.properties]: https://accumulo.apache.org/docs/2.x/configuration/files#accumulo-clientproperties
 [env.sh.example]: conf/env.sh.example
 [manual]: https://accumulo.apache.org/latest/accumulo_user_manual/
-[INSTALL.md]: https://github.com/apache/accumulo/blob/master/INSTALL.md
 [batch]: docs/batch.md
 [bloom]: docs/bloom.md
 [bulkIngest]: docs/bulkIngest.md
@@ -128,5 +127,5 @@ This repository can be used to test Accumulo release candidates.  See
 [uniquecols]: docs/uniquecols.md
 [visibility]: docs/visibility.md
 [wordcount]: docs/wordcount.md
-[ti]: https://travis-ci.org/apache/accumulo-examples.svg?branch=master
+[ti]: https://travis-ci.org/apache/accumulo-examples.svg?branch=main
 [tl]: https://travis-ci.org/apache/accumulo-examples
