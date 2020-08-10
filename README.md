@@ -127,5 +127,5 @@ This repository can be used to test Accumulo release candidates.  See
 [uniquecols]: docs/uniquecols.md
 [visibility]: docs/visibility.md
 [wordcount]: docs/wordcount.md
-[ti]: https://travis-ci.org/apache/accumulo-examples.svg?branch=main
-[tl]: https://travis-ci.org/apache/accumulo-examples
+[ti]: https://github.com/apache/accumulo-examples/workflows/QA/badge.svg
+[tl]: https://github.com/apache/accumulo-examples/actions
