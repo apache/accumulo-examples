@@ -35,6 +35,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <slf4j.version>1.7.30</slf4j.version>
+    <zookeeper.version>3.4.14</zookeeper.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -89,6 +90,11 @@
       <groupId>org.apache.htrace</groupId>
       <artifactId>htrace-core</artifactId>
       <version>3.1.0-incubating</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+      <version>${zookeeper.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
