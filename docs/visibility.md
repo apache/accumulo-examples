@@ -28,7 +28,11 @@ limitations under the License.
     username@instance> userpermissions
     System permissions:
 
+    Namespace permissions (accumulo): Namespace.READ
+
     Table permissions (accumulo.metadata): Table.READ
+    Table permissions (accumulo.replication): Table.READ
+    Table permissions (accumulo.root): Table.READ
     username@instance>
 
 A user does not by default have permission to create a table.
@@ -44,8 +48,12 @@ A user does not by default have permission to create a table.
     username@instance> userpermissions
     System permissions: System.CREATE_TABLE
 
+    Namespace permissions (accumulo): Namespace.READ
+
     Table permissions (accumulo.metadata): Table.READ
-    Table permissions (vistest): Table.READ, Table.WRITE, Table.BULK_IMPORT, Table.ALTER_TABLE, Table.GRANT, Table.DROP_TABLE
+    Table permissions (accumulo.replication): Table.READ
+    Table permissions (accumulo.root): Table.READ
+    Table permissions (vistest): Table.READ, Table.WRITE, Table.BULK_IMPORT, Table.ALTER_TABLE, Table.GRANT, Table.DROP_TABLE, Table.GET_SUMMARIES
     username@instance vistest>
 
 ## Inserting data with visibilities
@@ -103,6 +111,11 @@ The default authorizations for a scan are the user's entire set of authorization
     root@instance vistest> setauths -s A,B,broccoli -u username
     root@instance vistest> user username
     Enter password for user username: ********
+    username@instance vistest> getauths
+    A,B,broccoli
+    username@instance vistest> getauths -u username
+    A,B,broccoli
+
     username@instance vistest> scan
     row f1:q1 [A]    v1
     row f2:q2 [A&B]    v2
@@ -111,16 +124,26 @@ The default authorizations for a scan are the user's entire set of authorization
     username@instance vistest>
 
 If you want, you can limit a user to only be able to insert data which they can read themselves.
-It can be set with the following constraint.
+First, check for any existing constraints.
 
-    username@instance vistest> user root
-    Enter password for user root: ******
-    root@instance vistest> config -t vistest -s table.constraint.1=org.apache.accumulo.core.security.VisibilityConstraint
-    root@instance vistest> user username
-    Enter password for user username: ********
+    username@instance vistest> constraint -l -t vistest
+    org.apache.accumulo.core.constraints.DefaultKeySizeConstraint=1
+
+If existing constraints exists, take note of the values assigned to the constraints and use a
+unique value when creating the new constraint.
+
+In this example, since a constraint exists with a value of '1', we will choose the next
+available value. In this case '2'.
+
+The constraint can be set with the following command:
+
+    username@instance vistest> config -t vistest -s table.constraint.2=org.apache.accumulo.core.constraints.VisibilityConstraint
+    username@instance vistest> constraint -l
+    org.apache.accumulo.core.constraints.DefaultKeySizeConstraint=1
+    org.apache.accumulo.core.constraints.VisibilityConstraint=2
     username@instance vistest> insert row f4 q4 v4 -l spinach
-        Constraint Failures:
-            ConstraintViolationSummary(constrainClass:org.apache.accumulo.core.security.VisibilityConstraint, violationCode:2, violationDescription:User does not have authorization on column visibility, numberOfViolatingMutations:1)
+         Constraint Failures:
+            ConstraintViolationSummary(constrainClass:org.apache.accumulo.core.constraints.VisibilityConstraint, violationCode:2, violationDescription:User does not have authorization on column visibility, numberOfViolatingMutations:1)
     username@instance vistest> insert row f4 q4 v4 -l spinach|broccoli
     username@instance vistest> scan
     row f1:q1 [A]    v1
