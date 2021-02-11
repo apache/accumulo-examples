@@ -19,10 +19,15 @@ limitations under the License.
 This example shows how to use per table classpaths. The example leverages a
 test jar which contains a Filter that supresses rows containing "foo". The
 example shows copying the FooFilter.jar into HDFS and then making an Accumulo
-table reference that jar.
+table reference that jar. For this example, a directory, `/user1/lib`, is
+assumed to exist in HDFS.
 
+Create `/user1/lib` in HDFS if it does not exist.
 
-Execute the following command in the shell.
+    hadoop fs -mkdir -p /user1/lib
+
+Execute the following command in the shell. Note that the `FooFilter.jar`
+is located within the Accumulo source distribution. 
 
     $ hadoop fs -copyFromLocal /path/to/accumulo/test/src/main/resources/FooFilter.jar /user1/lib
 
@@ -53,12 +58,13 @@ The commands below show the filter is working.
     root@test15 nofoo>
 
 Below, an attempt is made to add the FooFilter to a table that's not configured
-to use the classpath context cx1. This fails util the table is configured to
+to use the classpath context cx1. This fails until the table is configured to
 use cx1.
 
     root@test15 nofoo> createtable nofootwo
     root@test15 nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
-    2013-05-03 12:49:35,943 [shell.Shell] ERROR: java.lang.IllegalArgumentException: org.apache.accumulo.test.FooFilter
+        2013-05-03 12:49:35,943 [shell.Shell] ERROR: org.apache.accumulo.shell.ShellCommandException: Command could 
+    not be initialized (Unable to load org.apache.accumulo.test.FooFilter; class not found.)
     root@test15 nofootwo> config -t nofootwo -s table.classpath.context=cx1
     root@test15 nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
     Filter accepts or rejects each Key/Value pair
