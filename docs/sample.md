@@ -66,7 +66,7 @@ scanning the sample.
     2317 doc:content []    milk, eggs, bread, parmigiano-reggiano, butter
     2317 doc:url []    file://groceries/9.txt
 
-Inorder to make scanning the sample fast, sample data is partitioned as data is
+In order to make scanning the sample fast, sample data is partitioned as data is
 written to Accumulo.  This means if the sample configuration is changed, that
 data written previously is partitioned using a different criteria.  Accumulo
 will detect this situation and fail sample scans.  The commands below show this
