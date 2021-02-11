@@ -26,7 +26,7 @@ This tutorial uses the following Java classes, which can be found in org.apache.
                                   and table.majc.compaction.strategy.opts.file.large.compress.type for larger files.                            
                                   
 
-This is an example of how to configure a compaction strategy. By default Accumulo will always use the DefaultCompactionStrategy, unless 
+This is an example of how to configure a compaction strategy. By default, Accumulo will always use the DefaultCompactionStrategy, unless 
 these steps are taken to change the configuration.  Use the strategy and settings that best fits your Accumulo setup. This example shows
 how to configure and test one of the more complicated strategies, the BasicCompactionStrategy. Note that this example requires hadoop
 native libraries built with snappy in order to use snappy compression.
@@ -68,7 +68,7 @@ View the tserver log in <accumulo_home>/logs for the compaction and find the nam
 ```bash
 $ accumulo rfile-info <rfile>
 ```
-Details about the rfile will be printed and the compression type should match the type used in the compaction...
+Details about the rfile will be printed. The compression type should match the type used in the compaction.
 
 ```bash    
 Meta block     : RFile.index
