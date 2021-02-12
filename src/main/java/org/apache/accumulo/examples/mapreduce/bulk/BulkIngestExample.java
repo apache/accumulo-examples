@@ -42,13 +42,21 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
  * Example map reduce job that bulk ingest data into an accumulo table. The expected input is text
  * files containing tab separated key value pairs on each line.
  */
-public class BulkIngestExample {
-  static String workDir = "tmp/bulkWork";
-  static String inputDir = "bulk";
+public final class BulkIngestExample {
+  static final String workDir = "tmp/bulkWork";
+  static final String inputDir = "bulk";
+  static final String outputFile = "bulk/test_1.txt";
+  static final int numRows = 1000;
+
+  static final String SLASH_FILES = "/files";
+  static final String FAILURES = "failures";
+  static final String SPLITS_TXT = "/splits.txt";
+
+  private BulkIngestExample() {}
 
   public static class MapClass extends Mapper<LongWritable,Text,Text,Text> {
-    private Text outputKey = new Text();
-    private Text outputValue = new Text();
+    private final Text outputKey = new Text();
+    private final Text outputValue = new Text();
 
     @Override
     public void map(LongWritable key, Text value, Context output)
@@ -94,10 +102,25 @@ public class BulkIngestExample {
     }
   }
 
-  public static void main(String[] args) throws Exception {
+  public static int main(String[] args) throws Exception {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(BulkIngestExample.class.getName(), args);
+    FileSystem fs = FileSystem.get(opts.getHadoopConfig());
 
+    generateTestData(fs);
+    return ingestTestData(fs, opts);
+  }
+
+  private static void generateTestData(FileSystem fs) throws IOException {
+    try (PrintStream out = new PrintStream(
+        new BufferedOutputStream(fs.create(new Path(outputFile))))) {
+      for (int i = 0; i < numRows; i++) {
+        out.printf("row_%010d\tvalue_%010d%n", i, i);
+      }
+    }
+  }
+
+  private static int ingestTestData(FileSystem fs, ClientOpts opts) throws Exception {
     Job job = Job.getInstance(opts.getHadoopConfig());
     job.setJobName(BulkIngestExample.class.getSimpleName());
     job.setJarByClass(BulkIngestExample.class);
@@ -112,13 +135,12 @@ public class BulkIngestExample {
     job.setOutputFormatClass(AccumuloFileOutputFormat.class);
 
     TextInputFormat.setInputPaths(job, new Path(inputDir));
-    AccumuloFileOutputFormat.configure().outputPath(new Path(workDir + "/files")).store(job);
+    AccumuloFileOutputFormat.configure().outputPath(new Path(workDir + SLASH_FILES)).store(job);
 
-    FileSystem fs = FileSystem.get(opts.getHadoopConfig());
     try (AccumuloClient client = opts.createAccumuloClient()) {
 
       try (PrintStream out = new PrintStream(
-          new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))))) {
+          new BufferedOutputStream(fs.create(new Path(workDir + SPLITS_TXT))))) {
         Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
         for (Text split : splits)
           out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
@@ -126,17 +148,18 @@ public class BulkIngestExample {
       }
 
       job.setPartitionerClass(RangePartitioner.class);
-      RangePartitioner.setSplitFile(job, workDir + "/splits.txt");
+      RangePartitioner.setSplitFile(job, workDir + SPLITS_TXT);
 
       job.waitForCompletion(true);
-      Path failures = new Path(workDir, "failures");
+      Path failures = new Path(workDir, FAILURES);
       fs.delete(failures, true);
-      fs.mkdirs(new Path(workDir, "failures"));
+      fs.mkdirs(new Path(workDir, FAILURES));
       // With HDFS permissions on, we need to make sure the Accumulo user can read/move the rfiles
       FsShell fsShell = new FsShell(opts.getHadoopConfig());
       fsShell.run(new String[] {"-chmod", "-R", "777", workDir});
-      client.tableOperations().importDirectory(workDir + "/files").to(SetupTable.tableName).load();
+      client.tableOperations().importDirectory(workDir + SLASH_FILES).to(SetupTable.tableName)
+          .load();
     }
-    System.exit(job.isSuccessful() ? 0 : 1);
+    return job.isSuccessful() ? 0 : 1;
   }
 }

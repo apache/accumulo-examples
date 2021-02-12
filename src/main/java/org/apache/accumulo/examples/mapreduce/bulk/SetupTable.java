@@ -16,25 +16,20 @@
  */
 package org.apache.accumulo.examples.mapreduce.bulk;
 
-import java.io.BufferedOutputStream;
-import java.io.PrintStream;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 
-public class SetupTable {
+public final class SetupTable {
 
-  static String[] splits = {"row_00000333", "row_00000666"};
-  static String tableName = "test_bulk";
-  static int numRows = 1000;
-  static String outputFile = "bulk/test_1.txt";
+  static final String[] splits = {"row_00000333", "row_00000666"};
+  static final String tableName = "test_bulk";
+
+  private SetupTable() {}
 
   public static void main(String[] args) throws Exception {
     ClientOpts opts = new ClientOpts();
@@ -48,20 +43,11 @@ public class SetupTable {
       }
 
       // create a table with initial partitions
-      TreeSet<Text> intialPartitions = new TreeSet<>();
+      TreeSet<Text> initialPartitions = new TreeSet<>();
       for (String split : splits) {
-        intialPartitions.add(new Text(split));
+        initialPartitions.add(new Text(split));
       }
-      client.tableOperations().addSplits(tableName, intialPartitions);
-
-      FileSystem fs = FileSystem.get(new Configuration());
-      try (PrintStream out = new PrintStream(
-          new BufferedOutputStream(fs.create(new Path(outputFile))))) {
-        // create some data in outputFile
-        for (int i = 0; i < numRows; i++) {
-          out.println(String.format("row_%010d\tvalue_%010d", i, i));
-        }
-      }
+      client.tableOperations().addSplits(tableName, initialPartitions);
     }
   }
 }
