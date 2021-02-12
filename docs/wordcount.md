@@ -52,7 +52,7 @@ After the MapReduce job completes, query the Accumulo table to see word counts.
 When the WordCount MapReduce job was run above, the client properties were serialized
 into the MapReduce configuration.  This is insecure if the properties contain sensitive 
 information like passwords. A more secure option is store accumulo-client.properties
-in HDFS and run th job with the `-D` options.  This will configure the MapReduce job
+in HDFS and run the job with the `-D` options.  This will configure the MapReduce job
 to obtain the client properties from HDFS:
 
     $ hdfs dfs -copyFromLocal ./conf/accumulo-client.properties /user/myuser/
