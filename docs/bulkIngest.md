@@ -16,18 +16,14 @@ limitations under the License.
 -->
 # Apache Accumulo Bulk Ingest Example
 
-This is an example of how to bulk ingest data into Accumulo using map reduce.
+This is an example of how to bulk ingest data into Accumulo using mapReduce.
 
 This tutorial uses the following Java classes.
 
- * [SetupTable.java] - creates the table and some data to ingest
- * [BulkIngestExample.java] - ingest the data using map reduce
+ * [SetupTable.java] - creates the table, 'test_bulk', and sets two split points.
+ * [BulkIngestExample.java] - creates some data to ingest and then ingests the data using mapReduce
  * [VerifyIngest.java] - checks that the data was ingested
  
-Remember to copy the accumulo-examples\*.jar to Accumulo's 'lib/ext' directory.
-
-    $ cp target/accumulo-examples*.jar /path/accumulo/lib/ext
-
 The following commands show how to run this example. This example creates a
 table called test_bulk which has two initial split points. Then 1000 rows of
 test data are created in HDFS. After that the 1000 rows are ingested into

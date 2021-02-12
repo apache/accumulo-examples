@@ -31,9 +31,13 @@ import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VerifyIngest {
+public final class VerifyIngest {
 
   private static final Logger log = LoggerFactory.getLogger(VerifyIngest.class);
+  private static final String ROW_FORMAT = "row_%010d";
+  private static final String VALUE_FORMAT = "value_%010d";
+
+  private VerifyIngest() {}
 
   public static void main(String[] args) throws TableNotFoundException {
 
@@ -43,31 +47,31 @@ public class VerifyIngest {
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build();
         Scanner scanner = client.createScanner(SetupTable.tableName, Authorizations.EMPTY)) {
 
-      scanner.setRange(new Range(String.format("row_%010d", 0), null));
+      scanner.setRange(new Range(String.format(ROW_FORMAT, 0), null));
 
       Iterator<Entry<Key,Value>> si = scanner.iterator();
 
       boolean ok = true;
 
-      for (int i = 0; i < SetupTable.numRows; i++) {
+      for (int i = 0; i < BulkIngestExample.numRows; i++) {
 
         if (si.hasNext()) {
           Entry<Key,Value> entry = si.next();
 
-          if (!entry.getKey().getRow().toString().equals(String.format("row_%010d", i))) {
-            log.error("unexpected row key " + entry.getKey().getRow().toString() + " expected "
-                + String.format("row_%010d", i));
+          if (!entry.getKey().getRow().toString().equals(String.format(ROW_FORMAT, i))) {
+            log.error("unexpected row key {}; expected {}", entry.getKey().getRow(),
+                String.format(ROW_FORMAT, i));
             ok = false;
           }
 
-          if (!entry.getValue().toString().equals(String.format("value_%010d", i))) {
-            log.error("unexpected value " + entry.getValue().toString() + " expected "
-                + String.format("value_%010d", i));
+          if (!entry.getValue().toString().equals(String.format(VALUE_FORMAT, i))) {
+            log.error("unexpected value {}; expected {}", entry.getValue(),
+                String.format(VALUE_FORMAT, i));
             ok = false;
           }
 
         } else {
-          log.error("no more rows, expected " + String.format("row_%010d", i));
+          log.error("no more rows, expected {}", String.format(ROW_FORMAT, i));
           ok = false;
           break;
         }
@@ -75,9 +79,10 @@ public class VerifyIngest {
       }
 
       if (ok) {
-        System.out.println("OK");
+        System.out.println("Data verification succeeded!");
         System.exit(0);
       } else {
+        System.out.println("Data verification failed!");
         System.exit(1);
       }
     }
