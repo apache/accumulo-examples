@@ -31,10 +31,10 @@
     <accumulo.version>2.0.0</accumulo.version>
     <eclipseFormatterStyle>contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
     <hadoop.version>3.2.1</hadoop.version>
+    <log4j.version>2.14.0</log4j.version>
     <maven.compiler.release>8</maven.compiler.release>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <slf4j.version>1.7.30</slf4j.version>
     <zookeeper.version>3.4.14</zookeeper.version>
   </properties>
   <dependencyManagement>
@@ -97,15 +97,19 @@
       <version>${zookeeper.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${log4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>runtime</scope>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>${log4j.version}</version>
     </dependency>
     <!-- Test dependencies -->
     <dependency>
@@ -305,6 +309,7 @@
                 </goals>
                 <phase>package</phase>
                 <configuration>
+                  <createDependencyReducedPom>false</createDependencyReducedPom>
                   <finalName>${project.artifactId}-shaded</finalName>
                   <shadedArtifactAttached>true</shadedArtifactAttached>
                   <shadedClassifierName>shaded</shadedClassifierName>
@@ -320,6 +325,12 @@
                         <exclude>META-INF/*.SF</exclude>
                         <exclude>META-INF/*.DSA</exclude>
                         <exclude>META-INF/*.RSA</exclude>
+                      </excludes>
+                    </filter>
+                    <filter>
+                      <artifact>*:*</artifact>
+                      <excludes>
+                        <exclude>**/Log4j2Plugins.dat</exclude>
                       </excludes>
                     </filter>
                   </filters>

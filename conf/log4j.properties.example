@@ -13,15 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-log4j.rootLogger=INFO, CA
-log4j.appender.CA=org.apache.log4j.ConsoleAppender
-log4j.appender.CA.layout=org.apache.log4j.PatternLayout
-log4j.appender.CA.layout.ConversionPattern=%d{ISO8601} [%c{3}] %-5p: %m%n
+status = info
+dest = err
+name = AccumuloExampleConfig
 
-log4j.logger.org.apache.accumulo=INFO
-log4j.logger.org.apache.accumulo.examples=TRACE
-log4j.logger.org.apache.curator=ERROR
-log4j.logger.org.apache.hadoop=WARN
-log4j.logger.org.apache.hadoop.mapreduce=ERROR
-log4j.logger.org.apache.hadoop.util.NativeCodeLoader=ERROR
-log4j.logger.org.apache.zookeeper=ERROR
+appender.console.type = Console
+appender.console.name = STDOUT
+appender.console.target = SYSTEM_OUT
+appender.console.layout.type = PatternLayout
+appender.console.layout.pattern = %d{ISO8601} [%-8c{2}] %-5p: %m%n
+
+logger.zookeeper.name = org.apache.zookeeper
+logger.zookeeper.level = error
+
+rootLogger.level = info
+rootLogger.appenderRef.console.ref = STDOUT
