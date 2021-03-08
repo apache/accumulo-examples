@@ -95,7 +95,7 @@ commands below.  The configured regular expression selects the first two digits
 from a tablets end row as the group id.  Tablets that don't match and the
 default tablet are configured to be in group 04.
 
-    root@accumulo testRGB> config -t testRGB -s table.custom.balancer.group.regex.pattern=(\\d\\d).*
+    root@accumulo testRGB> config -t testRGB -s table.custom.balancer.group.regex.pattern=(\d\d).*
     root@accumulo testRGB> config -t testRGB -s table.custom.balancer.group.regex.default=04
     root@accumulo testRGB> config -t testRGB -s table.balancer=org.apache.accumulo.server.master.balancer.RegexGroupBalancer
 
