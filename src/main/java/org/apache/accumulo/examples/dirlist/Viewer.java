@@ -33,6 +33,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -120,9 +121,9 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
 
   public void populateChildren(DefaultMutableTreeNode node) throws TableNotFoundException {
     @SuppressWarnings("unchecked")
-    Enumeration<DefaultMutableTreeNode> children = node.children();
+    Enumeration<TreeNode> children = node.children();
     while (children.hasMoreElements()) {
-      populate(children.nextElement());
+      populate((DefaultMutableTreeNode) children.nextElement());
     }
   }
 
@@ -176,9 +177,9 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
   public void treeCollapsed(TreeExpansionEvent event) {
     DefaultMutableTreeNode node = (DefaultMutableTreeNode) event.getPath().getLastPathComponent();
     @SuppressWarnings("unchecked")
-    Enumeration<DefaultMutableTreeNode> children = node.children();
+    Enumeration<TreeNode> children = node.children();
     while (children.hasMoreElements()) {
-      DefaultMutableTreeNode child = children.nextElement();
+      DefaultMutableTreeNode child = (DefaultMutableTreeNode) children.nextElement();
       log.debug("removing children of " + ((NodeInfo) child.getUserObject()).getFullName());
       child.removeAllChildren();
     }
