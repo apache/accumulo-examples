@@ -62,8 +62,8 @@ After the MapReduce job completes, query the `wordCount2` table. The results sho
 be the same as before:
 
     $ accumulo shell
-    username@instance> table wordCount
-    username@instance wordCount> scan -b the
+    username@instance> table wordCount2
+    username@instance wordCount2> scan -b the
     the count:20080906 []    75
     their count:20080906 []    2
     ...
