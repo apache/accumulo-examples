@@ -157,6 +157,8 @@ public final class BulkIngestExample {
       // With HDFS permissions on, we need to make sure the Accumulo user can read/move the rfiles
       FsShell fsShell = new FsShell(opts.getHadoopConfig());
       fsShell.run(new String[] {"-chmod", "-R", "777", workDir});
+      System.err.println("Importing Directory '" + workDir + SLASH_FILES + "' to table '"
+          + SetupTable.tableName + "'");
       client.tableOperations().importDirectory(workDir + SLASH_FILES).to(SetupTable.tableName)
           .load();
     }
