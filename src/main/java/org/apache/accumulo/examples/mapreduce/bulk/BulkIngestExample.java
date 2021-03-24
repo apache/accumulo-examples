@@ -102,13 +102,13 @@ public final class BulkIngestExample {
     }
   }
 
-  public static int main(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(BulkIngestExample.class.getName(), args);
     FileSystem fs = FileSystem.get(opts.getHadoopConfig());
 
     generateTestData(fs);
-    return ingestTestData(fs, opts);
+    ingestTestData(fs, opts);
   }
 
   private static void generateTestData(FileSystem fs) throws IOException {
