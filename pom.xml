@@ -31,6 +31,8 @@
     <accumulo.version>2.1.0-SNAPSHOT</accumulo.version>
     <eclipseFormatterStyle>contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
     <hadoop.version>3.3.0</hadoop.version>
+    <htrace.hadoop.version>4.1.0-incubating</htrace.hadoop.version>
+    <htrace.version>3.2.0-incubating</htrace.version>
     <log4j.version>2.14.0</log4j.version>
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>11</maven.compiler.source>
@@ -89,7 +91,12 @@
     <dependency>
       <groupId>org.apache.htrace</groupId>
       <artifactId>htrace-core</artifactId>
-      <version>3.1.0-incubating</version>
+      <version>${htrace.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.htrace</groupId>
+      <artifactId>htrace-core4</artifactId>
+      <version>${htrace.hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
