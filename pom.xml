@@ -321,7 +321,17 @@
                       <exclude>org.apache.logging.log4j:log4j-slf4j-impl:jar:</exclude>
                       <exclude>javax.activation:javax.activation-api:jar:</exclude>
                       <exclude>org.apache.zookeeper:zookeeper-jute:jar:</exclude>
-                      <exclude>org.apache.hadoop:*</exclude>
+                      <exclude>org.apache.hadoop:hadoop-annotations:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-auth:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-mapreduce-client-common:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-yarn-api:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-yarn-common:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-mapreduce-client-core:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-common:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-mapreduce-client-jobclient:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-yarn-client:jar:</exclude>
+                      <exclude>org.apache.hadoop:hadoop-hdfs-client:jar:</exclude>
+                      <exclude>org.apache.hadoop.thirdparty:hadoop-shaded-protobuf_3_7:jar:</exclude>
                     </excludes>
                   </artifactSet>
                   <filters>
