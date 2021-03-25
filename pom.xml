@@ -316,12 +316,19 @@
                   <artifactSet>
                     <excludes>
                       <exclude>org.apache.accumulo:accumulo-native</exclude>
+                      <exclude>org.apache.logging.log4j:log4j-api:jar:</exclude>
+                      <exclude>org.apache.logging.log4j:log4j-1.2-api:jar:</exclude>
+                      <exclude>org.apache.logging.log4j:log4j-slf4j-impl:jar:</exclude>
+                      <exclude>javax.activation:javax.activation-api:jar:</exclude>
+                      <exclude>org.apache.zookeeper:zookeeper-jute:jar:</exclude>
+                      <exclude>org.apache.hadoop:*</exclude>
                     </excludes>
                   </artifactSet>
                   <filters>
                     <filter>
                       <artifact>*:*</artifact>
                       <excludes>
+                        <exclude>module-info.class</exclude>
                         <exclude>META-INF/*.SF</exclude>
                         <exclude>META-INF/*.DSA</exclude>
                         <exclude>META-INF/*.RSA</exclude>
