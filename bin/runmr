@@ -41,4 +41,4 @@ fi
 "$ex_home"/bin/build
 
 export HADOOP_USE_CLIENT_CLASSLOADER=true
-yarn jar $EXAMPLES_JAR_PATH "org.apache.accumulo.examples.$1" ${*:2}
+"$HADOOP_HOME"/bin/yarn jar $EXAMPLES_JAR_PATH "org.apache.accumulo.examples.$1" ${*:2}
