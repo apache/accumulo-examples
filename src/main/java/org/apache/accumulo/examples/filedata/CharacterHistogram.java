@@ -21,7 +21,10 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -93,9 +96,17 @@ public class CharacterHistogram {
 
     job.setNumReduceTasks(0);
 
+    Properties props = opts.getClientProperties();
+    ChunkInputFormat.setZooKeeperInstance(job, props.getProperty("instance.name"),
+        props.getProperty("instance.zookeepers"));
+    PasswordToken token = new PasswordToken(props.getProperty("auth.token"));
+    ChunkInputFormat.setConnectorInfo(job, props.getProperty("auth.principal"), token);
+    ChunkInputFormat.setInputTableName(job, opts.tableName);
+    ChunkInputFormat.setScanAuthorizations(job, opts.auths);
+
     job.setOutputFormatClass(AccumuloOutputFormat.class);
     AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
-        .defaultTable(opts.tableName).createTables(true);
+        .defaultTable(opts.tableName).createTables(true).store(job);
 
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
