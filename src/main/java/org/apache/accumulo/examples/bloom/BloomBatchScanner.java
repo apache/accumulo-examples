@@ -38,13 +38,15 @@ import org.apache.accumulo.examples.cli.ClientOpts;
  */
 public class BloomBatchScanner {
 
+  private BloomBatchScanner() {}
+
   public static void main(String[] args) throws TableNotFoundException {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(BloomBatchScanner.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      scan(client, "bloom_test1", 7);
-      scan(client, "bloom_test2", 7);
+      scan(client, BloomFilters.BLOOM_TEST1, 7);
+      scan(client, BloomFilters.BLOOM_TEST2, 7);
     }
   }
 

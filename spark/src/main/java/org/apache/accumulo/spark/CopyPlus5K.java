@@ -76,8 +76,16 @@ public class CopyPlus5K {
         client.tableOperations().delete(outputTable);
       }
       // Create tables
-      client.tableOperations().create(inputTable);
-      client.tableOperations().create(outputTable);
+      try {
+        client.tableOperations().create(inputTable);
+      } catch (TableExistsException e) {
+        // ignore
+      }
+      try {
+        client.tableOperations().create(outputTable);
+      } catch (TableExistsException e) {
+        // ignore
+      }
 
       // Write data to input table
       try (BatchWriter bw = client.createBatchWriter(inputTable)) {

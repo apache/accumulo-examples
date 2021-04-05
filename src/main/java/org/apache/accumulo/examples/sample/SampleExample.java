@@ -24,6 +24,7 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.SampleNotPresentException;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
 import org.apache.accumulo.core.client.admin.CompactionStrategyConfig;
 import org.apache.accumulo.core.client.sample.RowSampler;
@@ -65,10 +66,11 @@ public class SampleExample {
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
 
-      if (!client.tableOperations().exists(opts.getTableName())) {
+      try {
         client.tableOperations().create(opts.getTableName());
-      } else {
-        System.out.println("Table exists, not doing anything.");
+      } catch (TableExistsException e) {
+        System.out.println("Table exists, not doing anything. Delete table " + opts.getTableName()
+            + " and re-run");
         return;
       }
 

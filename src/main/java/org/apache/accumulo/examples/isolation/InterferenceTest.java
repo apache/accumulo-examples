@@ -24,6 +24,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -162,8 +163,11 @@ public class InterferenceTest {
       opts.iterations = Long.MAX_VALUE;
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      if (!client.tableOperations().exists(opts.getTableName()))
+      try {
         client.tableOperations().create(opts.getTableName());
+      } catch (TableExistsException e) {
+        // ignore
+      }
 
       Thread writer = new Thread(
           new Writer(client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig()),

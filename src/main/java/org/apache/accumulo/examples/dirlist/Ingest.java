@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.lexicoder.Encoder;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -146,14 +147,22 @@ public class Ingest {
     opts.parseArgs(Ingest.class.getName(), args, bwOpts);
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      if (!client.tableOperations().exists(opts.nameTable))
+      try {
         client.tableOperations().create(opts.nameTable);
-      if (!client.tableOperations().exists(opts.indexTable))
+      } catch (TableExistsException e) {
+        // ignore
+      }
+      try {
         client.tableOperations().create(opts.indexTable);
-      if (!client.tableOperations().exists(opts.dataTable)) {
+      } catch (TableExistsException e) {
+        // ignore
+      }
+      try {
         client.tableOperations().create(opts.dataTable);
         client.tableOperations().attachIterator(opts.dataTable,
             new IteratorSetting(1, ChunkCombiner.class));
+      } catch (TableExistsException e) {
+        // ignore
       }
 
       BatchWriter dirBW = client.createBatchWriter(opts.nameTable, bwOpts.getBatchWriterConfig());

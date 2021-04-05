@@ -33,6 +33,13 @@ import org.apache.accumulo.examples.client.RandomBatchWriter;
 
 public class BloomFilters {
 
+  public static final String BLOOM_TEST1 = "bloom_test1";
+  public static final String BLOOM_TEST2 = "bloom_test2";
+  public static final String BLOOM_ENABLED_PROPERTY = "table.bloom.enabled";
+  public static final String COMPACTION_MAJOR_RATION_PROPERTY = "table.compaction.major.ratio";
+
+  private BloomFilters() {}
+
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
 
@@ -40,34 +47,35 @@ public class BloomFilters {
     opts.parseArgs(BloomFilters.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        System.out.println("Creating bloom_test1 and bloom_test2");
-        client.tableOperations().create("bloom_test1");
-        client.tableOperations().setProperty("bloom_test1", "table.compaction.major.ratio", "7");
-        client.tableOperations().create("bloom_test2");
-        client.tableOperations().setProperty("bloom_test2", "table.bloom.enabled", "true");
-        client.tableOperations().setProperty("bloom_test2", "table.compaction.major.ratio", "7");
-      } catch (TableExistsException e) {
-        // ignore
-      }
-
-      // Write a million rows 3 times flushing files to disk separately
-      System.out.println("Writing data to bloom_test1");
-      writeData(client, "bloom_test1", 7);
-      client.tableOperations().flush("bloom_test1", null, null, true);
-      writeData(client, "bloom_test1", 8);
-      client.tableOperations().flush("bloom_test1", null, null, true);
-      writeData(client, "bloom_test1", 9);
-      client.tableOperations().flush("bloom_test1", null, null, true);
-
-      System.out.println("Writing data to bloom_test2");
-      writeData(client, "bloom_test2", 7);
-      client.tableOperations().flush("bloom_test2", null, null, true);
-      writeData(client, "bloom_test2", 8);
-      client.tableOperations().flush("bloom_test2", null, null, true);
-      writeData(client, "bloom_test2", 9);
-      client.tableOperations().flush("bloom_test2", null, null, true);
+      createTableAndSetCompactionRatio(client, BLOOM_TEST1);
+      createTableAndSetCompactionRatio(client, BLOOM_TEST2);
+      client.tableOperations().setProperty(BLOOM_TEST2, BLOOM_ENABLED_PROPERTY, "true");
+      writeAndFlushData(BLOOM_TEST1, client);
+      writeAndFlushData(BLOOM_TEST2, client);
     }
+  }
+
+  private static void createTableAndSetCompactionRatio(AccumuloClient client,
+      final String tableName) throws AccumuloException, AccumuloSecurityException {
+    try {
+      System.out.println("Creating " + tableName);
+      client.tableOperations().create(tableName);
+      client.tableOperations().setProperty(tableName, COMPACTION_MAJOR_RATION_PROPERTY, "7");
+    } catch (TableExistsException e) {
+      // ignore
+    }
+  }
+
+  // Write a million rows 3 times flushing files to disk separately
+  private static void writeAndFlushData(final String tableName, final AccumuloClient client)
+      throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
+    System.out.println("Writing data to " + tableName);
+    writeData(client, tableName, 7);
+    client.tableOperations().flush(tableName, null, null, true);
+    writeData(client, tableName, 8);
+    client.tableOperations().flush(tableName, null, null, true);
+    writeData(client, tableName, 9);
+    client.tableOperations().flush(tableName, null, null, true);
   }
 
   // write a million random rows
