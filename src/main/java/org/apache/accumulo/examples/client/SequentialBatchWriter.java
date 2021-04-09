@@ -27,6 +27,7 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.Constants;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +37,15 @@ import com.beust.jcommander.Parameter;
 /**
  * Simple example for writing random data in sequential order to Accumulo.
  */
-public class SequentialBatchWriter {
+public final class SequentialBatchWriter {
 
   private static final Logger log = LoggerFactory.getLogger(SequentialBatchWriter.class);
 
+  private SequentialBatchWriter() {}
+
   public static Value createValue(long rowId, int size) {
     Random r = new Random(rowId);
-    byte value[] = new byte[size];
+    byte[] value = new byte[size];
 
     r.nextBytes(value);
 
@@ -56,7 +59,7 @@ public class SequentialBatchWriter {
 
   static class Opts extends ClientOpts {
     @Parameter(names = {"-t"}, description = "table to use")
-    public String tableName = "batch";
+    public String tableName = Constants.BATCH_TABLE;
 
     @Parameter(names = {"--start"}, description = "starting row")
     public Integer start = 0;
@@ -82,7 +85,7 @@ public class SequentialBatchWriter {
       try {
         client.tableOperations().create(opts.tableName);
       } catch (TableExistsException e) {
-        // ignore
+        log.warn(Constants.TABLE_EXISTS_MSG + opts.tableName);
       }
 
       try (BatchWriter bw = client.createBatchWriter(opts.tableName)) {
