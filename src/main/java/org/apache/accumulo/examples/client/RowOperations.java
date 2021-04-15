@@ -34,31 +34,32 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * A demonstration of reading entire rows and deleting entire rows.
  */
-public class RowOperations {
+public final class RowOperations {
 
   private static final Logger log = LoggerFactory.getLogger(RowOperations.class);
-  private static final String namespace = "examples";
-  private static final String table = namespace + ".rowops";
+
+  private RowOperations() {}
 
   private static void printAll(AccumuloClient client) throws TableNotFoundException {
-    try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(ClientCommon.ROWOPS_TABLE, Authorizations.EMPTY)) {
       for (Entry<Key,Value> entry : scanner) {
-        log.info("Key: " + entry.getKey().toString() + " Value: " + entry.getValue().toString());
+        log.info("Key: {} Value: {}", entry.getKey().toString(), entry.getValue().toString());
       }
     }
   }
 
   private static void printRow(String row, AccumuloClient client) throws TableNotFoundException {
-    try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(ClientCommon.ROWOPS_TABLE, Authorizations.EMPTY)) {
       scanner.setRange(Range.exact(row));
       for (Entry<Key,Value> entry : scanner) {
-        log.info("Key: " + entry.getKey().toString() + " Value: " + entry.getValue().toString());
+        log.info("Key: {} Value: {}", entry.getKey().toString(), entry.getValue().toString());
       }
     }
   }
@@ -66,7 +67,7 @@ public class RowOperations {
   private static void deleteRow(String row, AccumuloClient client, BatchWriter bw)
       throws MutationsRejectedException, TableNotFoundException {
     Mutation mut = new Mutation(row);
-    try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(ClientCommon.ROWOPS_TABLE, Authorizations.EMPTY)) {
       scanner.setRange(Range.exact(row));
       for (Entry<Key,Value> entry : scanner) {
         mut.putDelete(entry.getKey().getColumnFamily(), entry.getKey().getColumnQualifier());
@@ -83,14 +84,14 @@ public class RowOperations {
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
       try {
-        client.namespaceOperations().create(namespace);
+        client.namespaceOperations().create(Constants.NAMESPACE);
       } catch (NamespaceExistsException e) {
-        // ignore
+        log.info(Constants.NAMESPACE_EXISTS_MSG);
       }
       try {
-        client.tableOperations().create(table);
+        client.tableOperations().create(ClientCommon.ROWOPS_TABLE);
       } catch (TableExistsException e) {
-        // ignore
+        log.warn(Constants.TABLE_EXISTS_MSG + ClientCommon.ROWOPS_TABLE);
       }
 
       // lets create 3 rows of information
@@ -111,7 +112,7 @@ public class RowOperations {
       mut3.put("col", "3", "v3");
 
       // Now we'll make a Batch Writer
-      try (BatchWriter bw = client.createBatchWriter(table)) {
+      try (BatchWriter bw = client.createBatchWriter(ClientCommon.ROWOPS_TABLE)) {
 
         // And add the mutations
         bw.addMutation(mut1);
@@ -138,7 +139,7 @@ public class RowOperations {
       log.info("This is just row3");
       printAll(client);
 
-      client.tableOperations().delete(table);
+      client.tableOperations().delete(ClientCommon.ROWOPS_TABLE);
     }
   }
 }
