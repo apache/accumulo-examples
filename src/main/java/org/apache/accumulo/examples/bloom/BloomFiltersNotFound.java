@@ -22,45 +22,54 @@ import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.examples.common.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BloomFiltersNotFound {
+
+  private static final Logger log = LoggerFactory.getLogger(BloomFiltersNotFound.class);
 
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(BloomFiltersNotFound.class.getName(), args);
 
-    final String BLOOM_TEST3 = "bloom_test3";
-    final String BLOOM_TEST4 = "bloom_test4";
-
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
       try {
-        client.tableOperations().create(BLOOM_TEST3);
-      } catch (TableExistsException e) {
-        // ignore
+        client.namespaceOperations().create(Constants.NAMESPACE);
+      } catch (NamespaceExistsException e) {
+        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
       }
       try {
-        client.tableOperations().create(BLOOM_TEST4);
-        client.tableOperations().setProperty(BLOOM_TEST4, BloomFilters.BLOOM_ENABLED_PROPERTY,
-            "true");
+        client.tableOperations().create(BloomCommon.BLOOM_TEST3_TABLE);
       } catch (TableExistsException e) {
-        // ignore
+        log.warn(Constants.TABLE_EXISTS_MSG + BloomCommon.BLOOM_TEST3_TABLE);
+      }
+      try {
+        client.tableOperations().create(BloomCommon.BLOOM_TEST4_TABLE);
+        client.tableOperations().setProperty(BloomCommon.BLOOM_TEST4_TABLE,
+            BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
+      } catch (TableExistsException e) {
+        log.warn(Constants.TABLE_EXISTS_MSG + BloomCommon.BLOOM_TEST4_TABLE);
+        log.warn(BloomCommon.BLOOM_ENABLED_PROPERTY + " has previously been set");
       }
 
-      writeAndFlush(BLOOM_TEST3, client);
-      writeAndFlush(BLOOM_TEST4, client);
+      writeAndFlush(BloomCommon.BLOOM_TEST3_TABLE, client);
+      writeAndFlush(BloomCommon.BLOOM_TEST4_TABLE, client);
 
-      BloomBatchScanner.scan(client, BLOOM_TEST3, 8);
-      BloomBatchScanner.scan(client, BLOOM_TEST4, 8);
+      BloomBatchScanner.scan(client, BloomCommon.BLOOM_TEST3_TABLE, 8);
+      BloomBatchScanner.scan(client, BloomCommon.BLOOM_TEST4_TABLE, 8);
     }
   }
 
   private static void writeAndFlush(String tableName, AccumuloClient client)
       throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
-    System.out.println("Writing data to " + tableName + " (bloom filters enabled)");
+    log.info("Writing data to {} (bloom filters enabled)", tableName);
     writeData(client, tableName, 7);
     client.tableOperations().flush(tableName, null, null, true);
   }

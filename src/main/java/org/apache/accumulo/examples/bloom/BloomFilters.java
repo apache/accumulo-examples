@@ -24,19 +24,20 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.examples.client.RandomBatchWriter;
+import org.apache.accumulo.examples.common.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class BloomFilters {
+public final class BloomFilters {
 
-  public static final String BLOOM_TEST1 = "bloom_test1";
-  public static final String BLOOM_TEST2 = "bloom_test2";
-  public static final String BLOOM_ENABLED_PROPERTY = "table.bloom.enabled";
-  public static final String COMPACTION_MAJOR_RATION_PROPERTY = "table.compaction.major.ratio";
+  private static final Logger log = LoggerFactory.getLogger(BloomFilters.class);
 
   private BloomFilters() {}
 
@@ -47,29 +48,35 @@ public class BloomFilters {
     opts.parseArgs(BloomFilters.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      createTableAndSetCompactionRatio(client, BLOOM_TEST1);
-      createTableAndSetCompactionRatio(client, BLOOM_TEST2);
-      client.tableOperations().setProperty(BLOOM_TEST2, BLOOM_ENABLED_PROPERTY, "true");
-      writeAndFlushData(BLOOM_TEST1, client);
-      writeAndFlushData(BLOOM_TEST2, client);
+      try {
+        client.namespaceOperations().create(Constants.NAMESPACE);
+      } catch (NamespaceExistsException e) {
+        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
+      }
+      createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST1_TABLE);
+      createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST2_TABLE);
+      client.tableOperations().setProperty(BloomCommon.BLOOM_TEST2_TABLE,
+          BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
+      writeAndFlushData(BloomCommon.BLOOM_TEST1_TABLE, client);
+      writeAndFlushData(BloomCommon.BLOOM_TEST2_TABLE, client);
     }
   }
 
   private static void createTableAndSetCompactionRatio(AccumuloClient client,
       final String tableName) throws AccumuloException, AccumuloSecurityException {
     try {
-      System.out.println("Creating " + tableName);
+      log.info("Creating {}", tableName);
       client.tableOperations().create(tableName);
-      client.tableOperations().setProperty(tableName, COMPACTION_MAJOR_RATION_PROPERTY, "7");
+      client.tableOperations().setProperty(tableName, "table.compaction.major.ratio", "7");
     } catch (TableExistsException e) {
-      // ignore
+      log.warn(Constants.TABLE_EXISTS_MSG + "tableName");
     }
   }
 
   // Write a million rows 3 times flushing files to disk separately
   private static void writeAndFlushData(final String tableName, final AccumuloClient client)
       throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
-    System.out.println("Writing data to " + tableName);
+    log.info("Writing data to {}", tableName);
     writeData(client, tableName, 7);
     client.tableOperations().flush(tableName, null, null, true);
     writeData(client, tableName, 8);
