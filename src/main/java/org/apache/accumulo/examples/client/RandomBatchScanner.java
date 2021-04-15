@@ -27,16 +27,14 @@ import java.util.Random;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.examples.Constants;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,16 +47,15 @@ public final class RandomBatchScanner {
 
   private RandomBatchScanner() {}
 
-  public static void main(String[] args)
-      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args) throws TableNotFoundException {
 
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(RandomBatchScanner.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
 
-      if (!client.tableOperations().exists(Constants.BATCH_TABLE)) {
-        log.error("Table " + Constants.BATCH_TABLE + " does not exist. Nothing to scan!");
+      if (!client.tableOperations().exists(ClientCommon.BATCH_TABLE)) {
+        log.error("Table " + ClientCommon.BATCH_TABLE + " does not exist. Nothing to scan!");
         log.error("Try running  './bin/runex client.SequentialBatchWriter' first");
         return;
       }
@@ -80,7 +77,7 @@ public final class RandomBatchScanner {
       long lookups = 0;
 
       log.info("Reading ranges using BatchScanner");
-      try (BatchScanner scan = client.createBatchScanner(Constants.BATCH_TABLE,
+      try (BatchScanner scan = client.createBatchScanner(ClientCommon.BATCH_TABLE,
           Authorizations.EMPTY, 20)) {
         scan.setRanges(ranges);
         for (Entry<Key,Value> entry : scan) {
@@ -108,7 +105,6 @@ public final class RandomBatchScanner {
           }
         }
       }
-
       long t2 = System.currentTimeMillis();
       log.info(String.format("Scan finished! %6.2f lookups/sec, %.2f secs, %d results",
           lookups / ((t2 - t1) / 1000.0), ((t2 - t1) / 1000.0), lookups));
@@ -123,7 +119,7 @@ public final class RandomBatchScanner {
         log.warn("Did not find {} rows", count);
         System.exit(1);
       }
-      log.info("All expected rows were scanned");
+      log.info(Constants.ALL_ROWS_SCANNED);
     }
   }
 }

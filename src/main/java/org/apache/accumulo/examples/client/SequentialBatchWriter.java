@@ -23,12 +23,13 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.examples.Constants;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +60,7 @@ public final class SequentialBatchWriter {
 
   static class Opts extends ClientOpts {
     @Parameter(names = {"-t"}, description = "table to use")
-    public String tableName = Constants.BATCH_TABLE;
+    public String tableName = ClientCommon.BATCH_TABLE;
 
     @Parameter(names = {"--start"}, description = "starting row")
     public Integer start = 0;
@@ -82,6 +83,12 @@ public final class SequentialBatchWriter {
     opts.parseArgs(SequentialBatchWriter.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+
+      try {
+        client.namespaceOperations().create(Constants.NAMESPACE);
+      } catch (NamespaceExistsException e) {
+        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
+      }
       try {
         client.tableOperations().create(opts.tableName);
       } catch (TableExistsException e) {
