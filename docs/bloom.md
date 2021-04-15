@@ -39,10 +39,10 @@ likely contain entries for the query, all files will be interrogated.
     
     $ ./bin/runex bloom.BloomBatchScanner
 
-    Scanning bloom_test1 with seed 7
+    Scanning example.bloom_test1 with seed 7
     Scan finished! 282.49 lookups/sec, 1.77 secs, 500 results
     All expected rows were scanned
-    Scanning bloom_test2 with seed 7
+    Scanning examples.bloom_test2 with seed 7
     Scan finished! 704.23 lookups/sec, 0.71 secs, 500 results
     All expected rows were scanned
 
@@ -52,8 +52,8 @@ you will need the table ID, which can be found with the following shell command.
     $ accumulo shell -u username -p password -e 'tables -l'
     accumulo.metadata    =>        !0
     accumulo.root        =>        +r
-    bloom_test1          =>         2
-    bloom_test2          =>         3
+    examples.bloom_test1 =>         2
+    examples.bloom_test2 =>         3
     trace                =>         1
 
 So the table id for bloom_test2 is 3. The command below shows what files this
@@ -103,10 +103,10 @@ One million random values initialized with seed 7 are inserted into each table.
 Once the flush completes, 500 random queries are done against each table but with a different seed.
 Even when nothing is found the lookups are faster against the table with the bloom filters.
 
-    Writing data to bloom_test3 and bloom_test4 (bloom filters enabled)
-    Scanning bloom_test3 with seed 8
+    Writing data to examples.bloom_test3 and examples.bloom_test4 (bloom filters enabled)
+    Scanning examples.bloom_test3 with seed 8
     Scan finished! 780.03 lookups/sec, 0.64 secs, 0 results
     Did not find 500
-    Scanning bloom_test4 with seed 8
+    Scanning examples.bloom_test4 with seed 8
     Scan finished! 1736.11 lookups/sec, 0.29 secs, 0 results
     Did not find 500
