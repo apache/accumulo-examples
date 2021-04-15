@@ -25,20 +25,24 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.constraints.Constraint;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Ensure that mutations are a reasonable size: we must be able to fit several in memory at a time.
  */
 public class MaxMutationSize implements Constraint {
+
+  private static final Logger log = LoggerFactory.getLogger(MaxMutationSize.class);
+
   static final long MAX_SIZE = Runtime.getRuntime().maxMemory() >> 8;
   static final List<Short> empty = Collections.emptyList();
-  static final List<Short> violations = Collections.singletonList(Short.valueOf((short) 0));
+  static final List<Short> violations = Collections.singletonList((short) 0);
 
   @Override
   public String getViolationDescription(short violationCode) {
@@ -58,31 +62,26 @@ public class MaxMutationSize implements Constraint {
     opts.parseArgs(MaxMutationSize.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.tableOperations().create("testConstraints");
-      } catch (TableExistsException e) {
-        // ignore
-      }
+      ConstraintsCommon.createConstraintsTable(client);
 
-      /**
+      /*
        * Add the {@link MaxMutationSize} constraint to the table. Be sure to use the fully qualified
        * class name
        */
-      int num = client.tableOperations().addConstraint("testConstraints",
+      int num = client.tableOperations().addConstraint(ConstraintsCommon.CONSTRAINTS_TABLE,
           "org.apache.accumulo.examples.constraints.MaxMutationSize");
 
-      System.out.println("Attempting to write a lot of mutations to testConstraints");
-      try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
+      log.info("Attempting to write a lot of mutations to testConstraints");
+      try (BatchWriter bw = client.createBatchWriter(ConstraintsCommon.CONSTRAINTS_TABLE)) {
         Mutation m = new Mutation("r1");
         for (int i = 0; i < 1_000_000; i++)
           m.put("cf" + i % 5000, "cq" + i, new Value(("value" + i).getBytes()));
         bw.addMutation(m);
       } catch (MutationsRejectedException e) {
         e.getConstraintViolationSummaries()
-            .forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
+            .forEach(m -> log.error(ConstraintsCommon.CONSTRAINT_VIOLATED_MSG, m.constrainClass));
       }
-
-      client.tableOperations().removeConstraint("testConstraints", num);
+      client.tableOperations().removeConstraint(ConstraintsCommon.CONSTRAINTS_TABLE, num);
     }
   }
 }

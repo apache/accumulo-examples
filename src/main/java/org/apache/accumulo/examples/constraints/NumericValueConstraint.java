@@ -16,9 +16,7 @@
  */
 package org.apache.accumulo.examples.constraints;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.accumulo.core.client.Accumulo;
@@ -27,32 +25,33 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.constraints.Constraint;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is an accumulo constraint that ensures values are numeric strings.
  */
 public class NumericValueConstraint implements Constraint {
 
+  private static final Logger log = LoggerFactory.getLogger(NumericValueConstraint.class);
+
   static final short NON_NUMERIC_VALUE = 1;
   static final String VIOLATION_MESSAGE = "Value is not numeric";
 
-  private static final List<Short> VIOLATION_LIST = Collections
-      .unmodifiableList(Arrays.asList(NON_NUMERIC_VALUE));
+  private static final List<Short> VIOLATION_LIST = List.of(NON_NUMERIC_VALUE);
 
-  private boolean isNumeric(byte bytes[]) {
+  private boolean isNumeric(byte[] bytes) {
     for (byte b : bytes) {
       boolean ok = (b >= '0' && b <= '9');
       if (!ok)
         return false;
     }
-
     return true;
   }
 
@@ -64,18 +63,14 @@ public class NumericValueConstraint implements Constraint {
       if (!isNumeric(columnUpdate.getValue()))
         return VIOLATION_LIST;
     }
-
     return null;
   }
 
   @Override
   public String getViolationDescription(short violationCode) {
-
-    switch (violationCode) {
-      case NON_NUMERIC_VALUE:
-        return "Value is not numeric";
+    if (violationCode == NON_NUMERIC_VALUE) {
+      return VIOLATION_MESSAGE;
     }
-
     return null;
   }
 
@@ -85,30 +80,25 @@ public class NumericValueConstraint implements Constraint {
     opts.parseArgs(NumericValueConstraint.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.tableOperations().create("testConstraints");
-      } catch (TableExistsException e) {
-        // ignore
-      }
+      ConstraintsCommon.createConstraintsTable(client);
 
-      /**
+      /*
        * Add the {@link NumericValueConstraint} constraint to the table. Be sure to use the fully
        * qualified class name
        */
-      int num = client.tableOperations().addConstraint("testConstraints",
+      int num = client.tableOperations().addConstraint(ConstraintsCommon.CONSTRAINTS_TABLE,
           "org.apache.accumulo.examples.constraints.NumericValueConstraint");
 
-      System.out.println("Attempting to write non numeric data to testConstraints");
-      try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
+      log.info("Attempting to write non numeric data to testConstraints");
+      try (BatchWriter bw = client.createBatchWriter(ConstraintsCommon.CONSTRAINTS_TABLE)) {
         Mutation m = new Mutation("r1");
         m.put("cf1", "cq1", new Value(("value1--$$@@%%").getBytes()));
         bw.addMutation(m);
       } catch (MutationsRejectedException e) {
         e.getConstraintViolationSummaries()
-            .forEach(m -> System.out.println("Constraint violated: " + m.constrainClass));
+            .forEach(m -> log.error(ConstraintsCommon.CONSTRAINT_VIOLATED_MSG, m.constrainClass));
       }
-
-      client.tableOperations().removeConstraint("testConstraints", num);
+      client.tableOperations().removeConstraint(ConstraintsCommon.CONSTRAINTS_TABLE, num);
     }
   }
 }

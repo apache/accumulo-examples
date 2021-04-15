@@ -28,18 +28,21 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.constraints.Constraint;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is an accumulo constraint that ensures all fields of a key are alpha numeric.
  */
 public class AlphaNumKeyConstraint implements Constraint {
+
+  private static final Logger log = LoggerFactory.getLogger(AlphaNumKeyConstraint.class);
 
   static final short NON_ALPHA_NUM_ROW = 1;
   static final short NON_ALPHA_NUM_COLF = 2;
@@ -49,23 +52,20 @@ public class AlphaNumKeyConstraint implements Constraint {
   static final String COLF_VIOLATION_MESSAGE = "Column family was not alpha numeric";
   static final String COLQ_VIOLATION_MESSAGE = "Column qualifier was not alpha numeric";
 
-  private boolean isAlphaNum(byte bytes[]) {
+  private boolean isNotAlphaNum(byte[] bytes) {
     for (byte b : bytes) {
       boolean ok = ((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9'));
       if (!ok)
-        return false;
+        return true;
     }
-
-    return true;
+    return false;
   }
 
   private Set<Short> addViolation(Set<Short> violations, short violation) {
     if (violations == null) {
       violations = new LinkedHashSet<>();
-      violations.add(violation);
-    } else if (!violations.contains(violation)) {
-      violations.add(violation);
     }
+    violations.add(violation);
     return violations;
   }
 
@@ -73,15 +73,15 @@ public class AlphaNumKeyConstraint implements Constraint {
   public List<Short> check(Environment env, Mutation mutation) {
     Set<Short> violations = null;
 
-    if (!isAlphaNum(mutation.getRow()))
+    if (isNotAlphaNum(mutation.getRow()))
       violations = addViolation(violations, NON_ALPHA_NUM_ROW);
 
     Collection<ColumnUpdate> updates = mutation.getUpdates();
     for (ColumnUpdate columnUpdate : updates) {
-      if (!isAlphaNum(columnUpdate.getColumnFamily()))
+      if (isNotAlphaNum(columnUpdate.getColumnFamily()))
         violations = addViolation(violations, NON_ALPHA_NUM_COLF);
 
-      if (!isAlphaNum(columnUpdate.getColumnQualifier()))
+      if (isNotAlphaNum(columnUpdate.getColumnQualifier()))
         violations = addViolation(violations, NON_ALPHA_NUM_COLQ);
     }
 
@@ -109,30 +109,26 @@ public class AlphaNumKeyConstraint implements Constraint {
     opts.parseArgs(AlphaNumKeyConstraint.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.tableOperations().create("testConstraints");
-      } catch (TableExistsException e) {
-        // ignore
-      }
+      ConstraintsCommon.createConstraintsTable(client);
 
-      /**
+      /*
        * Add the {@link AlphaNumKeyConstraint} to the table. Be sure to use the fully qualified
        * class name.
        */
-      int num = client.tableOperations().addConstraint("testConstraints",
+      int num = client.tableOperations().addConstraint(ConstraintsCommon.CONSTRAINTS_TABLE,
           "org.apache.accumulo.examples.constraints.AlphaNumKeyConstraint");
 
-      System.out.println("Attempting to write non alpha numeric data to testConstraints");
-      try (BatchWriter bw = client.createBatchWriter("testConstraints")) {
+      log.info("Attempting to write non alpha numeric data to testConstraints");
+      try (BatchWriter bw = client.createBatchWriter(ConstraintsCommon.CONSTRAINTS_TABLE)) {
         Mutation m = new Mutation("r1--$$@@%%");
         m.put("cf1", "cq1", new Value(("value1").getBytes()));
         bw.addMutation(m);
       } catch (MutationsRejectedException e) {
-        e.getConstraintViolationSummaries().forEach(violationSummary -> System.out
-            .println("Constraint violated: " + violationSummary.constrainClass));
+        e.getConstraintViolationSummaries().forEach(violationSummary -> log
+            .error(ConstraintsCommon.CONSTRAINT_VIOLATED_MSG, violationSummary.constrainClass));
       }
-
-      client.tableOperations().removeConstraint("testConstraints", num);
+      client.tableOperations().removeConstraint(ConstraintsCommon.CONSTRAINTS_TABLE, num);
     }
   }
+
 }
