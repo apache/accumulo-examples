@@ -20,26 +20,34 @@ import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.apache.accumulo.examples.common.Constants;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class SetupTable {
 
-  static final String[] splits = {"row_00000333", "row_00000666"};
-  static final String tableName = "test_bulk";
+  private static final Logger log = LoggerFactory.getLogger(SetupTable.class);
 
   private SetupTable() {}
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args)
+      throws AccumuloSecurityException, TableNotFoundException, AccumuloException {
+
+    final String[] splits = {"row_00000333", "row_00000666"};
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(SetupTable.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
       try {
-        client.tableOperations().create(tableName);
+        client.tableOperations().create(BulkCommon.BULK_INGEST_TABLE);
       } catch (TableExistsException e) {
-        // ignore
+        log.warn(Constants.TABLE_EXISTS_MSG + BulkCommon.BULK_INGEST_TABLE);
       }
 
       // create a table with initial partitions
@@ -47,7 +55,7 @@ public final class SetupTable {
       for (String split : splits) {
         initialPartitions.add(new Text(split));
       }
-      client.tableOperations().addSplits(tableName, initialPartitions);
+      client.tableOperations().addSplits(BulkCommon.BULK_INGEST_TABLE, initialPartitions);
     }
   }
 }

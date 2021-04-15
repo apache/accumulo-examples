@@ -20,7 +20,7 @@ This is an example of how to bulk ingest data into Accumulo using mapReduce.
 
 This tutorial uses the following Java classes.
 
- * [SetupTable.java] - creates the table, 'test_bulk', and sets two split points.
+ * [SetupTable.java] - creates the table, 'examples.test_bulk', and sets two split points.
  * [BulkIngestExample.java] - creates some data to ingest and then ingests the data using mapReduce
  * [VerifyIngest.java] - checks that the data was ingested
  

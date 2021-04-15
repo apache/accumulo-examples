@@ -141,7 +141,8 @@ public final class BulkIngestExample {
 
       try (PrintStream out = new PrintStream(
           new BufferedOutputStream(fs.create(new Path(workDir + SPLITS_TXT))))) {
-        Collection<Text> splits = client.tableOperations().listSplits(SetupTable.tableName, 100);
+        Collection<Text> splits = client.tableOperations().listSplits(BulkCommon.BULK_INGEST_TABLE,
+            100);
         for (Text split : splits)
           out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
         job.setNumReduceTasks(splits.size() + 1);
@@ -158,9 +159,9 @@ public final class BulkIngestExample {
       FsShell fsShell = new FsShell(opts.getHadoopConfig());
       fsShell.run(new String[] {"-chmod", "-R", "777", workDir});
       System.err.println("Importing Directory '" + workDir + SLASH_FILES + "' to table '"
-          + SetupTable.tableName + "'");
-      client.tableOperations().importDirectory(workDir + SLASH_FILES).to(SetupTable.tableName)
-          .load();
+          + BulkCommon.BULK_INGEST_TABLE + "'");
+      client.tableOperations().importDirectory(workDir + SLASH_FILES)
+          .to(BulkCommon.BULK_INGEST_TABLE).load();
     }
     return job.isSuccessful() ? 0 : 1;
   }
