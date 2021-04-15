@@ -41,6 +41,8 @@ import org.apache.spark.api.java.JavaSparkContext;
 
 public class CopyPlus5K {
 
+  private static final Logger log = LoggerFactory.getLogger(CopyPlus5K.class);
+
   public static class AccumuloRangePartitioner extends Partitioner {
 
     private static final long serialVersionUID = 1L;
@@ -79,12 +81,16 @@ public class CopyPlus5K {
       try {
         client.tableOperations().create(inputTable);
       } catch (TableExistsException e) {
-        // ignore
+        low.error("Something went wrong. Table '{}' should have been deleted prior to creation "
+            + "attempt!", inputTable);
+        return;
       }
       try {
         client.tableOperations().create(outputTable);
       } catch (TableExistsException e) {
-        // ignore
+        low.error("Something went wrong. Table '{}' should have been deleted prior to creation "
+            + "attempt!", inputTable);
+        return;
       }
 
       // Write data to input table
