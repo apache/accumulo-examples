@@ -34,7 +34,8 @@ native libraries built with snappy in order to use snappy compression.
 To begin, run the command to create a table for testing.
 
 ```bash
-$ accumulo shell -u <username> -p <password> -e "createtable test1"
+$ accumulo shell -u <username> -p <password> -e "createnamespace examples"
+$ accumulo shell -u <username> -p <password> -e "createtable examples.test1"
 ```
 
 The commands below will configure the BasicCompactionStrategy to:
@@ -43,24 +44,24 @@ The commands below will configure the BasicCompactionStrategy to:
  - Compact files less than 100M using snappy.
  
 ```bash
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s table.file.compress.type=snappy"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s table.majc.compaction.strategy.opts.filter.size=250M"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s table.majc.compaction.strategy.opts.large.compress.threshold=100M"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s table.majc.compaction.strategy.opts.large.compress.type=gz"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s table.file.compress.type=snappy"
+ $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy"
+ $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy.opts.filter.size=250M"
+ $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy.opts.large.compress.threshold=100M"
+ $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy.opts.large.compress.type=gz"
 ```
 
 Generate some data and files in order to test the strategy:
 
 ```bash
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 10000 --size 50
-$ accumulo shell -u <username> -p <password> -e "flush -t test1"
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 11000 --size 50
-$ accumulo shell -u <username> -p <password> -e "flush -t test1"
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 12000 --size 50
-$ accumulo shell -u <username> -p <password> -e "flush -t test1"
-$ ./bin/runex client.SequentialBatchWriter -t test1 --start 0 --num 13000 --size 50
-$ accumulo shell -u <username> -p <password> -e "flush -t test1"
+$ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 10000 --size 50
+$ accumulo shell -u <username> -p <password> -e "flush -t examples.test1"
+$ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 11000 --size 50
+$ accumulo shell -u <username> -p <password> -e "flush -t examples.test1"
+$ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 12000 --size 50
+$ accumulo shell -u <username> -p <password> -e "flush -t examples.test1"
+$ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 13000 --size 50
+$ accumulo shell -u <username> -p <password> -e "flush -t examples.test1"
 ```
 
 View the tserver log in <accumulo_home>/logs for the compaction and find the name of the <rfile> that was compacted for your table. Print info about this file using the PrintInfo tool:
