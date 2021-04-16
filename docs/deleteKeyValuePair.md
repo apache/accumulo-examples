@@ -20,28 +20,29 @@ This example shows how Accumulo internals handle removing a key-value pair
 
 ```
 $ /path/to/accumulo shell -u username -p secret
-username@instance> createtable deleteKeyValuePair
-username@instance deleteKeyValuePair> insert 567890 name first Joe
-username@instance deleteKeyValuePair> insert 567890 name last Smith
-username@instance deleteKeyValuePair> insert 567890 address city Columbia
+username@instance> createnamespace examples
+username@instance> createtable examples.deleteKeyValuePair
+username@instance examples.deleteKeyValuePair> insert 567890 name first Joe
+username@instance examples.deleteKeyValuePair> insert 567890 name last Smith
+username@instance examples.deleteKeyValuePair> insert 567890 address city Columbia
 ```
 
 ```
-username@instance deleteKeyValuePair> scan
+username@instance examples.deleteKeyValuePair> scan
 567890 address:city []    Columbia
 567890 name:first []    Joe
 567890 name:last []    Smith
 ```
 
 ```
-username@instance deleteKeyValuePair> flush -w
+username@instance examples.deleteKeyValuePair> flush -w
 2019-04-18 11:01:47,444 [shell.Shell] INFO : Flush of table deleteKeyValuePair completed.
 ```
 
-Get the deleteKeyValuePair table id.
+Get the examples.deleteKeyValuePair table id.
 
 ```
-username@instance deleteKeyValuePair> tables -l
+username@instance examples.deleteKeyValuePair> tables -l
 accumulo.metadata    =>        !0
 accumulo.replication =>      +rep
 accumulo.root        =>        +r
@@ -51,7 +52,7 @@ deleteKeyValuePair   =>        1t
 Scan accumulo.metadata table to see the list of RFiles Accumulo is currently using.
 
 ```
-username@instance deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
+username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
 1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf
 ```
 
@@ -59,6 +60,7 @@ View the contents of RFile and verify each key-value pair's deletion flag is fal
 
 ```
 $ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007em.rf
+RFile Version            : 8
 
 Locality group           : <DEFAULT>
     Num   blocks           : 1
@@ -77,27 +79,29 @@ Meta block     : RFile.index
       Raw size             : 141 bytes
       Compressed size      : 97 bytes
       Compression type     : gz
-567890 address:city [] 1555418057811 false -> Columbia
-567890 name:first [] 1555418067848 false -> Joe
-567890 name:last [] 1555418063052 false -> Smith
+      
+567890 address:city [] 1618581304723 false -> Columbia
+567890 name:first [] 1618581291527 false -> Joe
+567890 name:last [] 1618581297272 false -> Smith
 ```
 Delete a key-value pair and view a newly created RFile to verify the deletion flag is true.
 
 ```
 $ /path/to/accumulo shell -u username -p secret
-username@instance> table deleteKeyValuePair
-username@instance deleteKeyValuePair> delete 567890 name first
-username@instance deleteKeyValuePair> flush -w
+username@instance> table examples.deleteKeyValuePair
+username@instance examples.deleteKeyValuePair> delete 567890 name first
+username@instance examples.deleteKeyValuePair> flush -w
 ```
 
 ```
-username@instance deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
+username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
 1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf
 1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007fq.rf
 ```
 
 ```
 $ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007fq.rf
+RFile Version            : 8
 
 Locality group           : <DEFAULT>
     Num   blocks           : 1
@@ -116,26 +120,28 @@ Meta block     : RFile.index
       Raw size             : 121 bytes
       Compressed size      : 68 bytes
       Compression type     : gz
-
-567890 name:first [] 1555419184531 true ->
+      
+567890 name:first [] 1618581499491 true ->
 ```
 
 Compact the RFiles and verify the key-value pair was removed.  The new RFile will start with 'A'.
 
 ```
 $ /path/to/accumulo shell -u username -p secret
-username@instance deleteKeyValuePair> compact -t deleteKeyValuePair -w
+username@instance> compact -t examples.deleteKeyValuePair -w
 2019-04-17 08:17:15,468 [shell.Shell] INFO : Compacting table ...
-2019-04-17 08:17:16,143 [shell.Shell] INFO : Compaction of table deleteKeyValuePair completed for given range
+2019-04-17 08:17:16,143 [shell.Shell] INFO : Compaction of table examples.deleteKeyValuePair 
+completed for given range
 ```
 
 ```
-username@instance deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
+username@instance> scan -t accumulo.metadata -c file -r 1t<
 lt< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf
 ```
 
  ```
 $ /path/to/accumulo rfile-info -v hdfs://localhost/accumulo/tables/1t/default_tablet/A00007g1.rf
+RFile Version            : 8
 
 Locality group           : <DEFAULT>
     Num   blocks           : 1
@@ -154,7 +160,10 @@ Meta block     : RFile.index
       Raw size             : 141 bytes
       Compressed size      : 96 bytes
       Compression type     : gz
-
-567890 address:city [] 1555418057811 false -> Columbia
-567890 name:last [] 1555418063052 false -> Smith
+      
+Locality Group: <DEFAULT>
+Visibility                 Number of keys          Percent of keys      Number of blocks        Percent of blocks
+                                2                       100.00%                 1                  100.00%
+Number of keys: 2
+     
 ```
