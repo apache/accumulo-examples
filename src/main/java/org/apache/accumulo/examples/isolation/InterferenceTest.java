@@ -31,6 +31,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
+import org.apache.accumulo.examples.common.Constants;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +48,18 @@ import com.beust.jcommander.Parameter;
  *
  */
 
-public class InterferenceTest {
+public final class InterferenceTest {
 
   private static final int NUM_ROWS = 500;
   private static final int NUM_COLUMNS = 113; // scanner batches 1000 by default, so make num
                                               // columns not a multiple of 10
+  private static final String ERROR_MISSING_COLS = "ERROR Did not see {} columns in row {}";
+  private static final String ERROR_MULTIPLE_VALS = "ERROR Columns in row {} had multiple values "
+      + "{}";
+
   private static final Logger log = LoggerFactory.getLogger(InterferenceTest.class);
+
+  private InterferenceTest() {}
 
   static class Writer implements Runnable {
 
@@ -96,7 +103,7 @@ public class InterferenceTest {
 
   static class Reader implements Runnable {
 
-    private Scanner scanner;
+    private final Scanner scanner;
     volatile boolean stop = false;
 
     Reader(Scanner scanner) {
@@ -119,10 +126,10 @@ public class InterferenceTest {
 
           if (!row.equals(entry.getKey().getRowData())) {
             if (count != NUM_COLUMNS)
-              System.err.println("ERROR Did not see " + NUM_COLUMNS + " columns in row " + row);
+              log.error(ERROR_MISSING_COLS, NUM_COLUMNS, row);
 
             if (values.size() > 1)
-              System.err.println("ERROR Columns in row " + row + " had multiple values " + values);
+              log.error(ERROR_MULTIPLE_VALS, row, values);
 
             row = entry.getKey().getRowData();
             count = 0;
@@ -135,10 +142,10 @@ public class InterferenceTest {
         }
 
         if (count > 0 && count != NUM_COLUMNS)
-          System.err.println("ERROR Did not see " + NUM_COLUMNS + " columns in row " + row);
+          log.error(ERROR_MISSING_COLS, NUM_COLUMNS, row);
 
         if (values.size() > 1)
-          System.err.println("ERROR Columns in row " + row + " had multiple values " + values);
+          log.error(ERROR_MULTIPLE_VALS, row, values);
       }
     }
 
@@ -163,10 +170,14 @@ public class InterferenceTest {
       opts.iterations = Long.MAX_VALUE;
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
+      if (!client.namespaceOperations().exists(Constants.NAMESPACE)) {
+        log.error("Namespace 'examples' does not exist. Create the namespace and re-run");
+        return;
+      }
       try {
         client.tableOperations().create(opts.getTableName());
       } catch (TableExistsException e) {
-        // ignore
+        log.warn(Constants.TABLE_EXISTS_MSG + opts.getTableName());
       }
 
       Thread writer = new Thread(
@@ -184,7 +195,7 @@ public class InterferenceTest {
       writer.join();
       r.stopNow();
       reader.join();
-      System.out.println("finished");
+      log.info("finished");
     }
   }
 }

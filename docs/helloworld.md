@@ -31,8 +31,8 @@ On the accumulo status page at the URL below (where 'master' is replaced with th
 
 To view the entries, use the shell (run `accumulo shell -u username -p password` to access it) to scan the table:
 
-    username@instance> table hellotable
-    username@instance hellotable> scan
+    username@instance> table examples.hellotable
+    username@instance examples.hellotable> scan
 
 You can also use a Java class to scan the table:
 
