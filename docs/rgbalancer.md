@@ -25,9 +25,10 @@ Below shows creating a table and adding splits.  For this example we would like
 all of the tablets where the split point has the same two digits to be on
 different tservers.  This gives us four groups of tablets: 01, 02, 03, and 04.   
 
-    root@accumulo> createtable testRGB
-    root@accumulo testRGB> addsplits -t testRGB 01b 01m 01r 01z  02b 02m 02r 02z 03b 03m 03r 03z 04a 04b 04c 04d 04e 04f 04g 04h 04i 04j 04k 04l 04m 04n 04o 04p
-    root@accumulo testRGB> tables -l
+    root@accumulo> createnamespace examples
+    root@accumulo> createtable examples.testRGB
+    root@accumulo examples.testRGB> addsplits -t examples.testRGB 01b 01m 01r 01z 02b 02m 02r 02z 03b 03m 03r 03z 04a 04b 04c 04d 04e 04f 04g 04h 04i 04j 04k 04l 04m 04n 04o 04p
+    root@accumulo examples.testRGB> tables -l
     accumulo.metadata    =>        !0
     accumulo.replication =>      +rep
     accumulo.root        =>        +r
@@ -36,7 +37,7 @@ different tservers.  This gives us four groups of tablets: 01, 02, 03, and 04.
 
 After adding the splits we look at the locations in the metadata table.
 
-    root@accumulo testRGB> scan -t accumulo.metadata -b 2; -e 2< -c loc
+    root@accumulo examples.testRGB> scan -t accumulo.metadata -b 2; -e 2< -c loc
     2;01b loc:34a5f6e086b000c []    ip-10-1-2-25:9997
     2;01m loc:34a5f6e086b000c []    ip-10-1-2-25:9997
     2;01r loc:14a5f6e079d0011 []    ip-10-1-2-15:9997
@@ -95,13 +96,13 @@ commands below.  The configured regular expression selects the first two digits
 from a tablets end row as the group id.  Tablets that don't match and the
 default tablet are configured to be in group 04.
 
-    root@accumulo testRGB> config -t testRGB -s table.custom.balancer.group.regex.pattern=(\d\d).*
-    root@accumulo testRGB> config -t testRGB -s table.custom.balancer.group.regex.default=04
-    root@accumulo testRGB> config -t testRGB -s table.balancer=org.apache.accumulo.server.master.balancer.RegexGroupBalancer
+    root@accumulo examples.testRGB> config -t examples.testRGB -s table.custom.balancer.group.regex.pattern=(\d\d).*
+    root@accumulo examples.testRGB> config -t examples.testRGB -s table.custom.balancer.group.regex.default=04
+    root@accumulo examples.testRGB> config -t examples.testRGB -s table.balancer=org.apache.accumulo.server.master.balancer.RegexGroupBalancer
 
-After waiting a little bit, look at the tablet locations again and all is good.
+After waiting a bit, look at the tablet locations again and all is good.
 
-    root@accumulo testRGB> scan -t accumulo.metadata -b 2; -e 2< -c loc
+    root@accumulo examples.testRGB> scan -t accumulo.metadata -b 2; -e 2< -c loc
     2;01b loc:34a5f6e086b000a []    ip-10-1-2-18:9997
     2;01m loc:34a5f6e086b000c []    ip-10-1-2-25:9997
     2;01r loc:14a5f6e079d0011 []    ip-10-1-2-15:9997
