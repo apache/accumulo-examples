@@ -23,46 +23,47 @@ Accumulo supports building a set of sample data that can be efficiently
 accessed by scanners.  What data is included in the sample set is configurable.
 Below, some data representing documents are inserted.  
 
-    root@instance sampex> createtable sampex
-    root@instance sampex> insert 9255 doc content 'abcde'
-    root@instance sampex> insert 9255 doc url file://foo.txt
-    root@instance sampex> insert 8934 doc content 'accumulo scales'
-    root@instance sampex> insert 8934 doc url file://accumulo_notes.txt
-    root@instance sampex> insert 2317 doc content 'milk, eggs, bread, parmigiano-reggiano'
-    root@instance sampex> insert 2317 doc url file://groceries/9.txt
-    root@instance sampex> insert 3900 doc content 'EC2 ate my homework'
-    root@instance sampex> insert 3900 doc uril file://final_project.txt
+    root@instance> createnamespace examples
+    root@instance> createtable examples.sampex
+    root@instance examples.sampex> insert 9255 doc content 'abcde'
+    root@instance examples.sampex> insert 9255 doc url file://foo.txt
+    root@instance examples.sampex> insert 8934 doc content 'accumulo scales'
+    root@instance examples.sampex> insert 8934 doc url file://accumulo_notes.txt
+    root@instance examples.sampex> insert 2317 doc content 'milk, eggs, bread, parmigiano-reggiano'
+    root@instance examples.sampex> insert 2317 doc url file://groceries/9.txt
+    root@instance examples.sampex> insert 3900 doc content 'EC2 ate my homework'
+    root@instance examples.sampex> insert 3900 doc uril file://final_project.txt
 
-Below the table sampex is configured to build a sample set.  The configuration
+Below the table examples.sampex is configured to build a sample set.  The configuration
 causes Accumulo to include any row where `murmur3_32(row) % 3 ==0` in the
 tables sample data.
 
-    root@instance sampex> config -t sampex -s table.sampler.opt.hasher=murmur3_32
-    root@instance sampex> config -t sampex -s table.sampler.opt.modulus=3
-    root@instance sampex> config -t sampex -s table.sampler=org.apache.accumulo.core.client.sample.RowSampler
+    root@instance examples.sampex> config -t examples.sampex -s table.sampler.opt.hasher=murmur3_32
+    root@instance examples.sampex> config -t examples.sampex -s table.sampler.opt.modulus=3
+    root@instance examples.sampex> config -t examples.sampex -s table.sampler=org.apache.accumulo.core.client.sample.RowSampler
 
 Below, attempting to scan the sample returns an error.  This is because data
 was inserted before the sample set was configured.
 
-    root@instance sampex> scan --sample
+    root@instance examples.sampex> scan --sample
     2015-09-09 12:21:50,643 [shell.Shell] ERROR: org.apache.accumulo.core.client.SampleNotPresentException: Table sampex(ID:2) does not have sampling configured or built
 
 To remedy this problem, the following command will flush in memory data and
 compact any files that do not contain the correct sample data.   
 
-    root@instance sampex> compact -t sampex --sf-no-sample
+    root@instance examples.sampex> compact -t examples.sampex --sf-no-sample
 
 After the compaction, the sample scan works.  
 
-    root@instance sampex> scan --sample
+    root@instance examples.sampex> scan --sample
     2317 doc:content []    milk, eggs, bread, parmigiano-reggiano
     2317 doc:url []    file://groceries/9.txt
 
 The commands below show that updates to data in the sample are seen when
 scanning the sample.
 
-    root@instance sampex> insert 2317 doc content 'milk, eggs, bread, parmigiano-reggiano, butter'
-    root@instance sampex> scan --sample
+    root@instance examples.sampex> insert 2317 doc content 'milk, eggs, bread, parmigiano-reggiano, butter'
+    root@instance examples.sampex> scan --sample
     2317 doc:content []    milk, eggs, bread, parmigiano-reggiano, butter
     2317 doc:url []    file://groceries/9.txt
 
@@ -72,12 +73,12 @@ data written previously is partitioned using a different criteria.  Accumulo
 will detect this situation and fail sample scans.  The commands below show this
 failure and fixiing the problem with a compaction.
 
-    root@instance sampex> config -t sampex -s table.sampler.opt.modulus=2
-    root@instance sampex> scan --sample
+    root@instance examples.sampex> config -t examples.sampex -s table.sampler.opt.modulus=2
+    root@instance examples.sampex> scan --sample
     2015-09-09 12:22:51,058 [shell.Shell] ERROR: org.apache.accumulo.core.client.SampleNotPresentException: Table sampex(ID:2) does not have sampling configured or built
-    root@instance sampex> compact -t sampex --sf-no-sample
+    root@instance examples.sampex> compact -t examples.sampex --sf-no-sample
     2015-09-09 12:23:07,242 [shell.Shell] INFO : Compaction of table sampex started for given range
-    root@instance sampex> scan --sample
+    root@instance examples.sampex> scan --sample
     2317 doc:content []    milk, eggs, bread, parmigiano-reggiano
     2317 doc:url []    file://groceries/9.txt
     3900 doc:content []    EC2 ate my homework
@@ -86,18 +87,18 @@ failure and fixiing the problem with a compaction.
     9255 doc:url []    file://foo.txt
 
 The example above is replicated in a java program using the Accumulo API.
-Below is the program name and the command to run it.
+Below is the program name, and the command to run it.
 
     ./bin/runex sample.SampleExample
 
 The commands below look under the hood to give some insight into how this
 feature works.  The commands determine what files the sampex table is using.
 
-    root@instance sampex> tables -l
+    root@instance> tables -l
     accumulo.metadata    =>        !0
     accumulo.replication =>      +rep
     accumulo.root        =>        +r
-    sampex               =>         2
+    examples.sampex      =>         2
     trace                =>         1
     root@instance sampex> scan -t accumulo.metadata -c file -b 2 -e 2<
     2< file:hdfs://localhost:10000/accumulo/tables/2/default_tablet/A000000s.rf []    702,8
@@ -155,24 +156,24 @@ sample of this indexing scheme should contain all data for any document in the
 sample.   To accomplish this, the following commands build a sample for the
 shard table based on the column qualifier.
 
-    root@instance shard> config -t shard -s table.sampler.opt.hasher=murmur3_32
-    root@instance shard> config -t shard -s table.sampler.opt.modulus=101
-    root@instance shard> config -t shard -s table.sampler.opt.qualifier=true
-    root@instance shard> config -t shard -s table.sampler=org.apache.accumulo.core.client.sample.RowColumnSampler
-    root@instance shard> compact -t shard --sf-no-sample -w
+    root@instance examples.shard> config -t examples.shard -s table.sampler.opt.hasher=murmur3_32
+    root@instance examples.shard> config -t examples.shard -s table.sampler.opt.modulus=101
+    root@instance examples.shard> config -t examples.shard -s table.sampler.opt.qualifier=true
+    root@instance examples.shard> config -t examples.shard -s table.sampler=org.apache.accumulo.core.client.sample.RowColumnSampler
+    root@instance examples.shard> compact -t examples.shard --sf-no-sample -w
     2015-07-23 15:00:09,280 [shell.Shell] INFO : Compacting table ...
     2015-07-23 15:00:10,134 [shell.Shell] INFO : Compaction of table shard completed for given range
 
 After enabling sampling, the command below counts the number of documents in
 the sample containing the words `import` and `int`.     
 
-    $ ./bin/runex shard.Query --sample -t shard import int | fgrep '.java' | wc
+    $ ./bin/runex shard.Query --sample -t examples.shard import int | fgrep '.java' | wc
          11      11    1246
 
 The command below counts the total number of documents containing the words
 `import` and `int`.
 
-    $ ./bin/runex shard.Query -t shard import int | fgrep '.java' | wc
+    $ ./bin/runex shard.Query -t examples.shard import int | fgrep '.java' | wc
        1085    1085  118175
 
 The counts 11 out of 1085 total are around what would be expected for a modulus
@@ -188,4 +189,4 @@ To experiment with this iterator, use the following command.  The
 `--sampleCutoff` option below will cause the query to return nothing if based
 on the sample it appears a query would return more than 1000 documents.
 
-    $ ./bin/runex shard.Query --sampleCutoff 1000 -t shard import int | fgrep '.java' | wc
+    $ ./bin/runex shard.Query --sampleCutoff 1000 -t examples.shard import int | fgrep '.java' | wc
