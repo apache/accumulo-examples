@@ -41,10 +41,10 @@ public class Reverse {
   static class Opts extends ClientOpts {
 
     @Parameter(names = "--shardTable", description = "name of the shard table")
-    String shardTable = "shard";
+    String shardTable;
 
     @Parameter(names = "--doc2Term", description = "name of the doc2Term table")
-    String doc2TermTable = "doc2Term";
+    String doc2TermTable;
   }
 
   public static void main(String[] args) throws Exception {
