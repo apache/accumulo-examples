@@ -81,14 +81,14 @@ public class CopyPlus5K {
       try {
         client.tableOperations().create(inputTable);
       } catch (TableExistsException e) {
-        low.error("Something went wrong. Table '{}' should have been deleted prior to creation "
+        log.error("Something went wrong. Table '{}' should have been deleted prior to creation "
             + "attempt!", inputTable);
         return;
       }
       try {
         client.tableOperations().create(outputTable);
       } catch (TableExistsException e) {
-        low.error("Something went wrong. Table '{}' should have been deleted prior to creation "
+        log.error("Something went wrong. Table '{}' should have been deleted prior to creation "
             + "attempt!", inputTable);
         return;
       }
