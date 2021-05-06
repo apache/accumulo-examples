@@ -23,13 +23,11 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.NamespaceExistsException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +39,8 @@ import com.beust.jcommander.Parameter;
 public final class SequentialBatchWriter {
 
   private static final Logger log = LoggerFactory.getLogger(SequentialBatchWriter.class);
+
+  static final String BATCH_TABLE = Common.NAMESPACE + ".batch";
 
   private SequentialBatchWriter() {}
 
@@ -60,7 +60,7 @@ public final class SequentialBatchWriter {
 
   static class Opts extends ClientOpts {
     @Parameter(names = {"-t"}, description = "table to use")
-    public String tableName = ClientCommon.BATCH_TABLE;
+    public String tableName = BATCH_TABLE;
 
     @Parameter(names = {"--start"}, description = "starting row")
     public Integer start = 0;
@@ -83,18 +83,7 @@ public final class SequentialBatchWriter {
     opts.parseArgs(SequentialBatchWriter.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-
-      try {
-        client.namespaceOperations().create(Constants.NAMESPACE);
-      } catch (NamespaceExistsException e) {
-        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
-      }
-      try {
-        client.tableOperations().create(opts.tableName);
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + opts.tableName);
-      }
-
+      Common.createTableWithNamespace(client, opts.tableName);
       try (BatchWriter bw = client.createBatchWriter(opts.tableName)) {
         for (int i = 0; i < opts.num; i++) {
           int row = i + opts.start;

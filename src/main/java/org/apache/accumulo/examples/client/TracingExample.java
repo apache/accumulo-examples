@@ -33,6 +33,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 // import org.apache.accumulo.core.trace.DistributedTrace;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
 import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.htrace.Sampler;
@@ -81,7 +82,7 @@ public class TracingExample {
       AccumuloSecurityException, TableExistsException {
 
     if (opts.createtable) {
-      client.tableOperations().create(opts.getTableName());
+      Common.createTableWithNamespace(client, opts.getTableName());
     }
 
     if (opts.createEntries) {

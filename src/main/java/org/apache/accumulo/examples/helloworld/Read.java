@@ -42,7 +42,7 @@ public class Read {
     opts.parseArgs(Read.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build();
-        Scanner scan = client.createScanner(HelloCommon.HELLO_TABLE, Authorizations.EMPTY)) {
+        Scanner scan = client.createScanner(Insert.HELLO_TABLE, Authorizations.EMPTY)) {
       scan.setRange(new Range(new Key("row_0"), new Key("row_1002")));
       for (Entry<Key,Value> e : scan) {
         Key key = e.getKey();

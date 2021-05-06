@@ -34,7 +34,6 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +53,9 @@ public final class RandomBatchScanner {
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
 
-      if (!client.tableOperations().exists(ClientCommon.BATCH_TABLE)) {
-        log.error("Table " + ClientCommon.BATCH_TABLE + " does not exist. Nothing to scan!");
+      if (!client.tableOperations().exists(SequentialBatchWriter.BATCH_TABLE)) {
+        log.error(
+            "Table " + SequentialBatchWriter.BATCH_TABLE + " does not exist. Nothing to scan!");
         log.error("Try running  './bin/runex client.SequentialBatchWriter' first");
         return;
       }
@@ -77,7 +77,7 @@ public final class RandomBatchScanner {
       long lookups = 0;
 
       log.info("Reading ranges using BatchScanner");
-      try (BatchScanner scan = client.createBatchScanner(ClientCommon.BATCH_TABLE,
+      try (BatchScanner scan = client.createBatchScanner(SequentialBatchWriter.BATCH_TABLE,
           Authorizations.EMPTY, 20)) {
         scan.setRanges(ranges);
         for (Entry<Key,Value> entry : scan) {
@@ -119,7 +119,7 @@ public final class RandomBatchScanner {
         log.warn("Did not find {} rows", count);
         System.exit(1);
       }
-      log.info(Constants.ALL_ROWS_SCANNED);
+      log.info("All expected rows were scanned");
     }
   }
 }

@@ -149,7 +149,7 @@ configuration for sample scan to work.
 Shard Sampling Example
 ----------------------
 
-The [shard example][shard] shows how to index and search files using Accumulo.  That
+The Shard example shows how to index and search files using Accumulo.  That
 example indexes documents into a table named `shard`.  The indexing scheme used
 in that example places the document name in the column qualifier.  A useful
 sample of this indexing scheme should contain all data for any document in the

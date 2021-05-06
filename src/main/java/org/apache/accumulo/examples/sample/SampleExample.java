@@ -22,7 +22,6 @@ import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.SampleNotPresentException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -37,7 +36,6 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
 import org.apache.accumulo.examples.client.RandomBatchWriter;
-import org.apache.accumulo.examples.common.Constants;
 import org.apache.accumulo.examples.shard.CutoffIntersectingIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,12 +69,6 @@ public class SampleExample {
     opts.parseArgs(RandomBatchWriter.class.getName(), args, bwOpts);
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      try {
-        client.namespaceOperations().create(Constants.NAMESPACE);
-      } catch (NamespaceExistsException e) {
-        // it is okay if the namespace already exists
-        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
-      }
       try {
         client.tableOperations().create(opts.getTableName());
       } catch (TableExistsException e) {

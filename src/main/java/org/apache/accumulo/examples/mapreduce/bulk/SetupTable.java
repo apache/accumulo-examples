@@ -22,17 +22,14 @@ import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.apache.hadoop.io.Text;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class SetupTable {
 
-  private static final Logger log = LoggerFactory.getLogger(SetupTable.class);
+  static final String BULK_INGEST_TABLE = Common.NAMESPACE + ".test_bulk";
 
   private SetupTable() {}
 
@@ -44,18 +41,14 @@ public final class SetupTable {
     opts.parseArgs(SetupTable.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.tableOperations().create(BulkCommon.BULK_INGEST_TABLE);
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + BulkCommon.BULK_INGEST_TABLE);
-      }
+      Common.createTableWithNamespace(client, BULK_INGEST_TABLE);
 
       // create a table with initial partitions
       TreeSet<Text> initialPartitions = new TreeSet<>();
       for (String split : splits) {
         initialPartitions.add(new Text(split));
       }
-      client.tableOperations().addSplits(BulkCommon.BULK_INGEST_TABLE, initialPartitions);
+      client.tableOperations().addSplits(BULK_INGEST_TABLE, initialPartitions);
     }
   }
 }

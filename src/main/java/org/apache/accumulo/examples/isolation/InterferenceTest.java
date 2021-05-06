@@ -24,14 +24,13 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
-import org.apache.accumulo.examples.common.Constants;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,16 +169,7 @@ public final class InterferenceTest {
       opts.iterations = Long.MAX_VALUE;
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      if (!client.namespaceOperations().exists(Constants.NAMESPACE)) {
-        log.error("Namespace 'examples' does not exist. Create the namespace and re-run");
-        return;
-      }
-      try {
-        client.tableOperations().create(opts.getTableName());
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + opts.getTableName());
-      }
-
+      Common.createTableWithNamespace(client, opts.getTableName());
       Thread writer = new Thread(
           new Writer(client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig()),
               opts.iterations));

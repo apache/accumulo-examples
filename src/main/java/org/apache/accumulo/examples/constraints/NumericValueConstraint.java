@@ -30,6 +30,7 @@ import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.data.constraints.Constraint;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,7 @@ public class NumericValueConstraint implements Constraint {
     opts.parseArgs(NumericValueConstraint.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      ConstraintsCommon.createConstraintsTable(client);
+      Common.createTableWithNamespace(client, ConstraintsCommon.CONSTRAINTS_TABLE);
 
       /*
        * Add the {@link NumericValueConstraint} constraint to the table. Be sure to use the fully
@@ -89,7 +90,7 @@ public class NumericValueConstraint implements Constraint {
       int num = client.tableOperations().addConstraint(ConstraintsCommon.CONSTRAINTS_TABLE,
           "org.apache.accumulo.examples.constraints.NumericValueConstraint");
 
-      log.info("Attempting to write non numeric data to testConstraints");
+      log.info("Attempting to write non-numeric data to testConstraints");
       try (BatchWriter bw = client.createBatchWriter(ConstraintsCommon.CONSTRAINTS_TABLE)) {
         Mutation m = new Mutation("r1");
         m.put("cf1", "cq1", new Value(("value1--$$@@%%").getBytes()));

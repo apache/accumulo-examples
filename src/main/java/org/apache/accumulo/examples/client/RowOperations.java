@@ -24,17 +24,15 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +43,12 @@ public final class RowOperations {
 
   private static final Logger log = LoggerFactory.getLogger(RowOperations.class);
 
+  static final String ROWOPS_TABLE = Common.NAMESPACE + ".rowops";
+
   private RowOperations() {}
 
   private static void printAll(AccumuloClient client) throws TableNotFoundException {
-    try (Scanner scanner = client.createScanner(ClientCommon.ROWOPS_TABLE, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(ROWOPS_TABLE, Authorizations.EMPTY)) {
       for (Entry<Key,Value> entry : scanner) {
         log.info("Key: {} Value: {}", entry.getKey().toString(), entry.getValue().toString());
       }
@@ -56,7 +56,7 @@ public final class RowOperations {
   }
 
   private static void printRow(String row, AccumuloClient client) throws TableNotFoundException {
-    try (Scanner scanner = client.createScanner(ClientCommon.ROWOPS_TABLE, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(ROWOPS_TABLE, Authorizations.EMPTY)) {
       scanner.setRange(Range.exact(row));
       for (Entry<Key,Value> entry : scanner) {
         log.info("Key: {} Value: {}", entry.getKey().toString(), entry.getValue().toString());
@@ -67,7 +67,7 @@ public final class RowOperations {
   private static void deleteRow(String row, AccumuloClient client, BatchWriter bw)
       throws MutationsRejectedException, TableNotFoundException {
     Mutation mut = new Mutation(row);
-    try (Scanner scanner = client.createScanner(ClientCommon.ROWOPS_TABLE, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(ROWOPS_TABLE, Authorizations.EMPTY)) {
       scanner.setRange(Range.exact(row));
       for (Entry<Key,Value> entry : scanner) {
         mut.putDelete(entry.getKey().getColumnFamily(), entry.getKey().getColumnQualifier());
@@ -83,16 +83,7 @@ public final class RowOperations {
     opts.parseArgs(RowOperations.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.namespaceOperations().create(Constants.NAMESPACE);
-      } catch (NamespaceExistsException e) {
-        log.info(Constants.NAMESPACE_EXISTS_MSG);
-      }
-      try {
-        client.tableOperations().create(ClientCommon.ROWOPS_TABLE);
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + ClientCommon.ROWOPS_TABLE);
-      }
+      Common.createTableWithNamespace(client, ROWOPS_TABLE);
 
       // lets create 3 rows of information
       Mutation mut1 = new Mutation("row1");
@@ -112,7 +103,7 @@ public final class RowOperations {
       mut3.put("col", "3", "v3");
 
       // Now we'll make a Batch Writer
-      try (BatchWriter bw = client.createBatchWriter(ClientCommon.ROWOPS_TABLE)) {
+      try (BatchWriter bw = client.createBatchWriter(ROWOPS_TABLE)) {
 
         // And add the mutations
         bw.addMutation(mut1);
@@ -139,7 +130,7 @@ public final class RowOperations {
       log.info("This is just row3");
       printAll(client);
 
-      client.tableOperations().delete(ClientCommon.ROWOPS_TABLE);
+      client.tableOperations().delete(ROWOPS_TABLE);
     }
   }
 }

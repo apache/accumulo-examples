@@ -28,15 +28,17 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.ArrayByteSequence;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
@@ -44,6 +46,9 @@ import com.beust.jcommander.Parameter;
  * Takes a list of files and archives them into Accumulo keyed on hashes of the files.
  */
 public class FileDataIngest {
+
+  private static final Logger log = LoggerFactory.getLogger(FileDataIngest.class);
+
   public static final Text CHUNK_CF = new Text("~chunk");
   public static final Text REFS_CF = new Text("refs");
   public static final String REFS_ORIG_FILE = "name";
@@ -52,6 +57,9 @@ public class FileDataIngest {
       CHUNK_CF.getLength());
   public static final ByteSequence REFS_CF_BS = new ArrayByteSequence(REFS_CF.getBytes(), 0,
       REFS_CF.getLength());
+
+  public static final String TABLE_EXISTS_MSG = "Table already exists. User may wish to delete existing "
+      + "table and re-run example. Table name: ";
 
   int chunkSize;
   byte[] chunkSizeBytes;
@@ -195,14 +203,9 @@ public class FileDataIngest {
     opts.parseArgs(FileDataIngest.class.getName(), args, bwOpts);
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-
-      try {
-        client.tableOperations().create(opts.getTableName());
-        client.tableOperations().attachIterator(opts.getTableName(),
-            new IteratorSetting(1, ChunkCombiner.class));
-      } catch (TableExistsException e) {
-        // ignore
-      }
+      Common.createTableWithNamespace(client, opts.getTableName());
+      client.tableOperations().attachIterator(opts.getTableName(),
+          new IteratorSetting(1, ChunkCombiner.class));
 
       try (BatchWriter bw = client.createBatchWriter(opts.getTableName(),
           bwOpts.getBatchWriterConfig())) {

@@ -32,7 +32,6 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +96,6 @@ public final class BloomBatchScanner {
     if (count > 0)
       log.info("Did not find " + count);
     else
-      log.info(Constants.ALL_ROWS_SCANNED);
+      log.info("All expected rows were scanned");
   }
 }

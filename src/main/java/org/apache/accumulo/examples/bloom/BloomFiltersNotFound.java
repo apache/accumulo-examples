@@ -22,11 +22,9 @@ import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.NamespaceExistsException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,24 +38,10 @@ public class BloomFiltersNotFound {
     opts.parseArgs(BloomFiltersNotFound.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.namespaceOperations().create(Constants.NAMESPACE);
-      } catch (NamespaceExistsException e) {
-        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
-      }
-      try {
-        client.tableOperations().create(BloomCommon.BLOOM_TEST3_TABLE);
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + BloomCommon.BLOOM_TEST3_TABLE);
-      }
-      try {
-        client.tableOperations().create(BloomCommon.BLOOM_TEST4_TABLE);
-        client.tableOperations().setProperty(BloomCommon.BLOOM_TEST4_TABLE,
-            BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + BloomCommon.BLOOM_TEST4_TABLE);
-        log.warn(BloomCommon.BLOOM_ENABLED_PROPERTY + " has previously been set");
-      }
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST3_TABLE);
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST4_TABLE);
+      client.tableOperations().setProperty(BloomCommon.BLOOM_TEST4_TABLE,
+          BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
 
       writeAndFlush(BloomCommon.BLOOM_TEST3_TABLE, client);
       writeAndFlush(BloomCommon.BLOOM_TEST4_TABLE, client);

@@ -23,22 +23,22 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ReadWriteExample {
 
   private static final Logger log = LoggerFactory.getLogger(ReadWriteExample.class);
+
+  private static final String READWRITE_TABLE = Common.NAMESPACE + ".readwrite";
 
   private ReadWriteExample() {}
 
@@ -47,44 +47,32 @@ public class ReadWriteExample {
     opts.parseArgs(ReadWriteExample.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-
-      try {
-        client.namespaceOperations().create(Constants.NAMESPACE);
-      } catch (NamespaceExistsException e) {
-        log.info(Constants.NAMESPACE_EXISTS_MSG);
-      }
-      try {
-        client.tableOperations().create(ClientCommon.READWRITE_TABLE);
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + ClientCommon.READWRITE_TABLE);
-      }
-
+      Common.createTableWithNamespace(client, READWRITE_TABLE);
       // write data
-      try (BatchWriter writer = client.createBatchWriter(ClientCommon.READWRITE_TABLE)) {
+      try (BatchWriter writer = client.createBatchWriter(READWRITE_TABLE)) {
         for (int i = 0; i < 10; i++) {
           Mutation m = new Mutation("hello" + i);
           m.put("cf", "cq", new Value("world" + i));
           writer.addMutation(m);
         }
       } catch (TableNotFoundException e) {
-        log.error(ClientCommon.TABLE_NOT_FOUND_MSG, e.getTableName(), e.getMessage());
+        log.error("Could not find table {}: {}", e.getTableName(), e.getMessage());
         System.exit(1);
       }
 
       // read data
-      try (Scanner scanner = client.createScanner(ClientCommon.READWRITE_TABLE,
-          Authorizations.EMPTY)) {
+      try (Scanner scanner = client.createScanner(READWRITE_TABLE, Authorizations.EMPTY)) {
         for (Entry<Key,Value> entry : scanner) {
           log.info("{} -> {}", entry.getKey().toString(), entry.getValue().toString());
         }
       } catch (TableNotFoundException e) {
-        log.error(ClientCommon.TABLE_NOT_FOUND_MSG, e.getTableName(), e.getMessage());
+        log.error("Could not find table {}: {}", e.getTableName(), e.getMessage());
         System.exit(1);
       }
 
       // delete table
       try {
-        client.tableOperations().delete(ClientCommon.READWRITE_TABLE);
+        client.tableOperations().delete(READWRITE_TABLE);
       } catch (TableNotFoundException e) {
         log.error("Unable to delete table '{}': {}", e.getTableName(), e.getMessage());
       }

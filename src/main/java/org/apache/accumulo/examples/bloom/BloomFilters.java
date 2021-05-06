@@ -24,14 +24,12 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.NamespaceExistsException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.examples.client.RandomBatchWriter;
-import org.apache.accumulo.examples.common.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,11 +46,6 @@ public final class BloomFilters {
     opts.parseArgs(BloomFilters.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.namespaceOperations().create(Constants.NAMESPACE);
-      } catch (NamespaceExistsException e) {
-        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
-      }
       createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST1_TABLE);
       createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST2_TABLE);
       client.tableOperations().setProperty(BloomCommon.BLOOM_TEST2_TABLE,
@@ -64,13 +57,9 @@ public final class BloomFilters {
 
   private static void createTableAndSetCompactionRatio(AccumuloClient client,
       final String tableName) throws AccumuloException, AccumuloSecurityException {
-    try {
-      log.info("Creating {}", tableName);
-      client.tableOperations().create(tableName);
-      client.tableOperations().setProperty(tableName, "table.compaction.major.ratio", "7");
-    } catch (TableExistsException e) {
-      log.warn(Constants.TABLE_EXISTS_MSG + "tableName");
-    }
+    log.info("Creating {}", tableName);
+    Common.createTableWithNamespace(client, tableName);
+    client.tableOperations().setProperty(tableName, "table.compaction.major.ratio", "7");
   }
 
   // Write a million rows 3 times flushing files to disk separately

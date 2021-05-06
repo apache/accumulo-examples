@@ -24,16 +24,14 @@ import java.util.List;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.NamespaceExistsException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.lexicoder.Encoder;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.LongCombiner;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.accumulo.examples.common.Constants;
 import org.apache.accumulo.examples.filedata.ChunkCombiner;
 import org.apache.accumulo.examples.filedata.FileDataIngest;
 import org.apache.hadoop.io.Text;
@@ -50,6 +48,10 @@ import com.beust.jcommander.Parameter;
 public final class Ingest {
 
   private static final Logger log = LoggerFactory.getLogger(Ingest.class);
+
+  static final String DIR_TABLE = Common.NAMESPACE + ".dirTable";
+  static final String INDEX_TABLE = Common.NAMESPACE + ".indexTable";
+  static final String DATA_TABLE = Common.NAMESPACE + ".dataTable";
 
   static final Value nullValue = new Value(new byte[0]);
   public static final String LENGTH_CQ = "length";
@@ -136,11 +138,11 @@ public final class Ingest {
 
   static class Opts extends ClientOpts {
     @Parameter(names = "--dirTable", description = "a table to hold the directory information")
-    String dirTable = DirlistCommon.DIR_TABLE;
+    String dirTable = DIR_TABLE;
     @Parameter(names = "--indexTable", description = "an index over the ingested data")
-    String indexTable = DirlistCommon.INDEX_TABLE;
+    String indexTable = INDEX_TABLE;
     @Parameter(names = "--dataTable", description = "the file data, chunked into parts")
-    String dataTable = DirlistCommon.DATA_TABLE;
+    String dataTable = DATA_TABLE;
     @Parameter(names = "--vis", description = "the visibility to mark the data",
         converter = VisibilityConverter.class)
     ColumnVisibility visibility = new ColumnVisibility();
@@ -156,29 +158,11 @@ public final class Ingest {
     opts.parseArgs(Ingest.class.getName(), args, bwOpts);
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      try {
-        client.namespaceOperations().create(Constants.NAMESPACE);
-      } catch (NamespaceExistsException e) {
-        log.info(Constants.NAMESPACE_EXISTS_MSG + Constants.NAMESPACE);
-      }
-      try {
-        client.tableOperations().create(opts.dirTable);
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + opts.dirTable);
-      }
-      try {
-        client.tableOperations().create(opts.indexTable);
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + opts.indexTable);
-      }
-      try {
-        client.tableOperations().create(opts.dataTable);
-        client.tableOperations().attachIterator(opts.dataTable,
-            new IteratorSetting(1, ChunkCombiner.class));
-      } catch (TableExistsException e) {
-        log.warn(Constants.TABLE_EXISTS_MSG + opts.dataTable);
-        log.warn("ChunkCombiner iterator may not have been attached.");
-      }
+      Common.createTableWithNamespace(client, opts.dirTable);
+      Common.createTableWithNamespace(client, opts.indexTable);
+      Common.createTableWithNamespace(client, opts.dataTable);
+      client.tableOperations().attachIterator(opts.dataTable,
+          new IteratorSetting(1, ChunkCombiner.class));
 
       BatchWriter dirBW = client.createBatchWriter(opts.dirTable, bwOpts.getBatchWriterConfig());
       BatchWriter indexBW = client.createBatchWriter(opts.indexTable,

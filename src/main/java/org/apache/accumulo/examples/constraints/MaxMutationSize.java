@@ -29,6 +29,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.data.constraints.Constraint;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class MaxMutationSize implements Constraint {
     opts.parseArgs(MaxMutationSize.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      ConstraintsCommon.createConstraintsTable(client);
+      Common.createTableWithNamespace(client, ConstraintsCommon.CONSTRAINTS_TABLE);
 
       /*
        * Add the {@link MaxMutationSize} constraint to the table. Be sure to use the fully qualified

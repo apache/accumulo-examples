@@ -21,9 +21,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.hadoop.fs.Path;
@@ -90,11 +90,7 @@ public class NGramIngest {
     try (AccumuloClient client = opts.createAccumuloClient()) {
       if (!client.tableOperations().exists(opts.tableName)) {
         log.info("Creating table " + opts.tableName);
-        try {
-          client.tableOperations().create(opts.tableName);
-        } catch (TableExistsException e) {
-          // ignore
-        }
+        Common.createTableWithNamespace(client, opts.tableName);
         SortedSet<Text> splits = new TreeSet<>();
         String numbers[] = "1 2 3 4 5 6 7 8 9".split("\\s");
         String lower[] = "a b c d e f g h i j k l m n o p q r s t u v w x y z".split("\\s");
