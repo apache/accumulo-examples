@@ -32,18 +32,21 @@ This example is coupled with the [dirlist example][dirlist].
 
 If you haven't already run the [dirlist example][dirlist], ingest a file with FileDataIngest.
 
-    $ ./bin/runex filedata.FileDataIngest -t dataTable --auths exampleVis --chunk 1000 /path/to/accumulo/README.md
+    $ ./bin/runex filedata.FileDataIngest -t examples.dataTable --auths exampleVis --chunk 1000 /path/to/accumulo/README.md
 
-Open the accumulo shell and look at the data. The row is the MD5 hash of the file, which you can verify by running a command such as 'md5sum' on the file.
+Open the accumulo shell and look at the data. The row is the MD5 hash of the file, which you can 
+verify by running a command such as 'md5sum' on the file. Note that in order to scan the 
+examples.dataTable the class, org.apache.accumulo.examples.filedata.ChunkCombiner, must be in 
+your classpath, or the accumulo-examples-shaded.jar should be moved to the accumulo lib directory.
 
-    > scan -t dataTable
+    > scan -t examples.dataTable
 
 Run the CharacterHistogram MapReduce to add some information about the file.
 
-    $ ./bin/runmr filedata.CharacterHistogram -t dataTable --auths exampleVis --vis exampleVis
+    $ ./bin/runmr filedata.CharacterHistogram -t examples.dataTable --auths exampleVis --vis exampleVis
 
 Scan again to see the histogram stored in the 'info' column family.
 
-    > scan -t dataTable
+    > scan -t examples.dataTable
 
 [dirlist]: dirlist.md

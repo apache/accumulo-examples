@@ -26,22 +26,23 @@ Filter takes a "negate" parameter which defaults to false. If set to true, the
 return value of the accept method is negated, so that key/value pairs accepted
 by the method are omitted by the Filter.
 
-    username@instance> createtable filtertest
-    username@instance filtertest> setiter -t filtertest -scan -p 10 -n myfilter -ageoff
+    username@instance> createnamespace examples
+    username@instance> createtable examples.filtertest
+    username@instance examples.filtertest> setiter -t examples.filtertest -scan -p 10 -n myfilter -ageoff
     AgeOffFilter removes entries with timestamps more than <ttl> milliseconds old
     ----------> set AgeOffFilter parameter negate, default false keeps k/v that pass accept method, true rejects k/v that pass accept method:
     ----------> set AgeOffFilter parameter ttl, time to live (milliseconds): 30000
     ----------> set AgeOffFilter parameter currentTime, if set, use the given value as the absolute time in milliseconds as the current time of day:
-    username@instance filtertest> scan
-    username@instance filtertest> insert foo a b c
-    username@instance filtertest> scan
+    username@instance examples.filtertest> scan
+    username@instance examples.filtertest> insert foo a b c
+    username@instance examples.filtertest> scan
     foo a:b []    c
-    username@instance filtertest>
+    username@instance examples.filtertest>
 
 ... wait 30 seconds ...
 
-    username@instance filtertest> scan
-    username@instance filtertest>
+    username@instance examples.filtertest> scan
+    username@instance examples.filtertest>
 
 Note the absence of the entry inserted more than 30 seconds ago. Since the
 scope was set to "scan", this means the entry is still in Accumulo, but is
@@ -59,21 +60,21 @@ AgeOffFilter, but any Filter can be configured by using the -class flag. The
 following commands show how to enable the AgeOffFilter for the minc and majc
 scopes using the -class flag, then flush and compact the table.
 
-    username@instance filtertest> setiter -t filtertest -minc -majc -p 10 -n myfilter -class org.apache.accumulo.core.iterators.user.AgeOffFilter
+    username@instance examples.filtertest> setiter -t examples.filtertest -minc -majc -p 10 -n myfilter -class org.apache.accumulo.core.iterators.user.AgeOffFilter
     AgeOffFilter removes entries with timestamps more than <ttl> milliseconds old
     ----------> set AgeOffFilter parameter negate, default false keeps k/v that pass accept method, true rejects k/v that pass accept method:
     ----------> set AgeOffFilter parameter ttl, time to live (milliseconds): 30000
     ----------> set AgeOffFilter parameter currentTime, if set, use the given value as the absolute time in milliseconds as the current time of day:
-    username@instance filtertest> flush
-    06 10:42:24,806 [shell.Shell] INFO : Flush of table filtertest initiated...
-    username@instance filtertest> compact
-    06 10:42:36,781 [shell.Shell] INFO : Compaction of table filtertest started for given range
-    username@instance filtertest> flush -t filtertest -w
-    06 10:42:52,881 [shell.Shell] INFO : Flush of table filtertest completed.
-    username@instance filtertest> compact -t filtertest -w
+    username@instance examples.filtertest> flush
+    06 10:42:24,806 [shell.Shell] INFO : Flush of table examples.filtertest initiated...
+    username@instance examples.filtertest> compact
+    06 10:42:36,781 [shell.Shell] INFO : Compaction of table examples.filtertest started for given range
+    username@instance examples.filtertest> flush -t examples.filtertest -w
+    06 10:42:52,881 [shell.Shell] INFO : Flush of table examples.filtertest completed.
+    username@instance examples.filtertest> compact -t examples.filtertest -w
     06 10:43:00,632 [shell.Shell] INFO : Compacting table ...
-    06 10:43:01,307 [shell.Shell] INFO : Compaction of table filtertest completed for given range
-    username@instance filtertest>
+    06 10:43:01,307 [shell.Shell] INFO : Compaction of table examples.filtertest completed for given range
+    username@instance examples.filtertest>
 
 By default, flush and compact execute in the background, but with the -w flag
 they will wait to return until the operation has completed. Both are
@@ -86,7 +87,7 @@ the old files.
 
 To see the iterator settings for a table, use config.
 
-    username@instance filtertest> config -t filtertest -f iterator
+    username@instance examples.filtertest> config -t examples.filtertest -f iterator
     ---------+---------------------------------------------+---------------------------------------------------------------------------
     SCOPE    | NAME                                        | VALUE
     ---------+---------------------------------------------+---------------------------------------------------------------------------
@@ -103,7 +104,7 @@ To see the iterator settings for a table, use config.
     table    | table.iterator.scan.vers .................. | 20,org.apache.accumulo.core.iterators.user.VersioningIterator
     table    | table.iterator.scan.vers.opt.maxVersions .. | 1
     ---------+---------------------------------------------+---------------------------------------------------------------------------
-    username@instance filtertest>
+    username@instance examples.filtertest>
 
 When setting new iterators, make sure to order their priority numbers
 (specified with -p) in the order you would like the iterators to be applied.

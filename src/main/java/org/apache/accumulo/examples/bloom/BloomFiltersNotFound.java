@@ -22,11 +22,15 @@ import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BloomFiltersNotFound {
+
+  private static final Logger log = LoggerFactory.getLogger(BloomFiltersNotFound.class);
 
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
@@ -34,21 +38,23 @@ public class BloomFiltersNotFound {
     opts.parseArgs(BloomFiltersNotFound.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.tableOperations().create("bloom_test3");
-        client.tableOperations().create("bloom_test4");
-        client.tableOperations().setProperty("bloom_test4", "table.bloom.enabled", "true");
-      } catch (TableExistsException e) {
-        // ignore
-      }
-      System.out.println("Writing data to bloom_test3 and bloom_test4 (bloom filters enabled)");
-      writeData(client, "bloom_test3", 7);
-      client.tableOperations().flush("bloom_test3", null, null, true);
-      writeData(client, "bloom_test4", 7);
-      client.tableOperations().flush("bloom_test4", null, null, true);
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST3_TABLE);
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST4_TABLE);
+      client.tableOperations().setProperty(BloomCommon.BLOOM_TEST4_TABLE,
+          BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
 
-      BloomBatchScanner.scan(client, "bloom_test3", 8);
-      BloomBatchScanner.scan(client, "bloom_test4", 8);
+      writeAndFlush(BloomCommon.BLOOM_TEST3_TABLE, client);
+      writeAndFlush(BloomCommon.BLOOM_TEST4_TABLE, client);
+
+      BloomBatchScanner.scan(client, BloomCommon.BLOOM_TEST3_TABLE, 8);
+      BloomBatchScanner.scan(client, BloomCommon.BLOOM_TEST4_TABLE, 8);
     }
+  }
+
+  private static void writeAndFlush(String tableName, AccumuloClient client)
+      throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    log.info("Writing data to {} (bloom filters enabled)", tableName);
+    writeData(client, tableName, 7);
+    client.tableOperations().flush(tableName, null, null, true);
   }
 }

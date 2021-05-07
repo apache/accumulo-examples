@@ -49,7 +49,7 @@ public class StatsCombiner extends Combiner {
     long count = 0;
 
     while (iter.hasNext()) {
-      String stats[] = iter.next().toString().split(",");
+      String[] stats = iter.next().toString().split(",");
 
       if (stats.length == 1) {
         long val = Long.parseLong(stats[0], radix);

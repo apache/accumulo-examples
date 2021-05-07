@@ -27,10 +27,7 @@ import java.util.Random;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -43,22 +40,24 @@ import org.slf4j.LoggerFactory;
 /**
  * Simple example for reading random batches of data from Accumulo.
  */
-public class RandomBatchScanner {
+public final class RandomBatchScanner {
 
   private static final Logger log = LoggerFactory.getLogger(RandomBatchScanner.class);
 
-  public static void main(String[] args)
-      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  private RandomBatchScanner() {}
+
+  public static void main(String[] args) throws TableNotFoundException {
 
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(RandomBatchScanner.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
 
-      try {
-        client.tableOperations().create("batch");
-      } catch (TableExistsException e) {
-        // ignore
+      if (!client.tableOperations().exists(SequentialBatchWriter.BATCH_TABLE)) {
+        log.error(
+            "Table " + SequentialBatchWriter.BATCH_TABLE + " does not exist. Nothing to scan!");
+        log.error("Try running  './bin/runex client.SequentialBatchWriter' first");
+        return;
       }
 
       int totalLookups = 1000;
@@ -78,7 +77,8 @@ public class RandomBatchScanner {
       long lookups = 0;
 
       log.info("Reading ranges using BatchScanner");
-      try (BatchScanner scan = client.createBatchScanner("batch", Authorizations.EMPTY, 20)) {
+      try (BatchScanner scan = client.createBatchScanner(SequentialBatchWriter.BATCH_TABLE,
+          Authorizations.EMPTY, 20)) {
         scan.setRanges(ranges);
         for (Entry<Key,Value> entry : scan) {
           Key key = entry.getKey();
@@ -93,10 +93,10 @@ public class RandomBatchScanner {
                 new String(expectedValue.get(), UTF_8), new String(value.get(), UTF_8));
           }
 
-          if (!expectedRows.containsKey(key.getRow().toString())) {
-            log.error("Encountered unexpected key: {} ", key);
-          } else {
+          if (expectedRows.containsKey(key.getRow().toString())) {
             expectedRows.put(key.getRow().toString(), true);
+          } else {
+            log.error("Encountered unexpected key: {} ", key);
           }
 
           lookups++;
@@ -105,7 +105,6 @@ public class RandomBatchScanner {
           }
         }
       }
-
       long t2 = System.currentTimeMillis();
       log.info(String.format("Scan finished! %6.2f lookups/sec, %.2f secs, %d results",
           lookups / ((t2 - t1) / 1000.0), ((t2 - t1) / 1000.0), lookups));

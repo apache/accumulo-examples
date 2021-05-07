@@ -30,7 +30,9 @@ reading the row at the same time a mutation is changing the row.
 Below, Interference Test is run without isolation enabled for 5000 iterations
 and it reports problems.
 
-    $ ./bin/runex isolation.InterferenceTest -t isotest --iterations 5000
+
+    $ accumulo shell -u <username> -p <password> -e 'createnamespace examples' 
+    $ ./bin/runex isolation.InterferenceTest -t examples.isotest --iterations 50000
     ERROR Columns in row 053 had multiple values [53, 4553]
     ERROR Columns in row 061 had multiple values [561, 61]
     ERROR Columns in row 070 had multiple values [570, 1070]
@@ -43,7 +45,7 @@ and it reports problems.
 Below, Interference Test is run with isolation enabled for 5000 iterations and
 it reports no problems.
 
-    $ ./bin/runex isolation.InterferenceTest -t isotest --iterations 5000 --isolated
+    $ ./bin/runex isolation.InterferenceTest -t examples.isotest --iterations 50000 --isolated
     finished
 
 

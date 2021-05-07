@@ -41,8 +41,8 @@ writes word counts to Accumulo table.
 After the MapReduce job completes, query the Accumulo table to see word counts.
 
     $ accumulo shell
-    username@instance> table wordCount
-    username@instance wordCount> scan -b the
+    username@instance> table examples.wordcount
+    username@instance examples.wordcount> scan -b the
     the count:20080906 []    75
     their count:20080906 []    2
     them count:20080906 []    1
@@ -56,14 +56,14 @@ in HDFS and run the job with the `-D` options.  This will configure the MapReduc
 to obtain the client properties from HDFS:
 
     $ hdfs dfs -copyFromLocal ./conf/accumulo-client.properties /user/myuser/
-    $ ./bin/runmr mapreduce.WordCount -i /wc -t wordCount2 -d /user/myuser/accumulo-client.properties
+    $ ./bin/runmr mapreduce.WordCount -i /wc -t examples.wordcount2 -d /user/myuser/accumulo-client.properties
 
-After the MapReduce job completes, query the `wordCount2` table. The results should
+After the MapReduce job completes, query the `wordcount2` table. The results should
 be the same as before:
 
     $ accumulo shell
-    username@instance> table wordCount2
-    username@instance wordCount2> scan -b the
+    username@instance> table examples.wordcount2
+    username@instance examples.wordcount2> scan -b the
     the count:20080906 []    75
     their count:20080906 []    2
     ...

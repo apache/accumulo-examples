@@ -24,14 +24,20 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.examples.client.RandomBatchWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class BloomFilters {
+public final class BloomFilters {
+
+  private static final Logger log = LoggerFactory.getLogger(BloomFilters.class);
+
+  private BloomFilters() {}
 
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
@@ -40,34 +46,32 @@ public class BloomFilters {
     opts.parseArgs(BloomFilters.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        System.out.println("Creating bloom_test1 and bloom_test2");
-        client.tableOperations().create("bloom_test1");
-        client.tableOperations().setProperty("bloom_test1", "table.compaction.major.ratio", "7");
-        client.tableOperations().create("bloom_test2");
-        client.tableOperations().setProperty("bloom_test2", "table.bloom.enabled", "true");
-        client.tableOperations().setProperty("bloom_test2", "table.compaction.major.ratio", "7");
-      } catch (TableExistsException e) {
-        // ignore
-      }
-
-      // Write a million rows 3 times flushing files to disk separately
-      System.out.println("Writing data to bloom_test1");
-      writeData(client, "bloom_test1", 7);
-      client.tableOperations().flush("bloom_test1", null, null, true);
-      writeData(client, "bloom_test1", 8);
-      client.tableOperations().flush("bloom_test1", null, null, true);
-      writeData(client, "bloom_test1", 9);
-      client.tableOperations().flush("bloom_test1", null, null, true);
-
-      System.out.println("Writing data to bloom_test2");
-      writeData(client, "bloom_test2", 7);
-      client.tableOperations().flush("bloom_test2", null, null, true);
-      writeData(client, "bloom_test2", 8);
-      client.tableOperations().flush("bloom_test2", null, null, true);
-      writeData(client, "bloom_test2", 9);
-      client.tableOperations().flush("bloom_test2", null, null, true);
+      createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST1_TABLE);
+      createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST2_TABLE);
+      client.tableOperations().setProperty(BloomCommon.BLOOM_TEST2_TABLE,
+          BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
+      writeAndFlushData(BloomCommon.BLOOM_TEST1_TABLE, client);
+      writeAndFlushData(BloomCommon.BLOOM_TEST2_TABLE, client);
     }
+  }
+
+  private static void createTableAndSetCompactionRatio(AccumuloClient client,
+      final String tableName) throws AccumuloException, AccumuloSecurityException {
+    log.info("Creating {}", tableName);
+    Common.createTableWithNamespace(client, tableName);
+    client.tableOperations().setProperty(tableName, "table.compaction.major.ratio", "7");
+  }
+
+  // Write a million rows 3 times flushing files to disk separately
+  private static void writeAndFlushData(final String tableName, final AccumuloClient client)
+      throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
+    log.info("Writing data to {}", tableName);
+    writeData(client, tableName, 7);
+    client.tableOperations().flush(tableName, null, null, true);
+    writeData(client, tableName, 8);
+    client.tableOperations().flush(tableName, null, null, true);
+    writeData(client, tableName, 9);
+    client.tableOperations().flush(tableName, null, null, true);
   }
 
   // write a million random rows

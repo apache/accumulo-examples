@@ -23,9 +23,9 @@ import java.util.Date;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.iterators.user.SummingCombiner;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.hadoop.fs.Path;
@@ -42,13 +42,15 @@ import com.beust.jcommander.Parameter;
 /**
  * A simple MapReduce job that inserts word counts into Accumulo. See docs/mapred.md
  */
-public class WordCount {
+public final class WordCount {
 
   private static final Logger log = LoggerFactory.getLogger(WordCount.class);
 
+  private WordCount() {}
+
   static class Opts extends ClientOpts {
     @Parameter(names = {"-t", "--table"}, description = "Name of output Accumulo table")
-    String tableName = "wordCount";
+    String tableName = Common.NAMESPACE + ".wordcount";
     @Parameter(names = {"-i", "--input"}, required = true, description = "HDFS input directory")
     String inputDirectory;
     @Parameter(names = {"-d", "--dfsPath"},
@@ -81,14 +83,12 @@ public class WordCount {
 
     // Create Accumulo table and attach Summing iterator
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      client.tableOperations().create(opts.tableName);
+      Common.createTableWithNamespace(client, opts.tableName);
       IteratorSetting is = new IteratorSetting(10, SummingCombiner.class);
       SummingCombiner.setColumns(is,
           Collections.singletonList(new IteratorSetting.Column("count")));
       SummingCombiner.setEncodingType(is, SummingCombiner.Type.STRING);
       client.tableOperations().attachIterator(opts.tableName, is);
-    } catch (TableExistsException e) {
-      // ignore
     }
 
     // Create M/R job

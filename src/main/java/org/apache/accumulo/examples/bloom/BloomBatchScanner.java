@@ -32,19 +32,25 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.cli.ClientOpts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple example for reading random batches of data from Accumulo.
  */
-public class BloomBatchScanner {
+public final class BloomBatchScanner {
+
+  private static final Logger log = LoggerFactory.getLogger(BloomBatchScanner.class);
+
+  private BloomBatchScanner() {}
 
   public static void main(String[] args) throws TableNotFoundException {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(BloomBatchScanner.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      scan(client, "bloom_test1", 7);
-      scan(client, "bloom_test2", 7);
+      scan(client, BloomCommon.BLOOM_TEST1_TABLE, 7);
+      scan(client, BloomCommon.BLOOM_TEST2_TABLE, 7);
     }
   }
 
@@ -64,22 +70,21 @@ public class BloomBatchScanner {
     long results = 0;
     long lookups = ranges.size();
 
-    System.out.println("Scanning " + tableName + " with seed " + seed);
+    log.info("Scanning {} with seed {}", tableName, seed);
     try (BatchScanner scan = client.createBatchScanner(tableName, Authorizations.EMPTY, 20)) {
       scan.setRanges(ranges);
       for (Entry<Key,Value> entry : scan) {
         Key key = entry.getKey();
-        if (!expectedRows.containsKey(key.getRow().toString())) {
-          System.out.println("Encountered unexpected key: " + key);
-        } else {
+        if (expectedRows.containsKey(key.getRow().toString())) {
           expectedRows.put(key.getRow().toString(), true);
+        } else {
+          log.info("Encountered unexpected key: {}", key);
         }
         results++;
       }
     }
-
     long t2 = System.currentTimeMillis();
-    System.out.println(String.format("Scan finished! %6.2f lookups/sec, %.2f secs, %d results",
+    log.info(String.format("Scan finished! %6.2f lookups/sec, %.2f secs, %d results",
         lookups / ((t2 - t1) / 1000.0), ((t2 - t1) / 1000.0), results));
 
     int count = 0;
@@ -89,8 +94,8 @@ public class BloomBatchScanner {
       }
     }
     if (count > 0)
-      System.out.println("Did not find " + count);
+      log.info("Did not find " + count);
     else
-      System.out.println("All expected rows were scanned");
+      log.info("All expected rows were scanned");
   }
 }

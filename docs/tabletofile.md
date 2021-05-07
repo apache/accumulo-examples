@@ -22,26 +22,24 @@ To run this example you will need some data in a table. The following will
 put a trivial amount of data into accumulo using the accumulo shell:
 
     $ accumulo shell
-    username@instance> createtable input
-    username@instance> insert dog cf cq dogvalue
-    username@instance> insert cat cf cq catvalue
-    username@instance> insert junk family qualifier junkvalue
-    username@instance> quit
+    root@instance> createnamespace examples
+    root@instance> createtable examples.input
+    root@instance examples.input> insert dog cf cq dogvalue
+    root@instance examples.input> insert cat cf cq catvalue
+    root@instance examples.input> insert junk family qualifier junkvalue
+    root@instance examples.input> quit
 
 The TableToFile class configures a map-only job to read the specified columns and
 write the key/value pairs to a file in HDFS.
 
 The following will extract the rows containing the column "cf:cq":
 
-    $ ./bin/runmr mapreduce.TableToFile -t input --columns cf:cq --output /tmp/output
+    $ ./bin/runmr mapreduce.TableToFile -t exampmles.input --columns cf:cq --output /tmp/output
 
     $ hadoop fs -ls /tmp/output
-    -rw-r--r--   1 username supergroup          0 2013-01-10 14:44 /tmp/output/_SUCCESS
-    drwxr-xr-x   - username supergroup          0 2013-01-10 14:44 /tmp/output/_logs
-    drwxr-xr-x   - username supergroup          0 2013-01-10 14:44 /tmp/output/_logs/history
-    -rw-r--r--   1 username supergroup       9049 2013-01-10 14:44 /tmp/output/_logs/history/job_201301081658_0011_1357847072863_username_TableToFile%5F1357847071434
-    -rw-r--r--   1 username supergroup      26172 2013-01-10 14:44 /tmp/output/_logs/history/job_201301081658_0011_conf.xml
-    -rw-r--r--   1 username supergroup         50 2013-01-10 14:44 /tmp/output/part-m-00000
+    Found 2 items
+    -rw-r--r--   3 root supergroup          0 2021-05-04 10:32 /tmp/output/_SUCCESS
+    -rw-r--r--   3 root supergroup         44 2021-05-04 10:32 /tmp/output/part-m-00000
 
 We can see the output of our little map-reduce job:
 

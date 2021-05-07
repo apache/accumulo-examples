@@ -23,20 +23,21 @@ To run this example you will need some data in a table. The following will
 put a trivial amount of data into accumulo using the accumulo shell:
 
     $ accumulo shell
-    username@instance> createtable rowhash
-    username@instance> insert a-row cf cq value
-    username@instance> insert b-row cf cq value
-    username@instance> quit
+    username@instance> createnamespace examples
+    username@instance> createtable examples.rowhash
+    username@instance examples.rowhash> insert a-row cf cq value
+    username@instance examples.rowhash> insert b-row cf cq value
+    username@instance examples.rowhash> quit
 
 The RowHash class will insert a hash for each row in the database if it contains a
 specified colum. Here's how you run the map/reduce job
 
-    $ ./bin/runmr mapreduce.RowHash -t rowhash --column cf:cq
+    $ ./bin/runmr mapreduce.RowHash -t examples.rowhash --column cf:cq
 
 Now we can scan the table and see the hashes:
 
     $ accumulo shell
-    username@instance> scan -t rowhash
+    username@instance> scan -t examples.rowhash
     a-row cf:cq []    value
     a-row cf-HASHTYPE:cq-MD5BASE64 []    IGPBYI1uC6+AJJxC4r5YBA==
     b-row cf:cq []    value

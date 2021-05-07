@@ -24,22 +24,23 @@ the table. A table must be offline to export it, and it should remain offline
 for the duration of the distcp. An easy way to take a table offline without
 interuppting access to it is to clone it and take the clone offline.
 
-    root@test15> createtable table1
-    root@test15 table1> insert a cf1 cq1 v1
-    root@test15 table1> insert h cf1 cq1 v2
-    root@test15 table1> insert z cf1 cq1 v3
-    root@test15 table1> insert z cf1 cq2 v4
-    root@test15 table1> addsplits -t table1 b r
-    root@test15 table1> scan
+    root@test15> createnamespace examples
+    root@test15> createtable examples.table1
+    root@test15 examples.table1> insert a cf1 cq1 v1
+    root@test15 examples.table1> insert h cf1 cq1 v2
+    root@test15 examples.table1> insert z cf1 cq1 v3
+    root@test15 examples.table1> insert z cf1 cq2 v4
+    root@test15 examples.table1> addsplits -t examples.table1 b r
+    root@test15 examples.table1> scan
     a cf1:cq1 []    v1
     h cf1:cq1 []    v2
     z cf1:cq1 []    v3
     z cf1:cq2 []    v4
-    root@test15> config -t table1 -s table.split.threshold=100M
-    root@test15 table1> clonetable table1 table1_exp
-    root@test15 table1> offline table1_exp
-    root@test15 table1> exporttable -t table1_exp /tmp/table1_export
-    root@test15 table1> quit
+    root@test15 examples.table1> config -t examples.table1 -s table.split.threshold=100M
+    root@test15 examples.table1> clonetable examples.table1 examples.table1_exp
+    root@test15 examples.table1table1> offline examples.table1_exp
+    root@test15 examples.table1> exporttable -t examples.table1_exp /tmp/table1_export
+    root@test15 examples.table1> quit
 
 After executing the export command, a few files are created in the hdfs dir.
 One of the files is a list of files to distcp as shown below.
@@ -61,17 +62,17 @@ The Accumulo shell session below shows importing the table and inspecting it.
 The data, splits, config, and logical time information for the table were
 preserved.
 
-    root@test15> importtable table1_copy /tmp/table1_export_dest
-    root@test15> table table1_copy
-    root@test15 table1_copy> scan
+    root@test15> importtable examples.table1_copy /tmp/table1_export_dest
+    root@test15> table examples.table1_copy
+    root@test15 examples.table1_copy> scan
     a cf1:cq1 []    v1
     h cf1:cq1 []    v2
     z cf1:cq1 []    v3
     z cf1:cq2 []    v4
-    root@test15 table1_copy> getsplits -t table1_copy
+    root@test15 examples.table1_copy> getsplits -t examples.table1_copy
     b
     r
-    root@test15> config -t table1_copy -f split
+    root@test15> config -t examples.table1_copy -f split
     ---------+--------------------------+-------------------------------------------
     SCOPE    | NAME                     | VALUE
     ---------+--------------------------+-------------------------------------------
@@ -83,7 +84,7 @@ preserved.
     accumulo.root        =>        +r
     table1_copy          =>         5
     trace                =>         1
-    root@test15 table1_copy> scan -t accumulo.metadata -b 5 -c srv:time
+    root@test15> scan -t accumulo.metadata -b 5 -c srv:time
     5;b srv:time []    M1343224500467
     5;r srv:time []    M1343224500467
     5< srv:time []    M1343224500467

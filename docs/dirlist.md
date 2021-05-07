@@ -43,26 +43,26 @@ To browse the data ingested, use Viewer.java. Be sure to give the "username" use
 
 then run the Viewer:
 
-    $ ./bin/runex dirlist.Viewer -t dirTable --dataTable dataTable --auths exampleVis --path /local/username/workspace
+    $ ./bin/runex dirlist.Viewer -t examples.dirTable --dataTable examples.dataTable --auths exampleVis --path /local/username/workspace
 
 To list the contents of specific directories, use QueryUtil.java.
 
-    $ ./bin/runex dirlist.QueryUtil -t dirTable --auths exampleVis --path /local/username
-    $ ./bin/runex dirlist.QueryUtil -t dirTable --auths exampleVis --path /local/username/workspace
+    $ ./bin/runex dirlist.QueryUtil -t examples.dirTable --auths exampleVis --path /local/username
+    $ ./bin/runex dirlist.QueryUtil -t examples.dirTable --auths exampleVis --path /local/username/workspace
 
 To perform searches on file or directory names, also use QueryUtil.java. Search terms must contain no more than one wild card and cannot contain "/".
 *Note* these queries run on the _indexTable_ table instead of the dirTable table.
 
-    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path filename --search
-    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path 'filename*' --search
-    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path '*jar' --search
-    $ ./bin/runex dirlist.QueryUtil -t indexTable --auths exampleVis --path 'filename*jar' --search
+    $ ./bin/runex dirlist.QueryUtil -t examples.indexTable --auths exampleVis --path filename --search
+    $ ./bin/runex dirlist.QueryUtil -t examples.indexTable --auths exampleVis --path 'filename*' --search
+    $ ./bin/runex dirlist.QueryUtil -t examples.indexTable --auths exampleVis --path '*jar' --search
+    $ ./bin/runex dirlist.QueryUtil -t examples.indexTable --auths exampleVis --path 'filename*jar' --search
 
 To count the number of direct children (directories and files) and descendants (children and children's descendants, directories and files), run the FileCount over the dirTable table.
 The results are written back to the same table. FileCount reads from and writes to Accumulo. This requires scan authorizations for the read and a visibility for the data written.
 In this example, the authorizations and visibility are set to the same value, exampleVis. See the [visibility example][vis] for more information on visibility and authorizations.
 
-    $ ./bin/runex dirlist.FileCount -t dirTable --auths exampleVis
+    $ ./bin/runex dirlist.FileCount -t examples.dirTable --auths exampleVis
 
 ## Directory Table
 

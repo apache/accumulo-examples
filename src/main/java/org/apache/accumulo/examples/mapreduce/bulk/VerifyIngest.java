@@ -45,7 +45,8 @@ public final class VerifyIngest {
     opts.parseArgs(VerifyIngest.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build();
-        Scanner scanner = client.createScanner(SetupTable.tableName, Authorizations.EMPTY)) {
+        Scanner scanner = client.createScanner(SetupTable.BULK_INGEST_TABLE,
+            Authorizations.EMPTY)) {
 
       scanner.setRange(new Range(String.format(ROW_FORMAT, 0), null));
 
@@ -59,30 +60,30 @@ public final class VerifyIngest {
           Entry<Key,Value> entry = si.next();
 
           if (!entry.getKey().getRow().toString().equals(String.format(ROW_FORMAT, i))) {
-            log.error("unexpected row key {}; expected {}", entry.getKey().getRow(),
-                String.format(ROW_FORMAT, i));
+            String formattedRow = String.format(ROW_FORMAT, i);
+            log.error("unexpected row key {}; expected {}", entry.getKey().getRow(), formattedRow);
             ok = false;
           }
 
           if (!entry.getValue().toString().equals(String.format(VALUE_FORMAT, i))) {
-            log.error("unexpected value {}; expected {}", entry.getValue(),
-                String.format(VALUE_FORMAT, i));
+            var formattedValue = String.format(VALUE_FORMAT, i);
+            log.error("unexpected value {}; expected {}", entry.getValue(), formattedValue);
             ok = false;
           }
 
         } else {
-          log.error("no more rows, expected {}", String.format(ROW_FORMAT, i));
+          var formattedRow = String.format(ROW_FORMAT, i);
+          log.error("no more rows, expected {}", formattedRow);
           ok = false;
           break;
         }
-
       }
 
       if (ok) {
-        System.out.println("Data verification succeeded!");
+        log.info("Data verification succeeded!");
         System.exit(0);
       } else {
-        System.out.println("Data verification failed!");
+        log.info("Data verification failed!");
         System.exit(1);
       }
     }

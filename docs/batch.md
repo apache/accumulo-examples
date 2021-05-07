@@ -30,8 +30,8 @@ Run `SequentialBatchWriter` to add 10000 entries with random 50 bytes values to 
 Verify data was ingested by scanning the table using the Accumulo shell:
 
     $ accumulo shell
-    root@instance> table batch
-    root@instance batch> scan
+    root@instance> table examples.batch
+    root@instance examples.batch> scan
 
 Run `RandomBatchScanner` to perform 1000 random queries and verify the results.
 

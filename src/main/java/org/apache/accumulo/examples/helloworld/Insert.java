@@ -21,10 +21,10 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +36,17 @@ public class Insert {
 
   private static final Logger log = LoggerFactory.getLogger(Insert.class);
 
+  static final String HELLO_TABLE = Common.NAMESPACE + ".hellotable";
+
   public static void main(String[] args)
       throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(Insert.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      try {
-        client.tableOperations().create("hellotable");
-      } catch (TableExistsException e) {
-        // ignore
-      }
+      Common.createTableWithNamespace(client, HELLO_TABLE);
 
-      try (BatchWriter bw = client.createBatchWriter("hellotable")) {
+      try (BatchWriter bw = client.createBatchWriter(HELLO_TABLE)) {
         log.trace("writing ...");
         for (int i = 0; i < 10000; i++) {
           Mutation m = new Mutation(String.format("row_%d", i));

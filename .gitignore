@@ -6,3 +6,4 @@
 /.idea
 /examples.conf
 /conf/env.sh
+/conf/log4j.properties

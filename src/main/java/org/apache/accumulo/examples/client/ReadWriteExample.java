@@ -20,14 +20,16 @@ import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,44 +37,45 @@ import org.slf4j.LoggerFactory;
 public class ReadWriteExample {
 
   private static final Logger log = LoggerFactory.getLogger(ReadWriteExample.class);
-  private static final String namespace = "examples";
-  private static final String table = namespace + ".readwrite";
 
-  public static void main(String[] args) throws Exception {
+  private static final String READWRITE_TABLE = Common.NAMESPACE + ".readwrite";
+
+  private ReadWriteExample() {}
+
+  public static void main(String[] args) throws AccumuloSecurityException, AccumuloException {
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(ReadWriteExample.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-
-      try {
-        client.namespaceOperations().create(namespace);
-      } catch (NamespaceExistsException e) {
-        // ignore
-      }
-      try {
-        client.tableOperations().create(table);
-      } catch (TableExistsException e) {
-        // ignore
-      }
-
+      Common.createTableWithNamespace(client, READWRITE_TABLE);
       // write data
-      try (BatchWriter writer = client.createBatchWriter(table)) {
+      try (BatchWriter writer = client.createBatchWriter(READWRITE_TABLE)) {
         for (int i = 0; i < 10; i++) {
           Mutation m = new Mutation("hello" + i);
           m.put("cf", "cq", new Value("world" + i));
           writer.addMutation(m);
         }
+      } catch (TableNotFoundException e) {
+        log.error("Could not find table {}: {}", e.getTableName(), e.getMessage());
+        System.exit(1);
       }
 
       // read data
-      try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
+      try (Scanner scanner = client.createScanner(READWRITE_TABLE, Authorizations.EMPTY)) {
         for (Entry<Key,Value> entry : scanner) {
-          log.info(entry.getKey().toString() + " -> " + entry.getValue().toString());
+          log.info("{} -> {}", entry.getKey().toString(), entry.getValue().toString());
         }
+      } catch (TableNotFoundException e) {
+        log.error("Could not find table {}: {}", e.getTableName(), e.getMessage());
+        System.exit(1);
       }
 
       // delete table
-      client.tableOperations().delete(table);
+      try {
+        client.tableOperations().delete(READWRITE_TABLE);
+      } catch (TableNotFoundException e) {
+        log.error("Unable to delete table '{}': {}", e.getTableName(), e.getMessage());
+      }
     }
   }
 }

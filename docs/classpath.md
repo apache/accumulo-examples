@@ -33,40 +33,41 @@ is located within the Accumulo source distribution.
 
 Execute following in Accumulo shell to setup classpath context
 
-    root@test15> config -s general.vfs.context.classpath.cx1=hdfs://<namenode host>:<namenode port>/user1/lib/[^.].*.jar
+    root@uno> config -s general.vfs.context.classpath.cx1=hdfs://<namenode host>:<namenode port>/user1/lib/[^.].*.jar
 
-Create a table
+Create a namespace and table
 
-    root@test15> createtable nofoo
+    root@uno> createnamespace examples
+    root@uno> createtable examples.nofoo
 
 The following command makes this table use the configured classpath context
 
-    root@test15 nofoo> config -t nofoo -s table.classpath.context=cx1
+    root@uno examples.nofoo> config -t examples.nofoo -s table.class.loader.context=cx1
 
 The following command configures an iterator that's in FooFilter.jar
 
-    root@test15 nofoo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
+    root@uno examples.nofoo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
     Filter accepts or rejects each Key/Value pair
     ----------> set FooFilter parameter negate, default false keeps k/v that pass accept method, true rejects k/v that pass accept method: false
 
 The commands below show the filter is working.
 
-    root@test15 nofoo> insert foo1 f1 q1 v1
-    root@test15 nofoo> insert noo1 f1 q1 v2
-    root@test15 nofoo> scan
+    root@uno examples.nofoo> insert foo1 f1 q1 v1
+    root@uno examples.nofoo> insert noo1 f1 q1 v2
+    root@uno examples.nofoo> scan
     noo1 f1:q1 []    v2
-    root@test15 nofoo>
+    root@uno examples.nofoo>
 
 Below, an attempt is made to add the FooFilter to a table that's not configured
 to use the classpath context cx1. This fails until the table is configured to
 use cx1.
 
-    root@test15 nofoo> createtable nofootwo
-    root@test15 nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
+    root@uno examples.nofoo> createtable examples.nofootwo
+    root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
         2013-05-03 12:49:35,943 [shell.Shell] ERROR: org.apache.accumulo.shell.ShellCommandException: Command could 
     not be initialized (Unable to load org.apache.accumulo.test.FooFilter; class not found.)
-    root@test15 nofootwo> config -t nofootwo -s table.classpath.context=cx1
-    root@test15 nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
+    root@uno examples.nofootwo> config -t nofootwo -s table.class.loader.context=cx1
+    root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
     Filter accepts or rejects each Key/Value pair
     ----------> set FooFilter parameter negate, default false keeps k/v that pass accept method, true rejects k/v that pass accept method: false
 

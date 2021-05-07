@@ -31,9 +31,10 @@ for what, when and who.
     ---------------------+--------------------------------------+-------------------------------
         <instance name> | 9f8f2a97-432f-4e66-b153-861e2a1ca246 |                localhost:9999
     
-    $ /path/to/accumulo shell -u root -p secret -e "createtable ars"
+    $ /path/to/accumulo shell -u root -p secret -e "createnamespace examples"
+    $ /path/to/accumulo shell -u root -p secret -e "createtable examples.ars"
     $ ./bin/runex reservations.ARS
-    >connect <instance name> localhost root secret ars
+    >connect <instance name> localhost root secret examples.ars
       connected
     >
       Commands :
@@ -59,8 +60,8 @@ for what, when and who.
 Scanning the table in the Accumulo shell after running the example shows the
 following:
 
-    root@test16> table ars
-    root@test16 ars> scan
+    root@test16> table examples.ars
+    root@test16 examples.ars> scan
     room06:20140101 res:0001 []    mallory
     room06:20140101 res:0003 []    trent
     room06:20140101 res:0004 []    eve
