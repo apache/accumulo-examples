@@ -37,13 +37,13 @@ tar distribution.
     -
     username@instance> createnamespace examples
     username@instance> createtable examples.runners
-    username@instance exampoles.runners> setiter -t runners -p 10 -scan -minc -majc -n decStats -class org.apache.accumulo.examples.combiner.StatsCombiner
+    username@instance examples.runners> setiter -t examples.runners -p 10 -scan -minc -majc -n decStats -class org.apache.accumulo.examples.combiner.StatsCombiner
     Combiner that keeps track of min, max, sum, and count
     ----------> set StatsCombiner parameter all, set to true to apply Combiner to every column, otherwise leave blank. if true, columns option will be ignored.: 
     ----------> set StatsCombiner parameter columns, <col fam>[:<col qual>]{,<col fam>[:<col qual>]} escape non aplhanum chars using %<hex>.: stat
     ----------> set StatsCombiner parameter reduceOnFullCompactionOnly, If true, only reduce on full major compactions.  Defaults to false. : 
     ----------> set StatsCombiner parameter radix, radix/base of the numbers: 10
-    username@instance examples.runners> setiter -t runners -p 11 -scan -minc -majc -n hexStats -class org.apache.accumulo.examples.combiner.StatsCombiner
+    username@instance examples.runners> setiter -t examples.runners -p 11 -scan -minc -majc -n hexStats -class org.apache.accumulo.examples.combiner.StatsCombiner
     Combiner that keeps track of min, max, sum, and count
     ----------> set StatsCombiner parameter all, set to true to apply Combiner to every column, otherwise leave blank. if true, columns option will be ignored.: 
     ----------> set StatsCombiner parameter columns, <col fam>[:<col qual>]{,<col fam>[:<col qual>]} escape non-alphanum chars using %<hex>.: hstat
