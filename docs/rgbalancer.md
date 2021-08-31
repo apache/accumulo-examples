@@ -28,6 +28,9 @@ different tservers.  This gives us four groups of tablets: 01, 02, 03, and 04.
     root@accumulo> createnamespace examples
     root@accumulo> createtable examples.testRGB
     root@accumulo examples.testRGB> addsplits -t examples.testRGB 01b 01m 01r 01z 02b 02m 02r 02z 03b 03m 03r 03z 04a 04b 04c 04d 04e 04f 04g 04h 04i 04j 04k 04l 04m 04n 04o 04p
+
+Run the tables command with the "-l" option to find the table ID.
+
     root@accumulo examples.testRGB> tables -l
     accumulo.metadata    =>        !0
     accumulo.replication =>      +rep
@@ -35,7 +38,7 @@ different tservers.  This gives us four groups of tablets: 01, 02, 03, and 04.
     testRGB              =>         2
     trace                =>         1
 
-After adding the splits we look at the locations in the metadata table.
+Using the table ID for part of the begin and end row scan options, look at the locations in the metadata table.
 
     root@accumulo examples.testRGB> scan -t accumulo.metadata -b 2; -e 2< -c loc
     2;01b loc:34a5f6e086b000c []    ip-10-1-2-25:9997
@@ -98,7 +101,7 @@ default tablet are configured to be in group 04.
 
     root@accumulo examples.testRGB> config -t examples.testRGB -s table.custom.balancer.group.regex.pattern=(\d\d).*
     root@accumulo examples.testRGB> config -t examples.testRGB -s table.custom.balancer.group.regex.default=04
-    root@accumulo examples.testRGB> config -t examples.testRGB -s table.balancer=org.apache.accumulo.server.master.balancer.RegexGroupBalancer
+    root@accumulo examples.testRGB> config -t examples.testRGB -s table.balancer=org.apache.accumulo.core.spi.balancer.RegexGroupBalancer
 
 After waiting a bit, look at the tablet locations again and all is good.
 
