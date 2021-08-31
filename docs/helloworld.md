@@ -25,9 +25,9 @@ Inserts data with a BatchWriter:
 
     $ ./bin/runex helloworld.Insert
 
-On the accumulo status page at the URL below (where 'master' is replaced with the name or IP of your accumulo master), you should see 50K entries
+On the accumulo status page at the URL below (you may need to replace 'localhost' with the name or IP of your server), you should see 50K entries
 
-    http://master:9995/
+    http://localhost:9995/
 
 To view the entries, use the shell (run `accumulo shell -u username -p password` to access it) to scan the table:
 
