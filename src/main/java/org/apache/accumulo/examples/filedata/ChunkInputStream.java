@@ -45,7 +45,7 @@ public class ChunkInputStream extends InputStream {
   protected int currentChunkSize;
   protected boolean gotEndMarker;
 
-  protected byte buf[];
+  protected byte[] buf;
   protected int count;
   protected int pos;
 
@@ -86,9 +86,7 @@ public class ChunkInputStream extends InputStream {
     currentVis.add(currentKey.getColumnVisibility());
     currentChunk = FileDataIngest.bytesToInt(currentKey.getColumnQualifier().getBytes(), 4);
     currentChunkSize = FileDataIngest.bytesToInt(currentKey.getColumnQualifier().getBytes(), 0);
-    gotEndMarker = false;
-    if (buf.length == 0)
-      gotEndMarker = true;
+    gotEndMarker = buf.length == 0;
     if (currentChunk != 0) {
       source = null;
       throw new IOException("starting chunk number isn't 0 for " + currentKey.getRow());
@@ -136,8 +134,7 @@ public class ChunkInputStream extends InputStream {
     }
 
     // add the visibility to the list if it's not there
-    if (!currentVis.contains(thisKey.getColumnVisibility()))
-      currentVis.add(thisKey.getColumnVisibility());
+    currentVis.add(thisKey.getColumnVisibility());
 
     // check to see if it is an identical chunk with a different visibility
     if (thisKey.getColumnQualifier().equals(currentKey.getColumnQualifier())) {

@@ -53,8 +53,7 @@ public class CharacterHistogram {
     public void map(List<Entry<Key,Value>> k, InputStream v, Context context)
         throws IOException, InterruptedException {
       Long[] hist = new Long[256];
-      for (int i = 0; i < hist.length; i++)
-        hist[i] = 0L;
+      Arrays.fill(hist, 0L);
       int b = v.read();
       while (b >= 0) {
         hist[b] += 1L;

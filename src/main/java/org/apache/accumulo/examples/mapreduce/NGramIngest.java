@@ -57,7 +57,7 @@ public class NGramIngest {
     @Override
     protected void map(LongWritable location, Text value, Context context)
         throws IOException, InterruptedException {
-      String parts[] = value.toString().split("\\t");
+      String[] parts = value.toString().split("\\t");
       if (parts.length >= 4) {
         Mutation m = new Mutation(parts[0]);
         m.put(parts[1], String.format("%010d", Long.parseLong(parts[2])),
@@ -92,9 +92,9 @@ public class NGramIngest {
         log.info("Creating table " + opts.tableName);
         Common.createTableWithNamespace(client, opts.tableName);
         SortedSet<Text> splits = new TreeSet<>();
-        String numbers[] = "1 2 3 4 5 6 7 8 9".split("\\s");
-        String lower[] = "a b c d e f g h i j k l m n o p q r s t u v w x y z".split("\\s");
-        String upper[] = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split("\\s");
+        String[] numbers = "1 2 3 4 5 6 7 8 9".split("\\s");
+        String[] lower = "a b c d e f g h i j k l m n o p q r s t u v w x y z".split("\\s");
+        String[] upper = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split("\\s");
         for (String[] array : new String[][] {numbers, lower, upper}) {
           for (String s : array) {
             splits.add(new Text(s));

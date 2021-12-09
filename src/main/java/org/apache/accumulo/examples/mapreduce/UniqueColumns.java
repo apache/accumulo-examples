@@ -44,7 +44,7 @@ public class UniqueColumns {
   private static final Text EMPTY = new Text();
 
   public static class UMapper extends Mapper<Key,Value,Text,Text> {
-    private Text temp = new Text();
+    private final Text temp = new Text();
     private static final Text CF = new Text("cf:");
     private static final Text CQ = new Text("cq:");
 

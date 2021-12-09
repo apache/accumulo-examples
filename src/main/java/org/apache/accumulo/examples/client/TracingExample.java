@@ -52,7 +52,7 @@ public class TracingExample {
   private static final Logger log = LoggerFactory.getLogger(TracingExample.class);
   private static final String DEFAULT_TABLE_NAME = "test";
 
-  private AccumuloClient client;
+  private final AccumuloClient client;
 
   static class Opts extends ClientOnDefaultTable {
     @Parameter(names = {"--createtable"}, description = "create table before doing anything")

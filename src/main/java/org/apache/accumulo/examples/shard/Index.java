@@ -82,7 +82,7 @@ public class Index {
 
       StringBuilder sb = new StringBuilder();
 
-      char data[] = new char[4096];
+      char[] data = new char[4096];
       int len;
       while ((len = fr.read(data)) != -1) {
         sb.append(data, 0, len);

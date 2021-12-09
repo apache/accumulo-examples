@@ -44,12 +44,12 @@ public class FileCount {
   private int entriesScanned;
   private int inserts;
 
-  private ScannerOpts scanOpts;
-  private BatchWriterOpts bwOpts;
-  private AccumuloClient client;
-  private String tableName;
-  private Authorizations auths;
-  private ColumnVisibility visibility;
+  private final ScannerOpts scanOpts;
+  private final BatchWriterOpts bwOpts;
+  private final AccumuloClient client;
+  private final String tableName;
+  private final Authorizations auths;
+  private final ColumnVisibility visibility;
 
   private static class CountValue {
     int dirCount = 0;
@@ -100,7 +100,7 @@ public class FileCount {
   }
 
   private int findMaxDepth(Scanner scanner, int min, int mid, int max) {
-    // check to see if the mid point exist
+    // check to see if the mid-point exist
     if (max < min)
       return -1;
 

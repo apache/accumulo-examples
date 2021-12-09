@@ -41,7 +41,7 @@ public class ChunkInputFormat extends InputFormatBase<List<Entry<Key,Value>>,Inp
   @Override
   public RecordReader<List<Entry<Key,Value>>,InputStream> createRecordReader(InputSplit split,
       TaskAttemptContext context) {
-    return new RecordReaderBase<List<Entry<Key,Value>>,InputStream>() {
+    return new RecordReaderBase<>() {
       private PeekingIterator<Entry<Key,Value>> peekingScannerIterator;
 
       @Override

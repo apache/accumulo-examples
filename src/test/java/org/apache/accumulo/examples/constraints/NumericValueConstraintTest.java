@@ -28,7 +28,7 @@ import com.google.common.collect.Iterables;
 
 public class NumericValueConstraintTest {
 
-  private NumericValueConstraint nvc = new NumericValueConstraint();
+  private final NumericValueConstraint nvc = new NumericValueConstraint();
 
   @Test
   public void testCheck() {
