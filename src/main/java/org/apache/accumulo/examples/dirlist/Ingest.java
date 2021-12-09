@@ -68,7 +68,7 @@ public final class Ingest {
     if (path.equals("/"))
       path = "";
     Mutation m = new Mutation(QueryUtil.getRow(path));
-    Text colf = null;
+    Text colf;
     if (isDir)
       colf = QueryUtil.DIR_COLF;
     else

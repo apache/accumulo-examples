@@ -65,7 +65,7 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
   // track errors in the map reduce job; jobs insert a dummy error for the map and cleanup tasks (to
   // ensure test correctness), so error tests should check to see if there is at least one error
   // (could be more depending on the test) rather than zero
-  private static Multimap<String,AssertionError> assertionErrors = ArrayListMultimap.create();
+  private static final Multimap<String,AssertionError> assertionErrors = ArrayListMultimap.create();
 
   private static final Authorizations AUTHS = new Authorizations("A", "B", "C", "D");
 
@@ -126,7 +126,7 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
 
         byte[] b = new byte[20];
         int read;
-        try {
+        try (value) {
           switch (count) {
             case 0:
               assertEquals(key.size(), 2);
@@ -149,8 +149,6 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
           }
         } catch (AssertionError e) {
           assertionErrors.put(table, e);
-        } finally {
-          value.close();
         }
         count++;
       }

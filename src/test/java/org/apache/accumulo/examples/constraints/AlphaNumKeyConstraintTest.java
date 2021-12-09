@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 
 public class AlphaNumKeyConstraintTest {
 
-  private AlphaNumKeyConstraint ankc = new AlphaNumKeyConstraint();
+  private final AlphaNumKeyConstraint ankc = new AlphaNumKeyConstraint();
 
   @Test
   public void test() {

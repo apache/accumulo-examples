@@ -126,7 +126,7 @@ public class ContinuousQuery {
       int numTerms) {
     if (words.size() >= numTerms) {
       Collections.shuffle(words, rand);
-      Text docWords[] = new Text[numTerms];
+      Text[] docWords = new Text[numTerms];
       for (int i = 0; i < docWords.length; i++) {
         docWords[i] = words.get(i);
       }

@@ -52,16 +52,16 @@ public class Query {
 
     @Parameter(names = {"--sample"},
         description = "Do queries against sample, useful when sample is built using column qualifier")
-    private boolean useSample = false;
+    private final boolean useSample = false;
 
     @Parameter(names = {"--sampleCutoff"},
         description = "Use sample data to determine if a query might return a number of documents over the cutoff.  This check is per tablet.")
-    private Integer sampleCutoff = null;
+    private final Integer sampleCutoff = null;
   }
 
   public static List<String> query(BatchScanner bs, List<String> terms, Integer cutoff) {
 
-    Text columns[] = new Text[terms.size()];
+    Text[] columns = new Text[terms.size()];
     int i = 0;
     for (String term : terms) {
       columns[i++] = new Text(term);

@@ -40,7 +40,7 @@ import com.google.common.collect.PeekingIterator;
  */
 public class FileDataQuery {
   List<Entry<Key,Value>> lastRefs;
-  private ChunkInputStream cis;
+  private final ChunkInputStream cis;
   Scanner scanner;
 
   public FileDataQuery(AccumuloClient client, String tableName, Authorizations auths)

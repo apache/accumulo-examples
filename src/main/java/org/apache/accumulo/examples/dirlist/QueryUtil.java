@@ -39,9 +39,9 @@ import com.beust.jcommander.Parameter;
  * and performing single wild card searches on file or directory names.
  */
 public class QueryUtil {
-  private AccumuloClient client;
-  private String tableName;
-  private Authorizations auths;
+  private final AccumuloClient client;
+  private final String tableName;
+  private final Authorizations auths;
   public static final Text DIR_COLF = new Text("dir");
   public static final Text FORWARD_PREFIX = new Text("f");
   public static final Text REVERSE_PREFIX = new Text("r");
@@ -171,7 +171,7 @@ public class QueryUtil {
       name = name.substring(name.lastIndexOf("/") + 1);
       String type = getType(e.getKey().getColumnFamily());
       if (!fim.containsKey(name)) {
-        fim.put(name, new TreeMap<String,String>());
+        fim.put(name, new TreeMap<>());
         fim.get(name).put("fullname", e.getKey().getRow().toString().substring(3));
       }
       fim.get(name).put(type + e.getKey().getColumnQualifier().toString() + ":"
@@ -202,7 +202,7 @@ public class QueryUtil {
    *          beginning or end
    */
   public Iterable<Entry<Key,Value>> singleRestrictedWildCardSearch(String exp) throws Exception {
-    if (exp.indexOf("/") >= 0)
+    if (exp.contains("/"))
       throw new Exception("this method only works with unqualified names");
 
     Scanner scanner = client.createScanner(tableName, auths);
@@ -214,7 +214,7 @@ public class QueryUtil {
       System.out.println("executing ending wildcard search for " + exp);
       exp = exp.substring(0, exp.length() - 1);
       scanner.setRange(Range.prefix(getForwardIndex(exp)));
-    } else if (exp.indexOf("*") >= 0) {
+    } else if (exp.contains("*")) {
       throw new Exception("this method only works for beginning or ending wild cards");
     } else {
       return exactTermSearch(exp);

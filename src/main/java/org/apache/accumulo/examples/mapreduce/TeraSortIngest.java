@@ -183,8 +183,8 @@ public class TeraSortIngest {
     }
   }
 
-  private static String NUMSPLITS = "terasort.overridesplits";
-  private static String NUMROWS = "terasort.numrows";
+  private static final String NUMSPLITS = "terasort.overridesplits";
+  private static final String NUMROWS = "terasort.numrows";
 
   static class RandomGenerator {
     private long seed = 0;
@@ -237,12 +237,12 @@ public class TeraSortIngest {
     private int minvaluelength = 0;
     private int maxvaluelength = 0;
 
-    private Text key = new Text();
-    private Text value = new Text();
+    private final Text key = new Text();
+    private final Text value = new Text();
     private RandomGenerator rand;
     private byte[] keyBytes; // = new byte[12];
-    private byte[] spaces = "          ".getBytes();
-    private byte[][] filler = new byte[26][];
+    private final byte[] spaces = "          ".getBytes();
+    private final byte[][] filler = new byte[26][];
     {
       for (int i = 0; i < 26; ++i) {
         filler[i] = new byte[10];
@@ -255,7 +255,7 @@ public class TeraSortIngest {
     /**
      * Add a random key to the text
      */
-    private Random random = new Random();
+    private final Random random = new Random();
 
     private void addKey() {
       int range = random.nextInt(maxkeylength - minkeylength + 1);

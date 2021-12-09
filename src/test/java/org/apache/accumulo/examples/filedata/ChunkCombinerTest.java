@@ -42,7 +42,7 @@ public class ChunkCombinerTest extends TestCase {
     private Iterator<Entry<Key,Value>> iter;
     private Entry<Key,Value> entry;
     Collection<ByteSequence> columnFamilies;
-    private SortedMap<Key,Value> map;
+    private final SortedMap<Key,Value> map;
     private Range range;
 
     @Override

@@ -58,7 +58,7 @@ public class RandomBatchWriter {
    */
   public static byte[] createValue(long rowid, int dataSize) {
     Random r = new Random(rowid);
-    byte value[] = new byte[dataSize];
+    byte[] value = new byte[dataSize];
 
     r.nextBytes(value);
 
@@ -89,7 +89,7 @@ public class RandomBatchWriter {
 
     // create a random value that is a function of the
     // row id for verification purposes
-    byte value[] = createValue(rowid, dataSize);
+    byte[] value = createValue(rowid, dataSize);
 
     m.put(new Text("foo"), new Text("1"), visibility, new Value(value));
 
@@ -159,7 +159,7 @@ public class RandomBatchWriter {
       if (e.getSecurityErrorCodes().size() > 0) {
         HashMap<String,Set<SecurityErrorCode>> tables = new HashMap<>();
         for (Entry<TabletId,Set<SecurityErrorCode>> ke : e.getSecurityErrorCodes().entrySet()) {
-          String tableId = ke.getKey().getTableId().toString();
+          String tableId = ke.getKey().getTable().toString();
           Set<SecurityErrorCode> secCodes = tables.get(tableId);
           if (secCodes == null) {
             secCodes = new HashSet<>();

@@ -62,8 +62,8 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
   JScrollPane dataPane;
 
   public static class NodeInfo {
-    private String name;
-    private Map<String,String> data;
+    private final String name;
+    private final Map<String,String> data;
 
     public NodeInfo(String name, Map<String,String> data) {
       this.name = name;

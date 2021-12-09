@@ -46,7 +46,7 @@ class CountingVerifyingReceiver {
     String row = key.getRow().toString();
     long rowid = Integer.parseInt(row.split("_")[1]);
 
-    byte expectedValue[] = RandomBatchWriter.createValue(rowid, expectedValueSize);
+    byte[] expectedValue = RandomBatchWriter.createValue(rowid, expectedValueSize);
 
     if (!Arrays.equals(expectedValue, value.get())) {
       log.error("Got unexpected value for " + key + " expected : "
