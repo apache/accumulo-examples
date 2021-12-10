@@ -239,6 +239,7 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
       }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public int run(String[] args) throws Exception {
       if (args.length != 2) {

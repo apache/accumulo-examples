@@ -119,6 +119,7 @@ public class TracingExample {
     scope.close();
   }
 
+  @SuppressWarnings("deprecation")
   private void readEntries(Opts opts) throws TableNotFoundException {
 
     Scanner scanner = client.createScanner(opts.getTableName(), opts.auths);

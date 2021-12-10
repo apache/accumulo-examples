@@ -79,6 +79,7 @@ public class CharacterHistogram {
     String visibilities = "";
   }
 
+  @SuppressWarnings("deprecation")
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(CharacterHistogram.class.getName(), args);

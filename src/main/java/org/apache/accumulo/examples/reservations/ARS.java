@@ -37,8 +37,6 @@ import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jline.console.ConsoleReader;
-
 /**
  * Accumulo Reservation System : An example reservation system using Accumulo. Supports atomic
  * reservations of a resource at a date. Wait list are also supported. In order to keep the example
@@ -250,11 +248,12 @@ public class ARS {
   }
 
   public static void main(String[] args) throws Exception {
-    final ConsoleReader reader = new ConsoleReader();
+    var console = System.console();
+    var out = System.out;
     ARS ars = null;
 
     while (true) {
-      String line = reader.readLine(">");
+      String line = console.readLine(">");
       if (line == null)
         break;
 
@@ -272,7 +271,7 @@ public class ARS {
             @Override
             public void run() {
               try {
-                reader.println("  " + String.format("%20s", tokens[whoIndex]) + " : "
+                out.println("  " + String.format("%20s", tokens[whoIndex]) + " : "
                     + fars.reserve(tokens[1], tokens[2], tokens[whoIndex]));
               } catch (Exception e) {
                 log.warn("Could not write to the ConsoleReader.", e);
@@ -294,9 +293,9 @@ public class ARS {
       } else if (tokens[0].equals("list") && tokens.length == 3 && ars != null) {
         List<String> reservations = ars.list(tokens[1], tokens[2]);
         if (reservations.size() > 0) {
-          reader.println("  Reservation holder : " + reservations.get(0));
+          out.println("  Reservation holder : " + reservations.get(0));
           if (reservations.size() > 1)
-            reader.println("  Wait list : " + reservations.subList(1, reservations.size()));
+            out.println("  Wait list : " + reservations.subList(1, reservations.size()));
         }
       } else if (tokens[0].equals("quit") && tokens.length == 1) {
         break;
@@ -307,18 +306,18 @@ public class ARS {
             .as(tokens[3], tokens[4]).build();
         if (client.tableOperations().exists(tokens[5])) {
           ars = new ARS(client, tokens[5]);
-          reader.println("  connected");
+          out.println("  connected");
         } else {
-          reader.println("  No Such Table");
+          out.println("  No Such Table");
         }
       } else {
         System.out.println("  Commands : ");
         if (ars == null) {
-          reader.println("    connect <instance> <zookeepers> <user> <pass> <table>");
+          out.println("    connect <instance> <zookeepers> <user> <pass> <table>");
         } else {
-          reader.println("    reserve <what> <when> <who> {who}");
-          reader.println("    cancel <what> <when> <who>");
-          reader.println("    list <what> <when>");
+          out.println("    reserve <what> <when> <who> {who}");
+          out.println("    cancel <what> <when> <who>");
+          out.println("    list <what> <when>");
         }
       }
     }

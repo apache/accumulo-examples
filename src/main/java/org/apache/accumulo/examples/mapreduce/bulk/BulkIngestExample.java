@@ -37,16 +37,12 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Example map reduce job that bulk ingest data into an accumulo table. The expected input is text
  * files containing tab separated key value pairs on each line.
  */
 public final class BulkIngestExample {
-
-  private static final Logger log = LoggerFactory.getLogger(BulkIngestExample.class);
 
   static final String workDir = "tmp/bulkWork";
   static final String inputDir = "bulk";

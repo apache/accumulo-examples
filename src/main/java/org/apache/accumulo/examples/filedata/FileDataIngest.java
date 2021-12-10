@@ -37,8 +37,6 @@ import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
 import org.apache.hadoop.io.Text;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
@@ -46,8 +44,6 @@ import com.beust.jcommander.Parameter;
  * Takes a list of files and archives them into Accumulo keyed on hashes of the files.
  */
 public class FileDataIngest {
-
-  private static final Logger log = LoggerFactory.getLogger(FileDataIngest.class);
 
   public static final Text CHUNK_CF = new Text("~chunk");
   public static final Text REFS_CF = new Text("refs");
