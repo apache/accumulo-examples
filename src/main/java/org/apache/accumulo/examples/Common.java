@@ -29,8 +29,6 @@ public class Common {
    *          AccumuloClient instance
    * @param table
    *          The name of the table to be created
-   * @throws AccumuloException
-   * @throws AccumuloSecurityException
    */
   public static void createTableWithNamespace(final AccumuloClient client, final String table)
       throws AccumuloException, AccumuloSecurityException {

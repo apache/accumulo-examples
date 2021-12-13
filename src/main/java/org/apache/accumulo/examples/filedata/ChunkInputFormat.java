@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.util.FormatUtil;
@@ -37,7 +36,9 @@ import com.google.common.collect.PeekingIterator;
  * An InputFormat that turns the file data ingested with {@link FileDataIngest} into an InputStream
  * using {@link ChunkInputStream}. Mappers used with this InputFormat must close the InputStream.
  */
-public class ChunkInputFormat extends InputFormatBase<List<Entry<Key,Value>>,InputStream> {
+@SuppressWarnings("deprecation")
+public class ChunkInputFormat extends
+    org.apache.accumulo.core.client.mapreduce.InputFormatBase<List<Entry<Key,Value>>,InputStream> {
   @Override
   public RecordReader<List<Entry<Key,Value>>,InputStream> createRecordReader(InputSplit split,
       TaskAttemptContext context) {

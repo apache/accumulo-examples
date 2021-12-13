@@ -26,7 +26,6 @@ import org.apache.accumulo.core.client.SampleNotPresentException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
-import org.apache.accumulo.core.client.admin.CompactionStrategyConfig;
 import org.apache.accumulo.core.client.sample.RowSampler;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.data.Key;
@@ -37,8 +36,6 @@ import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
 import org.apache.accumulo.examples.client.RandomBatchWriter;
 import org.apache.accumulo.examples.shard.CutoffIntersectingIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -49,11 +46,10 @@ import com.google.common.collect.ImmutableMap;
  */
 public class SampleExample {
 
-  private static final Logger log = LoggerFactory.getLogger(SampleExample.class);
-
   // a compaction strategy that only selects files for compaction that have no sample data or sample
   // data created in a different way than the tables
-  static final CompactionStrategyConfig NO_SAMPLE_STRATEGY = new CompactionStrategyConfig(
+  @SuppressWarnings("removal")
+  static final org.apache.accumulo.core.client.admin.CompactionStrategyConfig NO_SAMPLE_STRATEGY = new org.apache.accumulo.core.client.admin.CompactionStrategyConfig(
       "org.apache.accumulo.tserver.compaction.strategies.ConfigurableCompactionStrategy")
           .setOptions(Collections.singletonMap("SF_NO_SAMPLE", ""));
 
@@ -63,6 +59,7 @@ public class SampleExample {
     }
   }
 
+  @SuppressWarnings("removal")
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     BatchWriterOpts bwOpts = new BatchWriterOpts();

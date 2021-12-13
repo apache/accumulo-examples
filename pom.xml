@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>23</version>
+    <version>24</version>
   </parent>
   <groupId>org.apache.accumulo</groupId>
   <artifactId>accumulo-examples</artifactId>
@@ -33,18 +33,28 @@
     <hadoop.version>3.3.0</hadoop.version>
     <htrace.hadoop.version>4.1.0-incubating</htrace.hadoop.version>
     <htrace.version>3.2.0-incubating</htrace.version>
-    <log4j.version>2.14.0</log4j.version>
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
+    <minimalJavaBuildVersion>11</minimalJavaBuildVersion>
+    <minimalMavenBuildVersion>3.5.0</minimalMavenBuildVersion>
+    <!-- timestamp for reproducible outputs, updated on release by the release plugin -->
+    <project.build.outputTimestamp>2020-12-17T22:06:50Z</project.build.outputTimestamp>
     <zookeeper.version>3.5.9</zookeeper.version>
   </properties>
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>29.0-jre</version>
+        <groupId>org.apache.accumulo</groupId>
+        <artifactId>accumulo-project</artifactId>
+        <version>${accumulo.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.htrace</groupId>
+        <artifactId>htrace-core</artifactId>
+        <version>${htrace.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -52,89 +62,65 @@
     <dependency>
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
-      <version>1.72</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>1.10</version>
-    </dependency>
-    <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-      <version>2.14.6</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-core</artifactId>
-      <version>${accumulo.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-hadoop-mapreduce</artifactId>
-      <version>${accumulo.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-tracer</artifactId>
-      <version>${accumulo.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
-      <version>${hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.htrace</groupId>
       <artifactId>htrace-core</artifactId>
-      <version>${htrace.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.htrace</groupId>
       <artifactId>htrace-core4</artifactId>
-      <version>${htrace.hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
-      <version>${log4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
-      <version>${log4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
-      <version>${log4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper</artifactId>
-      <version>${zookeeper.version}</version>
     </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-minicluster</artifactId>
-      <version>${accumulo.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-test</artifactId>
-      <version>${accumulo.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -145,7 +131,6 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
           <configuration>
             <optimize>true</optimize>
           </configuration>
@@ -153,15 +138,17 @@
         <plugin>
           <groupId>com.github.ekryd.sortpom</groupId>
           <artifactId>sortpom-maven-plugin</artifactId>
-          <version>2.10.0</version>
+          <version>3.0.0</version>
           <configuration>
-            <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
             <createBackupFile>false</createBackupFile>
-            <lineSeparator>\n</lineSeparator>
             <expandEmptyElements>false</expandEmptyElements>
+            <keepBlankLines>false</keepBlankLines>
+            <lineSeparator>\n</lineSeparator>
             <nrOfIndentSpace>2</nrOfIndentSpace>
+            <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
             <sortDependencies>scope,groupId,artifactId</sortDependencies>
             <sortProperties>true</sortProperties>
+            <spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
             <verifyFail>Stop</verifyFail>
           </configuration>
         </plugin>
@@ -173,30 +160,6 @@
       </plugins>
     </pluginManagement>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <!-- must be same id as in the apache parent pom, to override the version -->
-            <id>enforce-maven-version</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <phase>validate</phase>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <version>[3.5.0,)</version>
-                </requireMavenVersion>
-                <requireJavaVersion>
-                  <version>[11,)</version>
-                </requireJavaVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -214,7 +177,7 @@
         <!-- This was added to ensure project only uses public API -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.1.2</version>
         <configuration>
           <configLocation>contrib/checkstyle.xml</configLocation>
         </configuration>
@@ -222,7 +185,7 @@
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>8.29</version>
+            <version>9.1</version>
           </dependency>
         </dependencies>
         <executions>
@@ -237,7 +200,7 @@
       <plugin>
         <groupId>net.revelc.code</groupId>
         <artifactId>impsort-maven-plugin</artifactId>
-        <version>1.3.0</version>
+        <version>1.6.2</version>
         <configuration>
           <removeUnused>true</removeUnused>
           <groups>java.,javax.,org.,com.</groups>
@@ -275,19 +238,20 @@
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
         <artifactId>formatter-maven-plugin</artifactId>
-        <version>2.10.0</version>
+        <version>2.17.1</version>
         <configuration>
-          <configFile>${eclipseFormatterStyle}</configFile>
           <compilerCompliance>${maven.compiler.source}</compilerCompliance>
           <compilerSource>${maven.compiler.source}</compilerSource>
           <compilerTargetPlatform>${maven.compiler.target}</compilerTargetPlatform>
+          <configFile>${eclipseFormatterStyle}</configFile>
           <lineEnding>LF</lineEnding>
           <overrideConfigCompilerVersion>true</overrideConfigCompilerVersion>
-          <skipJsFormatting>true</skipJsFormatting>
-          <skipHtmlFormatting>true</skipHtmlFormatting>
-          <skipXmlFormatting>true</skipXmlFormatting>
-          <skipJsonFormatting>true</skipJsonFormatting>
+          <removeTrailingWhitespace>true</removeTrailingWhitespace>
           <skipCssFormatting>true</skipCssFormatting>
+          <skipHtmlFormatting>true</skipHtmlFormatting>
+          <skipJsFormatting>true</skipJsFormatting>
+          <skipJsonFormatting>true</skipJsonFormatting>
+          <skipXmlFormatting>true</skipXmlFormatting>
         </configuration>
         <executions>
           <execution>
