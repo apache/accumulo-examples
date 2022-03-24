@@ -17,8 +17,8 @@
 
 package org.apache.accumulo.examples.filedata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,9 +45,9 @@ import org.apache.accumulo.harness.AccumuloClusterHarness;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
@@ -67,19 +67,19 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
   private List<Entry<Key,Value>> baddata;
   private List<Entry<Key,Value>> multidata;
 
-  @Before
+  @BeforeEach
   public void setupInstance() throws Exception {
     client = Accumulo.newClient().from(getClientProps()).build();
     tableName = getUniqueNames(1)[0];
     client.securityOperations().changeUserAuthorizations(client.whoami(), AUTHS);
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     client.close();
   }
 
-  @Before
+  @BeforeEach
   public void setupData() {
     data = new ArrayList<>();
     addData(data, "a", "refs", "id\0ext", "A&B", "ext");

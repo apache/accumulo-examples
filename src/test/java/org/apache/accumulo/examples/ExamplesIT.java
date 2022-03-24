@@ -18,10 +18,11 @@ package org.apache.accumulo.examples;
 
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -75,10 +76,9 @@ import org.apache.accumulo.test.TestIngest.IngestParams;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Iterators;
 
@@ -100,7 +100,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
     cfg.setProperty(Property.TSERV_NATIVEMAP_ENABLED, "false");
   }
 
-  @Before
+  @BeforeEach
   public void setupTest() throws Exception {
     c = Accumulo.newClient().from(getClientProps()).build();
     String user = c.whoami();
@@ -111,7 +111,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
       String passwd = new String(((PasswordToken) getAdminToken()).getPassword(), UTF_8);
       writeClientPropsFile(getClientPropsFile(), instance, keepers, user, passwd);
     } else {
-      Assert.fail("Unknown token type: " + token);
+      fail("Unknown token type: " + token);
     }
     fs = getCluster().getFileSystem();
     dir = new Path(cluster.getTemporaryPath(), getClass().getName()).toString();
@@ -120,7 +120,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
     c.securityOperations().changeUserAuthorizations(user, new Authorizations(auths.split(",")));
   }
 
-  @After
+  @AfterEach
   public void teardownTest() throws Exception {
     if (null != origAuths) {
       c.securityOperations().changeUserAuthorizations(getAdminPrincipal(), origAuths);
@@ -186,10 +186,10 @@ public class ExamplesIT extends AccumuloClusterHarness {
     bw.flush();
 
     Iterator<Entry<Key,Value>> iter = c.createScanner(table, Authorizations.EMPTY).iterator();
-    assertTrue("Iterator had no results", iter.hasNext());
+    assertTrue(iter.hasNext(), "Iterator had no results");
     Entry<Key,Value> e = iter.next();
-    assertEquals("Results ", "1,3,4,2", e.getValue().toString());
-    assertFalse("Iterator had additional results", iter.hasNext());
+    assertEquals("1,3,4,2", e.getValue().toString(), "Results ");
+    assertFalse(iter.hasNext(), "Iterator had additional results");
 
     m = new Mutation("foo");
     m.put("a", "b", "0,20,20,2");
@@ -197,10 +197,10 @@ public class ExamplesIT extends AccumuloClusterHarness {
     bw.close();
 
     iter = c.createScanner(table, Authorizations.EMPTY).iterator();
-    assertTrue("Iterator had no results", iter.hasNext());
+    assertTrue(iter.hasNext(), "Iterator had no results");
     e = iter.next();
-    assertEquals("Results ", "0,20,24,4", e.getValue().toString());
-    assertFalse("Iterator had additional results", iter.hasNext());
+    assertEquals("0,20,24,4", e.getValue().toString(), "Results ");
+    assertFalse(iter.hasNext(), "Iterator had additional results");
   }
 
   @Test
@@ -220,8 +220,10 @@ public class ExamplesIT extends AccumuloClusterHarness {
     // should find ourselves
     boolean thisFile = false;
     for (String file : found) {
-      if (file.endsWith("/ExamplesIT.java"))
+      if (file.endsWith("/ExamplesIT.java")) {
         thisFile = true;
+        break;
+      }
     }
     assertTrue(thisFile);
 
@@ -280,7 +282,7 @@ public class ExamplesIT extends AccumuloClusterHarness {
     assumeTrue(getAdminToken() instanceof PasswordToken);
     Path readme = new Path(new Path(System.getProperty("user.dir")), "README.md");
     if (!new File(readme.toString()).exists()) {
-      Assert.fail("README.md does not exist!");
+      fail("README.md does not exist!");
     }
     fs.copyFromLocalFile(readme, new Path(dir + "/tmp/wc/README.md"));
     String[] args = new String[] {"-c", getClientPropsFile(), "-i", dir + "/tmp/wc", "-t",
@@ -333,6 +335,6 @@ public class ExamplesIT extends AccumuloClusterHarness {
     // We're already slurping stdout into memory (not redirecting to file). Might as well add it
     // to error message.
     pair = getClusterControl().execWithStdout(theClass, args);
-    Assert.assertEquals("stdout=" + pair.getValue(), 0, pair.getKey().intValue());
+    assertEquals(0, pair.getKey().intValue(), "stdout=" + pair.getValue());
   }
 }

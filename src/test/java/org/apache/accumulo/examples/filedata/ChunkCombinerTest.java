@@ -16,6 +16,11 @@
  */
 package org.apache.accumulo.examples.filedata;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,10 +38,10 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import junit.framework.TestCase;
-
-public class ChunkCombinerTest extends TestCase {
+public class ChunkCombinerTest {
 
   public static class MapIterator implements SortedKeyValueIterator<Key,Value> {
     private Iterator<Entry<Key,Value>> iter;
@@ -76,7 +81,7 @@ public class ChunkCombinerTest extends TestCase {
     }
 
     @Override
-    public void next() throws IOException {
+    public void next() {
       entry = null;
       while (iter.hasNext()) {
         entry = iter.next();
@@ -92,8 +97,7 @@ public class ChunkCombinerTest extends TestCase {
     }
 
     @Override
-    public void seek(Range range, Collection<ByteSequence> columnFamilies, boolean inclusive)
-        throws IOException {
+    public void seek(Range range, Collection<ByteSequence> columnFamilies, boolean inclusive) {
       if (!inclusive) {
         throw new IllegalArgumentException("can only do inclusive colf filtering");
       }
@@ -114,43 +118,34 @@ public class ChunkCombinerTest extends TestCase {
 
     @Override
     public void init(SortedKeyValueIterator<Key,Value> source, Map<String,String> options,
-        IteratorEnvironment env) throws IOException {
+        IteratorEnvironment env) {
       throw new UnsupportedOperationException();
     }
   }
 
-  private TreeMap<Key,Value> row1;
-  private TreeMap<Key,Value> row2;
-  private TreeMap<Key,Value> row3;
-  private TreeMap<Key,Value> allRows;
+  private static TreeMap<Key,Value> allRows;
 
-  private TreeMap<Key,Value> cRow1;
-  private TreeMap<Key,Value> cRow2;
-  private TreeMap<Key,Value> cRow3;
-  private TreeMap<Key,Value> allCRows;
+  private static TreeMap<Key,Value> allCRows;
 
-  private TreeMap<Key,Value> cOnlyRow1;
-  private TreeMap<Key,Value> cOnlyRow2;
-  private TreeMap<Key,Value> cOnlyRow3;
-  private TreeMap<Key,Value> allCOnlyRows;
+  private static TreeMap<Key,Value> allCOnlyRows;
 
-  private TreeMap<Key,Value> badrow;
+  private static TreeMap<Key,Value> badrow;
 
-  @Override
-  protected void setUp() {
-    row1 = new TreeMap<>();
-    row2 = new TreeMap<>();
-    row3 = new TreeMap<>();
+  @BeforeAll
+  protected static void setUp() {
+    TreeMap<Key,Value> row1 = new TreeMap<>();
+    TreeMap<Key,Value> row2 = new TreeMap<>();
+    TreeMap<Key,Value> row3 = new TreeMap<>();
     allRows = new TreeMap<>();
 
-    cRow1 = new TreeMap<>();
-    cRow2 = new TreeMap<>();
-    cRow3 = new TreeMap<>();
+    TreeMap<Key,Value> cRow1 = new TreeMap<>();
+    TreeMap<Key,Value> cRow2 = new TreeMap<>();
+    TreeMap<Key,Value> cRow3 = new TreeMap<>();
     allCRows = new TreeMap<>();
 
-    cOnlyRow1 = new TreeMap<>();
-    cOnlyRow2 = new TreeMap<>();
-    cOnlyRow3 = new TreeMap<>();
+    TreeMap<Key,Value> cOnlyRow1 = new TreeMap<>();
+    TreeMap<Key,Value> cOnlyRow2 = new TreeMap<>();
+    TreeMap<Key,Value> cOnlyRow3 = new TreeMap<>();
     allCOnlyRows = new TreeMap<>();
 
     badrow = new TreeMap<>();
@@ -225,6 +220,7 @@ public class ChunkCombinerTest extends TestCase {
 
   private static final Collection<ByteSequence> emptyColfs = new HashSet<>();
 
+  @Test
   public void test1() throws IOException {
     runTest(false, allRows, allCRows, emptyColfs);
     runTest(true, allRows, allCRows, emptyColfs);
@@ -250,7 +246,7 @@ public class ChunkCombinerTest extends TestCase {
     TreeMap<Key,Value> seen = new TreeMap<>();
 
     while (iter.hasTop()) {
-      assertFalse("already contains " + iter.getTopKey(), seen.containsKey(iter.getTopKey()));
+      assertFalse(seen.containsKey(iter.getTopKey()), "already contains " + iter.getTopKey());
       seen.put(new Key(iter.getTopKey()), new Value(iter.getTopValue()));
 
       if (reseek)
