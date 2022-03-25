@@ -40,5 +40,6 @@ fi
 # Build shaded jar (if not built already)
 "$ex_home"/bin/build
 
-java -cp $EXAMPLES_JAR_PATH -Dlog4j.configurationFile="$EXAMPLES_LOG4J" "org.apache.accumulo.examples.$1" ${*:2}
+export CLASSPATH="$EXAMPLES_JAR_PATH:$ex_home/conf:$ACCUMULO_HOME/lib/*:$CLASSPATH"
+java "org.apache.accumulo.examples.$1" ${*:2}
 
