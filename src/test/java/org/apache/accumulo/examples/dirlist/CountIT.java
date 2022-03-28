@@ -16,8 +16,8 @@
  */
 package org.apache.accumulo.examples.dirlist;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -39,9 +39,9 @@ import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class CountIT extends ConfigurableMacBase {
 
@@ -53,7 +53,7 @@ public class CountIT extends ConfigurableMacBase {
     cfg.setProperty(Property.TSERV_NATIVEMAP_ENABLED, "false");
   }
 
-  @Before
+  @BeforeEach
   public void setupInstance() throws Exception {
     tableName = getUniqueNames(1)[0];
     client = Accumulo.newClient().from(getClientProperties()).build();
@@ -75,7 +75,7 @@ public class CountIT extends ConfigurableMacBase {
     bw.close();
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     client.close();
   }

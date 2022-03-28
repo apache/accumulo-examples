@@ -17,10 +17,10 @@
 
 package org.apache.accumulo.examples.filedata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,10 +48,10 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -75,19 +75,19 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
   private AccumuloClient client;
   private String tableName;
 
-  @Before
+  @BeforeEach
   public void setupInstance() throws Exception {
     client = Accumulo.newClient().from(getClientProps()).build();
     tableName = getUniqueNames(1)[0];
     client.securityOperations().changeUserAuthorizations(client.whoami(), AUTHS);
   }
 
-  @After
+  @AfterEach
   public void teardown() {
     client.close();
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void setupClass() {
     System.setProperty("hadoop.tmp.dir", System.getProperty("user.dir") + "/target/hadoop-tmp");
 
@@ -154,7 +154,7 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
       }
 
       @Override
-      protected void cleanup(Context context) throws IOException, InterruptedException {
+      protected void cleanup(Context context) {
         String table = context.getConfiguration().get("MRTester_tableName");
         assertNotNull(table);
 
@@ -203,8 +203,7 @@ public class ChunkInputFormatIT extends AccumuloClusterHarness {
     public static class TestBadData
         extends Mapper<List<Entry<Key,Value>>,InputStream,List<Entry<Key,Value>>,InputStream> {
       @Override
-      protected void map(List<Entry<Key,Value>> key, InputStream value, Context context)
-          throws IOException, InterruptedException {
+      protected void map(List<Entry<Key,Value>> key, InputStream value, Context context) {
         String table = context.getConfiguration().get("MRTester_tableName");
         assertNotNull(table);
 
