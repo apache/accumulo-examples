@@ -37,10 +37,11 @@ Follow the steps below to run the Accumulo examples:
         cp conf/env.sh.example conf/env.sh
         vim conf/env.sh
 
-3. Build the examples repo and copy the examples jar to Accumulo's `lib/ext` directory:
+3. Build the examples repo and copy the examples jar to Accumulo's `lib/` directory to get on its
+   class path:
 
         ./bin/build
-        cp target/accumulo-examples.jar /path/to/accumulo/lib/ext/
+        cp target/accumulo-examples.jar /path/to/accumulo/lib/
 
 4. Each Accumulo example has its own documentation and instructions for running the example which
    are linked to below.

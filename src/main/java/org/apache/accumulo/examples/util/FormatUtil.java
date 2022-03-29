@@ -35,7 +35,7 @@ public final class FormatUtil {
    * Examples: <br/>
    * {@literal a ~chunk:\x00\x00\x00d\x00\x00\x00\x00 [A&B] 9223372036854775807 asdfjkl;}
    * {@literal a ~chunk:\x00\x00\x00d\x00\x00\x00\x00 [A&B] asdfjkl;}
-   * 
+   *
    * @param entry
    *          the table entry to format
    * @param includeTimestamp
