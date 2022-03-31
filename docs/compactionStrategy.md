@@ -45,10 +45,10 @@ The commands below will configure the BasicCompactionStrategy to:
  
 ```bash
  $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s table.file.compress.type=snappy"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy.opts.filter.size=250M"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy.opts.large.compress.threshold=100M"
- $ accumulo shell -u <username> -p <password> -e "config -t test1 -s examples.table.majc.compaction.strategy.opts.large.compress.type=gz"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy.opts.filter.size=250M"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy.opts.large.compress.threshold=100M"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy.opts.large.compress.type=gz"
 ```
 
 Generate some data and files in order to test the strategy:

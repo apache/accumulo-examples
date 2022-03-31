@@ -34,7 +34,7 @@ write the key/value pairs to a file in HDFS.
 
 The following will extract the rows containing the column "cf:cq":
 
-    $ ./bin/runmr mapreduce.TableToFile -t exampmles.input --columns cf:cq --output /tmp/output
+    $ ./bin/runmr mapreduce.TableToFile -t examples.input --columns cf:cq --output /tmp/output
 
     $ hadoop fs -ls /tmp/output
     Found 2 items

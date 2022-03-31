@@ -18,7 +18,7 @@ limitations under the License.
 
 The WordCount example ([WordCount.java]) uses MapReduce and Accumulo to compute
 word counts for a set of documents. This is accomplished using a map-only MapReduce
-job and a Accumulo table with combiners.
+job and an Accumulo table with combiners.
 
 To run this example, create a directory in HDFS containing text files. You can
 use the Accumulo README for data:
@@ -34,7 +34,7 @@ After creating the table, run the WordCount MapReduce job with your HDFS input d
 
     $ ./bin/runmr mapreduce.WordCount -i /wc
 
-[WordCount.java] creates an Accumulo table (named with a SummingCombiner iterator
+[WordCount.java] creates an Accumulo table named with a SummingCombiner iterator
 attached to it. It runs a map-only M/R job that reads the specified HDFS directory containing text files and
 writes word counts to Accumulo table.
 

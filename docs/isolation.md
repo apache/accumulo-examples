@@ -20,8 +20,8 @@ Accumulo has an isolated scanner that ensures partial changes to rows are not
 seen. Isolation is documented in ../docs/isolation.html and the user manual.
 
 InterferenceTest is a simple example that shows the effects of scanning with
-and without isolation. This program starts two threads. One threads
-continually upates all of the values in a row to be the same thing, but
+and without isolation. This program starts two threads. One thread
+continually updates all the values in a row to be the same thing, but
 different from what it used to be. The other thread continually scans the
 table and checks that all values in a row are the same. Without isolation the
 scanning thread will sometimes see different values, which is the result of

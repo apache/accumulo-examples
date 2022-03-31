@@ -71,7 +71,7 @@ In order to make scanning the sample fast, sample data is partitioned as data is
 written to Accumulo.  This means if the sample configuration is changed, that
 data written previously is partitioned using a different criteria.  Accumulo
 will detect this situation and fail sample scans.  The commands below show this
-failure and fixiing the problem with a compaction.
+failure and fixing the problem with a compaction.
 
     root@instance examples.sampex> config -t examples.sampex -s table.sampler.opt.modulus=2
     root@instance examples.sampex> scan --sample
