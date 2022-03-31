@@ -281,6 +281,8 @@
                       <exclude>org.apache.logging.log4j:log4j-api:jar:</exclude>
                       <exclude>org.apache.logging.log4j:log4j-1.2-api:jar:</exclude>
                       <exclude>org.apache.logging.log4j:log4j-slf4j-impl:jar:</exclude>
+                      <exclude>org.slf4j:slf4j-api:jar:</exclude>
+                      <exclude>log4j:log4j:jar:</exclude>
                       <exclude>jakarta.activation:jakarta.activation-api:jar:</exclude>
                       <exclude>org.apache.hadoop:hadoop-annotations:jar:</exclude>
                       <exclude>org.apache.hadoop:hadoop-auth:jar:</exclude>
