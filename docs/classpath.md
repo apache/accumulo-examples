@@ -17,7 +17,7 @@ limitations under the License.
 # Apache Accumulo Classpath Example
 
 This example shows how to use per table classpaths. The example leverages a
-test jar which contains a Filter that supresses rows containing "foo". The
+test jar which contains a Filter that suppresses rows containing "foo". The
 example shows copying the FooFilter.jar into HDFS and then making an Accumulo
 table reference that jar. For this example, a directory, `/user1/lib`, is
 assumed to exist in HDFS.
@@ -29,7 +29,7 @@ Create `/user1/lib` in HDFS if it does not exist.
 Execute the following command in the shell. Note that the `FooFilter.jar`
 is located within the Accumulo source distribution. 
 
-    $ hadoop fs -copyFromLocal /path/to/accumulo/test/src/main/resources/FooFilter.jar /user1/lib
+    $ hadoop fs -copyFromLocal /path/to/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar /user1/lib
 
 Execute following in Accumulo shell to setup classpath context
 

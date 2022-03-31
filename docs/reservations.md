@@ -20,7 +20,7 @@ This example shows running a simple reservation system implemented using
 conditional mutations. This system guarantees that only one concurrent user can
 reserve a resource. The example's reserve command allows multiple users to be
 specified. When this is done, it creates a separate reservation thread for each
-user. In the example below threads are spun up for alice, bob, eve, mallory,
+user. In the example below, threads are spun up for alice, bob, eve, mallory,
 and trent to reserve room06 on 20140101. Bob ends up getting the reservation
 and everyone else is put on a wait list. The example code will take any string
 for what, when and who.

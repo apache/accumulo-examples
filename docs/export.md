@@ -22,7 +22,7 @@ how to use this feature.
 The shell session below shows creating a table, inserting data, and exporting
 the table. A table must be offline to export it, and it should remain offline
 for the duration of the distcp. An easy way to take a table offline without
-interuppting access to it is to clone it and take the clone offline.
+interrupting access to it is to clone it and take the clone offline.
 
     root@test15> createnamespace examples
     root@test15> createtable examples.table1

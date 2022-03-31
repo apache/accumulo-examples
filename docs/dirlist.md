@@ -33,7 +33,7 @@ To begin, ingest some data with Ingest.java.
 
     $ ./bin/runex dirlist.Ingest --vis exampleVis --chunkSize 100000 /local/username/workspace
 
-This may take some time if there are large files in the /local/username/workspace directory. If you use 0 instead of 100000 on the command line, the ingest will run much faster, but it will not put any file data into Accumulo (the dataTable will be empty).
+This may take some time if there are large files in the /local/username/workspace directory. If you use 0 instead of 100000 as the `chunkSize`, the ingest will run much faster, but it will not put any file data into Accumulo (the dataTable will be empty).
 Note that running this example will create tables dirTable, indexTable, and dataTable in Accumulo that you should delete when you have completed the example.
 If you modify a file or add new files in the directory ingested (e.g. /local/username/workspace), you can run Ingest again to add new information into the Accumulo tables.
 
@@ -66,7 +66,7 @@ In this example, the authorizations and visibility are set to the same value, ex
 
 ## Directory Table
 
-Here is a illustration of what data looks like in the directory table:
+Here is an illustration of what data looks like in the directory table:
 
     row colf:colq [vis]	value
     000 dir:exec [exampleVis]    true
