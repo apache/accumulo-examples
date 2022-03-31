@@ -19,6 +19,7 @@ package org.apache.accumulo.examples.mapreduce;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map.Entry;
@@ -45,8 +46,8 @@ import org.junit.jupiter.api.Test;
 public class MapReduceIT extends ConfigurableMacBase {
 
   @Override
-  protected int defaultTimeoutSeconds() {
-    return 60;
+  protected Duration defaultTimeout() {
+    return Duration.ofMinutes(1);
   }
 
   @Override
