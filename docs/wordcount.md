@@ -55,10 +55,12 @@ information like passwords. A more secure option is store accumulo-client.proper
 in HDFS and run the job with the `-D` options.  This will configure the MapReduce job
 to obtain the client properties from HDFS:
 
-    $ hdfs dfs -copyFromLocal ./conf/accumulo-client.properties /user/myuser/
+    $ hdfs dfs -mkdir /user
+    $ hdfs dfs -mkdir /user/myuser
+    $ hdfs dfs -copyFromLocal /path/to/accumulo/conf/accumulo-client.properties /user/myuser/
     $ ./bin/runmr mapreduce.WordCount -i /wc -t examples.wordcount2 -d /user/myuser/accumulo-client.properties
 
-After the MapReduce job completes, query the `wordcount2` table. The results should
+After the MapReduce job completes, query the `examples.wordcount2` table. The results should
 be the same as before:
 
     $ accumulo shell

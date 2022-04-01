@@ -30,7 +30,7 @@ put a trivial amount of data into accumulo using the accumulo shell:
     root@instance examples.input> quit
 
 The TableToFile class configures a map-only job to read the specified columns and
-write the key/value pairs to a file in HDFS.
+writes the key/value pairs to a file in HDFS.
 
 The following will extract the rows containing the column "cf:cq":
 
@@ -46,5 +46,3 @@ We can see the output of our little map-reduce job:
     $ hadoop fs -text /tmp/output/part-m-00000
     catrow cf:cq []	catvalue
     dogrow cf:cq []	dogvalue
-    $
-
