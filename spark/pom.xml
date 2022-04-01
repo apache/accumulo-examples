@@ -29,7 +29,7 @@
   <name>Apache Accumulo Spark Example</name>
   <description>Example Spark Application for Apache Accumulo</description>
   <properties>
-    <accumulo.version>2.0.0</accumulo.version>
+    <accumulo.version>2.0.1</accumulo.version>
     <eclipseFormatterStyle>contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
     <hadoop.version>3.2.1</hadoop.version>
     <maven.compiler.release>8</maven.compiler.release>
