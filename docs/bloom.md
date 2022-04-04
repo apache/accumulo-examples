@@ -24,7 +24,7 @@ do not exist in a table.
 
 Accumulo data is divided into tablets and each tablet has multiple r-files.
 Lookup performance of a tablet with 3 r-files can be 3 times slower than
-a tablet with one r-file. However if the files contain unique sets of data,
+a tablet with one r-file. However, if the files contain unique sets of data,
 then bloom filters can help with performance.
 
 Run the example below to create two identical tables. One table has bloom

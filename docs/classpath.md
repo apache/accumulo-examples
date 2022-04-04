@@ -66,7 +66,7 @@ use cx1.
     root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
         2013-05-03 12:49:35,943 [shell.Shell] ERROR: org.apache.accumulo.shell.ShellCommandException: Command could 
     not be initialized (Unable to load org.apache.accumulo.test.FooFilter; class not found.)
-    root@uno examples.nofootwo> config -t nofootwo -s table.class.loader.context=cx1
+    root@uno examples.nofootwo> config -t examples.nofootwo -s table.class.loader.context=cx1
     root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
     Filter accepts or rejects each Key/Value pair
     ----------> set FooFilter parameter negate, default false keeps k/v that pass accept method, true rejects k/v that pass accept method: false

@@ -43,7 +43,7 @@ The following command queries the index to find all files containing 'foo' and '
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/data/KeyExtentTest.java
     /local/username/workspace/accumulo/src/core/src/test/java/accumulo/core/iterators/WholeRowIteratorTest.java
 
-In order to run ContinuousQuery, we need to run Reverse.java to populate doc2term.
+In order to run ContinuousQuery, we need to run Reverse.java to populate the `examples.doc2term` table.
 
     $ ./bin/runex shard.Reverse --shardTable examples.shard --doc2Term examples.doc2term
 

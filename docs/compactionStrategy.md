@@ -45,10 +45,10 @@ The commands below will configure the BasicCompactionStrategy to:
  
 ```bash
  $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s table.file.compress.type=snappy"
- $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy"
- $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy.opts.filter.size=250M"
- $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy.opts.large.compress.threshold=100M"
- $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s examples.table.majc.compaction.strategy.opts.large.compress.type=gz"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s table.majc.compaction.strategy.opts.filter.size=250M"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s table.majc.compaction.strategy.opts.large.compress.threshold=100M"
+ $ accumulo shell -u <username> -p <password> -e "config -t examples.test1 -s table.majc.compaction.strategy.opts.large.compress.type=gz"
 ```
 
 Generate some data and files in order to test the strategy:
@@ -64,7 +64,7 @@ $ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 130
 $ accumulo shell -u <username> -p <password> -e "flush -t examples.test1"
 ```
 
-View the tserver log in <accumulo_home>/logs for the compaction and find the name of the <rfile> that was compacted for your table. Print info about this file using the PrintInfo tool:
+View the tserver log in <accumulo_home>/logs for the compaction and find the name of the `rfile` that was compacted for your table. Print info about this file using the PrintInfo tool:
 
 ```bash
 $ accumulo rfile-info <rfile>
