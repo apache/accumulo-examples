@@ -31,8 +31,6 @@
     <accumulo.version>2.1.0-SNAPSHOT</accumulo.version>
     <eclipseFormatterStyle>contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
     <hadoop.version>3.3.0</hadoop.version>
-    <htrace.hadoop.version>4.1.0-incubating</htrace.hadoop.version>
-    <htrace.version>3.2.0-incubating</htrace.version>
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
@@ -61,6 +59,14 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-context</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
