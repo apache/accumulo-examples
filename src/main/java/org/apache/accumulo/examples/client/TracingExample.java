@@ -17,8 +17,7 @@
 
 package org.apache.accumulo.examples.client;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
+import java.time.Instant;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -32,17 +31,18 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-// import org.apache.accumulo.core.trace.DistributedTrace;
 import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
 import org.apache.accumulo.examples.cli.ScannerOpts;
-import org.apache.htrace.Sampler;
-import org.apache.htrace.Trace;
-import org.apache.htrace.TraceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
+
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 
 /**
  * A simple example showing how to use the distributed tracing API in client code
@@ -53,6 +53,7 @@ public class TracingExample {
   private static final String DEFAULT_TABLE_NAME = "test";
 
   private final AccumuloClient client;
+  private final Tracer tracer;
 
   static class Opts extends ClientOnDefaultTable {
     @Parameter(names = {"--createtable"}, description = "create table before doing anything")
@@ -72,30 +73,33 @@ public class TracingExample {
 
   private TracingExample(AccumuloClient client) {
     this.client = client;
-  }
-
-  private void enableTracing() {
-    // DistributedTrace.enable("myHost", "myApp");
+    this.tracer = GlobalOpenTelemetry.get().getTracer(TracingExample.class.getSimpleName());
   }
 
   private void execute(Opts opts) throws TableNotFoundException, AccumuloException,
       AccumuloSecurityException, TableExistsException {
 
-    if (opts.createtable) {
-      Common.createTableWithNamespace(client, opts.getTableName());
+    Span span = tracer.spanBuilder("trace example").startSpan();
+    try (Scope scope = span.makeCurrent()) {
+      if (opts.createtable) {
+        Common.createTableWithNamespace(client, opts.getTableName());
+      }
+
+      if (opts.createEntries) {
+        createEntries(opts);
+      }
+
+      if (opts.readEntries) {
+        readEntries(opts);
+      }
+
+      if (opts.deletetable) {
+        client.tableOperations().delete(opts.getTableName());
+      }
+    } finally {
+      span.end();
     }
 
-    if (opts.createEntries) {
-      createEntries(opts);
-    }
-
-    if (opts.readEntries) {
-      readEntries(opts);
-    }
-
-    if (opts.deletetable) {
-      client.tableOperations().delete(opts.getTableName());
-    }
   }
 
   private void createEntries(Opts opts) throws TableNotFoundException, AccumuloException {
@@ -104,41 +108,40 @@ public class TracingExample {
     // the write operation as it is occurs asynchronously. You can optionally create additional
     // Spans
     // within a given Trace as seen below around the flush
-    TraceScope scope = Trace.startSpan("Client Write", Sampler.ALWAYS);
+    Span span = tracer.spanBuilder("createEntries").startSpan();
+    try (Scope scope = span.makeCurrent()) {
+      try (BatchWriter batchWriter = client.createBatchWriter(opts.getTableName())) {
+        Mutation m = new Mutation("row");
+        m.put("cf", "cq", "value");
 
-    System.out.println("TraceID: " + Long.toHexString(scope.getSpan().getTraceId()));
-    try (BatchWriter batchWriter = client.createBatchWriter(opts.getTableName())) {
-      Mutation m = new Mutation("row");
-      m.put("cf", "cq", "value");
-
-      batchWriter.addMutation(m);
-      // You can add timeline annotations to Spans which will be able to be viewed in the Monitor
-      scope.getSpan().addTimelineAnnotation("Initiating Flush");
-      batchWriter.flush();
+        batchWriter.addMutation(m);
+        // You can add timeline annotations to Spans which will be able to be viewed in the Monitor
+        span.addEvent("Initiating Flush", Instant.now());
+        batchWriter.flush();
+      }
+    } finally {
+      span.end();
     }
-    scope.close();
+
   }
 
-  @SuppressWarnings("deprecation")
   private void readEntries(Opts opts) throws TableNotFoundException {
 
-    Scanner scanner = client.createScanner(opts.getTableName(), opts.auths);
-
-    // Trace the read operation.
-    TraceScope readScope = Trace.startSpan("Client Read", Sampler.ALWAYS);
-    System.out.println("TraceID: " + Long.toHexString(readScope.getSpan().getTraceId()));
-
-    int numberOfEntriesRead = 0;
-    for (Entry<Key,Value> entry : scanner) {
-      System.out.println(entry.getKey().toString() + " -> " + entry.getValue().toString());
-      ++numberOfEntriesRead;
+    try (Scanner scanner = client.createScanner(opts.getTableName(), opts.auths)) {
+      // Trace the read operation.
+      Span span = tracer.spanBuilder("readEntries").startSpan();
+      try (Scope scope = span.makeCurrent()) {
+        int numberOfEntriesRead = 0;
+        for (Entry<Key,Value> entry : scanner) {
+          System.out.println(entry.getKey().toString() + " -> " + entry.getValue().toString());
+          ++numberOfEntriesRead;
+        }
+        // You can add additional metadata (key, values) to Spans
+        span.setAttribute("Number of Entries Read", numberOfEntriesRead);
+      } finally {
+        span.end();
+      }
     }
-    // You can add additional metadata (key, values) to Spans which will be able to be viewed in the
-    // Monitor
-    readScope.getSpan().addKVAnnotation("Number of Entries Read".getBytes(UTF_8),
-        String.valueOf(numberOfEntriesRead).getBytes(UTF_8));
-
-    readScope.close();
   }
 
   public static void main(String[] args) {
@@ -148,7 +151,6 @@ public class TracingExample {
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
       TracingExample tracingExample = new TracingExample(client);
-      tracingExample.enableTracing();
       tracingExample.execute(opts);
     } catch (Exception e) {
       log.error("Caught exception running TraceExample", e);

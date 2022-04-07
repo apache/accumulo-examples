@@ -41,5 +41,5 @@ fi
 "$ex_home"/bin/build
 
 export CLASSPATH="$EXAMPLES_JAR_PATH:$ex_home/conf:$ACCUMULO_HOME/lib/*:$CLASSPATH"
-java "org.apache.accumulo.examples.$1" ${*:2}
+java ${ACCUMULO_JAVA_OPTS} "org.apache.accumulo.examples.$1" ${*:2}
 
