@@ -48,15 +48,15 @@ public class Query {
     List<String> terms = new ArrayList<>();
 
     @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
-    private String tableName;
+    String tableName;
 
     @Parameter(names = {"--sample"},
         description = "Do queries against sample, useful when sample is built using column qualifier")
-    private final boolean useSample = false;
+    boolean useSample = false;
 
     @Parameter(names = {"--sampleCutoff"},
         description = "Use sample data to determine if a query might return a number of documents over the cutoff.  This check is per tablet.")
-    private final Integer sampleCutoff = null;
+    Integer sampleCutoff = null;
   }
 
   public static List<String> query(BatchScanner bs, List<String> terms, Integer cutoff) {
