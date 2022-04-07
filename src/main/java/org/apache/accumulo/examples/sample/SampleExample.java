@@ -17,7 +17,7 @@
 
 package org.apache.accumulo.examples.sample;
 
-import java.util.Collections;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -26,6 +26,7 @@ import org.apache.accumulo.core.client.SampleNotPresentException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
+import org.apache.accumulo.core.client.admin.PluginConfig;
 import org.apache.accumulo.core.client.sample.RowSampler;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.data.Key;
@@ -41,17 +42,18 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * A simple example of using Accumulo's sampling feature. This example does something similar to
- * what README.sample shows using the shell. Also see {@link CutoffIntersectingIterator} and
+ * what README.sample shows using the shell. Also, see {@link CutoffIntersectingIterator} and
  * README.sample for an example of how to use sample data from within an iterator.
  */
 public class SampleExample {
 
   // a compaction strategy that only selects files for compaction that have no sample data or sample
   // data created in a different way than the tables
-  @SuppressWarnings("removal")
-  static final org.apache.accumulo.core.client.admin.CompactionStrategyConfig NO_SAMPLE_STRATEGY = new org.apache.accumulo.core.client.admin.CompactionStrategyConfig(
-      "org.apache.accumulo.tserver.compaction.strategies.ConfigurableCompactionStrategy")
-          .setOptions(Collections.singletonMap("SF_NO_SAMPLE", ""));
+  static final PluginConfig selectorCfg = new PluginConfig(
+      "org.apache.accumulo.tserver.compaction.strategies.ConfigurableCompactionStrategy",
+      Map.of("SF_NO_SAMPLE", ""));
+  static final CompactionConfig NO_SAMPLE_STRATEGY = new CompactionConfig()
+      .setSelector(selectorCfg);
 
   static class Opts extends ClientOnDefaultTable {
     public Opts() {
@@ -59,7 +61,6 @@ public class SampleExample {
     }
   }
 
-  @SuppressWarnings("removal")
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     BatchWriterOpts bwOpts = new BatchWriterOpts();
@@ -104,8 +105,7 @@ public class SampleExample {
       System.out.println();
 
       // compact table to recreate sample data
-      client.tableOperations().compact(opts.getTableName(),
-          new CompactionConfig().setCompactionStrategy(NO_SAMPLE_STRATEGY));
+      client.tableOperations().compact(opts.getTableName(), NO_SAMPLE_STRATEGY);
 
       System.out
           .println("Scanning after compaction (compaction should have created sample data) : ");
@@ -126,8 +126,7 @@ public class SampleExample {
       sc2.setOptions(ImmutableMap.of("hasher", "murmur3_32", "modulus", "2"));
       client.tableOperations().setSamplerConfiguration(opts.getTableName(), sc2);
       // compact table to recreate sample data using new configuration
-      client.tableOperations().compact(opts.getTableName(),
-          new CompactionConfig().setCompactionStrategy(NO_SAMPLE_STRATEGY));
+      client.tableOperations().compact(opts.getTableName(), NO_SAMPLE_STRATEGY);
 
       System.out.println(
           "Scanning with old sampler configuration.  Sample data was created using new configuration with a compaction.  Scan should fail.");
@@ -144,6 +143,7 @@ public class SampleExample {
 
       System.out.println("Scanning with new sampler configuration : ");
       print(scanner);
+      scanner.close();
       System.out.println();
     }
 
