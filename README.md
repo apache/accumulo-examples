@@ -87,6 +87,7 @@ Each example below highlights a feature of Apache Accumulo.
 | [spark] | Using Accumulo as input and output for Apache Spark jobs |
 | [tabletofile] | Using MapReduce to read a table and write one of its columns to a file in HDFS. |
 | [terasort] | Generating random data and sorting it using Accumulo. |
+| [tracing] | Generating trace data in a client application and Accumulo. |
 | [uniquecols] | Use MapReduce to count unique columns in Accumulo |
 | [visibility] | Using visibilities (or combinations of authorizations). Also shows user permissions. |
 | [wordcount] | Use MapReduce and Accumulo to do a word count on text files |
@@ -125,6 +126,7 @@ This repository can be used to test Accumulo release candidates.  See
 [spark]: spark/README.md
 [tabletofile]: docs/tabletofile.md
 [terasort]: docs/terasort.md
+[tracing]: docs/tracing.md
 [uniquecols]: docs/uniquecols.md
 [visibility]: docs/visibility.md
 [wordcount]: docs/wordcount.md
