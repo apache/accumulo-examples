@@ -27,7 +27,7 @@ and logs for the Accumulo server processes.
   2. Add the property `general.opentelemetry.enabled=true` to accumulo.properties
   3. Set the following environment variables in your environment:
   
-    ACCUMULO_JAVA_OPTS="-javaagent:/path/to/accumulo/lib/opentelemetry-javaagent-1.12.1.jar"
+    JAVA_TOOL_OPTIONS="-javaagent:/path/to/accumulo/lib/opentelemetry-javaagent-1.12.1.jar"
     OTEL_TRACES_EXPORTER="logging"
 
 ## Run the Example
