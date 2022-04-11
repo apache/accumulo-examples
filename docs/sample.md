@@ -149,8 +149,10 @@ configuration for sample scan to work.
 Shard Sampling Example
 ----------------------
 
+Note: Before continuing, you need to complete the Shard example, located [here][shard].
+
 The Shard example shows how to index and search files using Accumulo.  That
-example indexes documents into a table named `shard`.  The indexing scheme used
+example indexes documents into a table named `examples.shard`.  The indexing scheme used
 in that example places the document name in the column qualifier.  A useful
 sample of this indexing scheme should contain all data for any document in the
 sample.   To accomplish this, the following commands build a sample for the
@@ -184,9 +186,11 @@ Another way sample data could be used with the shard example is with a
 specialized iterator.  In the examples source code there is an iterator named
 CutoffIntersectingIterator.  This iterator first checks how many documents are
 found in the sample data.  If too many documents are found in the sample data,
-then it returns nothing.   Otherwise it proceeds to query the full data set.
+then it returns nothing.  Otherwise, it proceeds to query the full data set.
 To experiment with this iterator, use the following command.  The
 `--sampleCutoff` option below will cause the query to return nothing if based
 on the sample it appears a query would return more than 1000 documents.
 
     $ ./bin/runex shard.Query --sampleCutoff 1000 -t examples.shard import int | fgrep '.java' | wc
+
+[shard]: shard.md
