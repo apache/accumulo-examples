@@ -18,6 +18,15 @@ limitations under the License.
 
 [![Build Status][ti]][tl]
 
+## Introduction
+
+The Accumulo-Examples repository contains a collection of examples for Accumulo versions 2.0 and
+greater. Examples within the `main` branch are designed to work with the version currently
+under development. Additional branches exist for previous releases of the Accumulo 2.x line. For
+example, the `2.0` branch contains examples specifically intended to work with that release version.
+
+A collection of examples for Accumulo 1.10 can be found [here].
+
 ## Setup instructions
 
 Follow the steps below to run the Accumulo examples:
@@ -132,3 +141,4 @@ This repository can be used to test Accumulo release candidates.  See
 [wordcount]: docs/wordcount.md
 [ti]: https://github.com/apache/accumulo-examples/workflows/QA/badge.svg
 [tl]: https://github.com/apache/accumulo-examples/actions
+[here]: https://accumulo.apache.org/1.10/examples
