@@ -25,6 +25,8 @@ greater. Examples within the `main` branch are designed to work with the version
 under development. Additional branches exist for previous releases of the Accumulo 2.x line. For
 example, the `2.0` branch contains examples specifically intended to work with that release version.
 
+The [Accumulo Tour] also provides several simple introductory examples that may be of interest.
+
 A collection of examples for Accumulo 1.10 can be found [here].
 
 ## Setup instructions
@@ -142,3 +144,4 @@ This repository can be used to test Accumulo release candidates.  See
 [ti]: https://github.com/apache/accumulo-examples/workflows/QA/badge.svg
 [tl]: https://github.com/apache/accumulo-examples/actions
 [here]: https://accumulo.apache.org/1.10/examples
+[Accumulo Tour]: https://accumulo.apache.org/tour/
