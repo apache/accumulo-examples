@@ -79,7 +79,7 @@ failure and fixing the problem with a compaction.
     root@instance examples.sampex> compact -t examples.sampex --sf-no-sample
     2015-09-09 12:23:07,242 [shell.Shell] INFO : Compaction of table sampex started for given range
     root@instance examples.sampex> scan --sample
-    2317 doc:content []    milk, eggs, bread, parmigiano-reggiano
+    2317 doc:content []    milk, eggs, bread, parmigiano-reggiano, butter
     2317 doc:url []    file://groceries/9.txt
     3900 doc:content []    EC2 ate my homework
     3900 doc:uril []    file://final_project.txt
