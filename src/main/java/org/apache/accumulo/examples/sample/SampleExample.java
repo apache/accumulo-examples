@@ -111,6 +111,7 @@ public class SampleExample {
         // update a document in the sample data
         bw.addMutation(createMutation("2317", "milk, eggs, bread, parmigiano-reggiano, butter",
             "file://groceries/9/txt"));
+        bw.flush();
 
         System.out.println(
             "Scanning sample after updating content for docId 2317 (should see content change in sample data) : ");

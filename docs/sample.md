@@ -79,7 +79,7 @@ failure and fixing the problem with a compaction.
     root@instance examples.sampex> compact -t examples.sampex --sf-no-sample
     2015-09-09 12:23:07,242 [shell.Shell] INFO : Compaction of table sampex started for given range
     root@instance examples.sampex> scan --sample
-    2317 doc:content []    milk, eggs, bread, parmigiano-reggiano
+    2317 doc:content []    milk, eggs, bread, parmigiano-reggiano, butter
     2317 doc:url []    file://groceries/9.txt
     3900 doc:content []    EC2 ate my homework
     3900 doc:uril []    file://final_project.txt
@@ -170,15 +170,15 @@ After enabling sampling, the command below counts the number of documents in
 the sample containing the words `import` and `int`.     
 
     $ ./bin/runex shard.Query --sample -t examples.shard import int | fgrep '.java' | wc
-         11      11    1246
+          4       4     395
 
 The command below counts the total number of documents containing the words
 `import` and `int`.
 
     $ ./bin/runex shard.Query -t examples.shard import int | fgrep '.java' | wc
-       1085    1085  118175
+        382     382   40084
 
-The counts 11 out of 1085 total are around what would be expected for a modulus
+The counts 4 out of 395 total are around what would be expected for a modulus
 of 101.  Querying the sample first provides a quick way to estimate how much data
 the real query will bring back. 
 
