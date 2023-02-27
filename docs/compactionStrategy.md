@@ -41,7 +41,7 @@ The commands below will configure the desired compaction strategy. The goals are
  - Avoid compacting files over 250M.
  - Compact files over 100M using gz.
  - Compact files less than 100M using snappy.
- - Limit the compaction throughput to 40M.
+ - Limit the compaction throughput to 40MB/s.
 
 Create a compaction service named `cs1` that has three executors. The first executor named `small` has 
 8 threads and runs compactions less than 16M. The second executor, `medium`, runs compactions less than 
