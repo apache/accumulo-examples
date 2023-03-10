@@ -27,9 +27,9 @@ qualifiers.
 $ /path/to/accumulo shell -u username -p secret
 username@instance> createnamespace examples
 username@instance> createtable examples.unique
-username@instance> examples.unique> insert row1 fam1 qual1 v1
-username@instance> examples.unique> insert row2 fam1 qual1 v2
-username@instance> examples.unique> insert row3 fam1 qual1 v3
+username@instance examples.unique> insert row1 fam1 qual1 v1
+username@instance examples.unique> insert row2 fam1 qual1 v2
+username@instance examples.unique> insert row3 fam1 qual1 v3
 ```
 
 Exit the Accumulo shell and run the uniqueColumns mapReduce job against
