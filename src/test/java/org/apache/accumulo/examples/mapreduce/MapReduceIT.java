@@ -40,7 +40,6 @@ import org.apache.accumulo.miniclusterImpl.MiniAccumuloClusterImpl;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
 import org.junit.jupiter.api.Test;
 
 public class MapReduceIT extends ConfigurableMacBase {
@@ -87,7 +86,7 @@ public class MapReduceIT extends ConfigurableMacBase {
       assertEquals(0, hash.getProcess().waitFor());
 
       Scanner s = client.createScanner(tablename, Authorizations.EMPTY);
-      s.fetchColumn(new Text(input_cf), new Text(output_cq));
+      s.fetchColumn(input_cf, output_cq);
       int i = 0;
       for (Entry<Key,Value> entry : s) {
         MessageDigest md = MessageDigest.getInstance("MD5");

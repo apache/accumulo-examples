@@ -90,8 +90,7 @@ public class ChunkInputStreamTest {
 
   private static void addData(List<Entry<Key,Value>> data, String row, String cf, String cq,
       String vis, String value) {
-    data.add(new KeyValue(new Key(new Text(row), new Text(cf), new Text(cq), new Text(vis)),
-        value.getBytes()));
+    data.add(new KeyValue(new Key(row, cf, cq, vis), value.getBytes()));
   }
 
   private static void addData(List<Entry<Key,Value>> data, String row, String cf, int chunkSize,

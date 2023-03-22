@@ -44,7 +44,7 @@ public class Index {
     return new Text(String.format("%08x", Math.abs(partition)));
   }
 
-  public static void index(int numPartitions, Text docId, String doc, String splitRegex,
+  public static void index(int numPartitions, String docId, String doc, String splitRegex,
       BatchWriter bw) throws Exception {
 
     String[] tokens = doc.split(splitRegex);
@@ -60,7 +60,7 @@ public class Index {
 
       if (!tokensSeen.contains(token)) {
         tokensSeen.add(token);
-        m.put(new Text(token), docId, new Value(new byte[0]));
+        m.put(token, docId, new Value(new byte[0]));
       }
     }
 
@@ -90,7 +90,7 @@ public class Index {
 
       fr.close();
 
-      index(numPartitions, new Text(src.getAbsolutePath()), sb.toString(), splitRegex, bw);
+      index(numPartitions, src.getAbsolutePath(), sb.toString(), splitRegex, bw);
     }
 
   }

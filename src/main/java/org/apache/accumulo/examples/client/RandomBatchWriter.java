@@ -34,7 +34,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
-import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
 
@@ -83,15 +82,14 @@ public class RandomBatchWriter {
    * @return a mutation
    */
   public static Mutation createMutation(long rowid, int dataSize, ColumnVisibility visibility) {
-    Text row = new Text(String.format("row_%010d", rowid));
 
-    Mutation m = new Mutation(row);
+    Mutation m = new Mutation(String.format("row_%010d", rowid));
 
     // create a random value that is a function of the
     // row id for verification purposes
     byte[] value = createValue(rowid, dataSize);
 
-    m.put(new Text("foo"), new Text("1"), visibility, new Value(value));
+    m.put("foo", "1", visibility, new Value(value));
 
     return m;
   }
