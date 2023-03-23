@@ -18,11 +18,14 @@ package org.apache.accumulo.examples.bloom;
 
 import static org.apache.accumulo.examples.bloom.BloomFilters.writeData;
 
+import java.util.Map;
+
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.slf4j.Logger;
@@ -38,10 +41,11 @@ public class BloomFiltersNotFound {
     opts.parseArgs(BloomFiltersNotFound.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
+      Map<String,String> props = Map.of(BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
+      var ntc = new NewTableConfiguration().setProperties(props);
+
       Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST3_TABLE);
-      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST4_TABLE);
-      client.tableOperations().setProperty(BloomCommon.BLOOM_TEST4_TABLE,
-          BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST4_TABLE, ntc);
 
       writeAndFlush(BloomCommon.BLOOM_TEST3_TABLE, client);
       writeAndFlush(BloomCommon.BLOOM_TEST4_TABLE, client);

@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.client.lexicoder.Encoder;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -158,11 +159,12 @@ public final class Ingest {
     opts.parseArgs(Ingest.class.getName(), args, bwOpts);
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
+      var ntc = new NewTableConfiguration()
+          .attachIterator(new IteratorSetting(1, ChunkCombiner.class));
+
       Common.createTableWithNamespace(client, opts.dirTable);
       Common.createTableWithNamespace(client, opts.indexTable);
-      Common.createTableWithNamespace(client, opts.dataTable);
-      client.tableOperations().attachIterator(opts.dataTable,
-          new IteratorSetting(1, ChunkCombiner.class));
+      Common.createTableWithNamespace(client, opts.dataTable, ntc);
 
       BatchWriter dirBW = client.createBatchWriter(opts.dirTable, bwOpts.getBatchWriterConfig());
       BatchWriter indexBW = client.createBatchWriter(opts.indexTable,

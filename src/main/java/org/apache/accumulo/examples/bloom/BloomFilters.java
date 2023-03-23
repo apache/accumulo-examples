@@ -16,6 +16,7 @@
  */
 package org.apache.accumulo.examples.bloom;
 
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.accumulo.core.client.Accumulo;
@@ -25,6 +26,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.examples.Common;
@@ -58,8 +60,9 @@ public final class BloomFilters {
   private static void createTableAndSetCompactionRatio(AccumuloClient client,
       final String tableName) throws AccumuloException, AccumuloSecurityException {
     log.info("Creating {}", tableName);
-    Common.createTableWithNamespace(client, tableName);
-    client.tableOperations().setProperty(tableName, "table.compaction.major.ratio", "7");
+    Map<String,String> props = Map.of("table.compaction.major.ratio", "7");
+    var ntc = new NewTableConfiguration().setProperties(props);
+    Common.createTableWithNamespace(client, tableName, ntc);
   }
 
   // Write a million rows 3 times flushing files to disk separately
