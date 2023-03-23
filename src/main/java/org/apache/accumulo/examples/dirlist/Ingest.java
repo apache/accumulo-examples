@@ -16,9 +16,10 @@
  */
 package org.apache.accumulo.examples.dirlist;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +74,7 @@ public final class Ingest {
     if (isDir)
       colf = QueryUtil.DIR_COLF.toString();
     else
-      colf = new String(encoder.encode(Long.MAX_VALUE - lastmod), StandardCharsets.UTF_8);
+      colf = new String(encoder.encode(Long.MAX_VALUE - lastmod), UTF_8);
     m.put(colf, LENGTH_CQ, cv, new Value(Long.toString(length).getBytes()));
     m.put(colf, HIDDEN_CQ, cv, new Value(Boolean.toString(isHidden).getBytes()));
     m.put(colf, EXEC_CQ, cv, new Value(Boolean.toString(canExec).getBytes()));
