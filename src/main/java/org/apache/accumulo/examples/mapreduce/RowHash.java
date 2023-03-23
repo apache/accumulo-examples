@@ -44,7 +44,7 @@ public class RowHash {
     @Override
     public void map(Key row, Value data, Context context) throws IOException, InterruptedException {
       Mutation m = new Mutation(row.getRow());
-      m.put(new Text("cf-HASHTYPE"), new Text("cq-MD5BASE64"),
+      m.put("cf-HASHTYPE", "cq-MD5BASE64",
           new Value(Base64.getEncoder().encode(MD5Hash.digest(data.toString()).getDigest())));
       context.write(null, m);
       context.progress();
@@ -74,9 +74,9 @@ public class RowHash {
 
     String col = opts.column;
     int idx = col.indexOf(":");
-    Text cf = new Text(idx < 0 ? col : col.substring(0, idx));
-    Text cq = idx < 0 ? null : new Text(col.substring(idx + 1));
-    if (cf.getLength() > 0) {
+    String cf = idx < 0 ? col : col.substring(0, idx);
+    String cq = idx < 0 ? null : col.substring(idx + 1);
+    if (cf.length() > 0) {
       inputOpts.fetchColumns(Collections.singleton(new IteratorSetting.Column(cf, cq)));
     }
     inputOpts.store(job);

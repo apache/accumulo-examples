@@ -241,7 +241,7 @@ public class TeraSortIngest {
     private final Text value = new Text();
     private RandomGenerator rand;
     private byte[] keyBytes; // = new byte[12];
-    private final byte[] spaces = "          ".getBytes();
+    private final String spaces = "          ";
     private final byte[][] filler = new byte[26][];
     {
       for (int i = 0; i < 26; ++i) {
@@ -280,15 +280,15 @@ public class TeraSortIngest {
     /**
      * Add the rowid to the row.
      */
-    private Text getRowIdString(long rowId) {
-      Text paddedRowIdString = new Text();
-      byte[] rowid = Integer.toString((int) rowId).getBytes();
-      int padSpace = 10 - rowid.length;
+    private String getRowIdString(long rowId) {
+      StringBuilder paddedRowIdString = new StringBuilder();
+      String rowid = Integer.toString((int) rowId);
+      int padSpace = 10 - rowid.length();
       if (padSpace > 0) {
-        paddedRowIdString.append(spaces, 0, 10 - rowid.length);
+        paddedRowIdString.append(spaces, 0, padSpace);
       }
-      paddedRowIdString.append(rowid, 0, Math.min(rowid.length, 10));
-      return paddedRowIdString;
+      paddedRowIdString.append(rowid, 0, Math.min(rowid.length(), 10));
+      return paddedRowIdString.toString();
     }
 
     /**
@@ -332,7 +332,7 @@ public class TeraSortIngest {
 
       // New
       Mutation m = new Mutation(key);
-      m.put(new Text("c"), // column family
+      m.put("c", // column family
           getRowIdString(rowId), // column qual
           new Value(value.toString().getBytes())); // data
 

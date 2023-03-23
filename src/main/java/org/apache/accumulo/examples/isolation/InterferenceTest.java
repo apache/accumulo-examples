@@ -31,7 +31,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.BatchWriterOpts;
 import org.apache.accumulo.examples.cli.ClientOnRequiredTable;
-import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,12 +75,11 @@ public final class InterferenceTest {
       int value = 0;
 
       for (long i = 0; i < iterations; i++) {
-        Mutation m = new Mutation(new Text(String.format("%03d", row)));
+        Mutation m = new Mutation(String.format("%03d", row));
         row = (row + 1) % NUM_ROWS;
 
         for (int cq = 0; cq < NUM_COLUMNS; cq++)
-          m.put(new Text("000"), new Text(String.format("%04d", cq)),
-              new Value(("" + value).getBytes()));
+          m.put("000", String.format("%04d", cq), new Value(("" + value).getBytes()));
 
         value++;
 
