@@ -38,7 +38,6 @@ import org.apache.accumulo.examples.cli.ScannerOpts;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +82,7 @@ public class CountIT extends ConfigurableMacBase {
   @Test
   public void test() throws Exception {
     Scanner scanner = client.createScanner(tableName, new Authorizations());
-    scanner.fetchColumn(new Text("dir"), new Text("counts"));
+    scanner.fetchColumn("dir", "counts");
     assertFalse(scanner.iterator().hasNext());
 
     ScannerOpts scanOpts = new ScannerOpts();

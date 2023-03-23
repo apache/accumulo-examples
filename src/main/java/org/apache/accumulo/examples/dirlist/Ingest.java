@@ -18,6 +18,7 @@ package org.apache.accumulo.examples.dirlist;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,17 +69,17 @@ public final class Ingest {
     if (path.equals("/"))
       path = "";
     Mutation m = new Mutation(QueryUtil.getRow(path));
-    Text colf;
+    String colf;
     if (isDir)
-      colf = QueryUtil.DIR_COLF;
+      colf = QueryUtil.DIR_COLF.toString();
     else
-      colf = new Text(encoder.encode(Long.MAX_VALUE - lastmod));
-    m.put(colf, new Text(LENGTH_CQ), cv, new Value(Long.toString(length).getBytes()));
-    m.put(colf, new Text(HIDDEN_CQ), cv, new Value(Boolean.toString(isHidden).getBytes()));
-    m.put(colf, new Text(EXEC_CQ), cv, new Value(Boolean.toString(canExec).getBytes()));
-    m.put(colf, new Text(LASTMOD_CQ), cv, new Value(Long.toString(lastmod).getBytes()));
+      colf = new String(encoder.encode(Long.MAX_VALUE - lastmod), StandardCharsets.UTF_8);
+    m.put(colf, LENGTH_CQ, cv, new Value(Long.toString(length).getBytes()));
+    m.put(colf, HIDDEN_CQ, cv, new Value(Boolean.toString(isHidden).getBytes()));
+    m.put(colf, EXEC_CQ, cv, new Value(Boolean.toString(canExec).getBytes()));
+    m.put(colf, LASTMOD_CQ, cv, new Value(Long.toString(lastmod).getBytes()));
     if (hash != null && hash.length() > 0)
-      m.put(colf, new Text(HASH_CQ), cv, new Value(hash.getBytes()));
+      m.put(colf, HASH_CQ, cv, new Value(hash.getBytes()));
     return m;
   }
 

@@ -28,7 +28,6 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
 
@@ -40,8 +39,8 @@ import com.beust.jcommander.Parameter;
  */
 public class Index {
 
-  static Text genPartition(int partition) {
-    return new Text(String.format("%08x", Math.abs(partition)));
+  static String genPartition(int partition) {
+    return String.format("%08x", Math.abs(partition));
   }
 
   public static void index(int numPartitions, String docId, String doc, String splitRegex,
@@ -49,7 +48,7 @@ public class Index {
 
     String[] tokens = doc.split(splitRegex);
 
-    Text partition = genPartition(doc.hashCode() % numPartitions);
+    String partition = genPartition(doc.hashCode() % numPartitions);
 
     Mutation m = new Mutation(partition);
 
