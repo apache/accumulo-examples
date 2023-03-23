@@ -33,7 +33,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -234,7 +233,7 @@ public class ARS {
     try (
         Scanner scanner = new IsolatedScanner(client.createScanner(rTable, Authorizations.EMPTY))) {
       scanner.setRange(new Range(row));
-      scanner.fetchColumnFamily(new Text("res"));
+      scanner.fetchColumnFamily("res");
 
       List<String> reservations = new ArrayList<>();
 

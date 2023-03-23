@@ -28,7 +28,6 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.cli.ClientOpts;
-import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
 
@@ -40,16 +39,16 @@ import com.beust.jcommander.Parameter;
  */
 public class Index {
 
-  static Text genPartition(int partition) {
-    return new Text(String.format("%08x", Math.abs(partition)));
+  static String genPartition(int partition) {
+    return String.format("%08x", Math.abs(partition));
   }
 
-  public static void index(int numPartitions, Text docId, String doc, String splitRegex,
+  public static void index(int numPartitions, String docId, String doc, String splitRegex,
       BatchWriter bw) throws Exception {
 
     String[] tokens = doc.split(splitRegex);
 
-    Text partition = genPartition(doc.hashCode() % numPartitions);
+    String partition = genPartition(doc.hashCode() % numPartitions);
 
     Mutation m = new Mutation(partition);
 
@@ -60,7 +59,7 @@ public class Index {
 
       if (!tokensSeen.contains(token)) {
         tokensSeen.add(token);
-        m.put(new Text(token), docId, new Value(new byte[0]));
+        m.put(token, docId, new Value(new byte[0]));
       }
     }
 
@@ -90,7 +89,7 @@ public class Index {
 
       fr.close();
 
-      index(numPartitions, new Text(src.getAbsolutePath()), sb.toString(), splitRegex, bw);
+      index(numPartitions, src.getAbsolutePath(), sb.toString(), splitRegex, bw);
     }
 
   }

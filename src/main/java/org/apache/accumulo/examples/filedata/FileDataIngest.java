@@ -102,8 +102,7 @@ public class FileDataIngest {
       }
     }
 
-    String hash = hexString(md5digest.digest());
-    Text row = new Text(hash);
+    String row = hexString(md5digest.digest());
 
     // write info to accumulo
     Mutation m = new Mutation(row);
@@ -148,7 +147,7 @@ public class FileDataIngest {
     chunkCQ.append(intToBytes(chunkCount), 0, 4);
     m.put(new Text(CHUNK_CF), chunkCQ, cv, new Value(new byte[0]));
     bw.addMutation(m);
-    return hash;
+    return row;
   }
 
   public static int bytesToInt(byte[] b, int offset) {

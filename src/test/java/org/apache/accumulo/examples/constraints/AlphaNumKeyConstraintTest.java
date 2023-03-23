@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.hadoop.io.Text;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
@@ -32,13 +31,13 @@ public class AlphaNumKeyConstraintTest {
 
   @Test
   public void test() {
-    Mutation goodMutation = new Mutation(new Text("Row1"));
-    goodMutation.put(new Text("Colf2"), new Text("ColQ3"), new Value("value".getBytes()));
+    Mutation goodMutation = new Mutation("Row1");
+    goodMutation.put("Colf2", "ColQ3", new Value("value".getBytes()));
     assertNull(ankc.check(null, goodMutation));
 
     // Check that violations are in row, cf, cq order
-    Mutation badMutation = new Mutation(new Text("Row#1"));
-    badMutation.put(new Text("Colf$2"), new Text("Colq%3"), new Value("value".getBytes()));
+    Mutation badMutation = new Mutation("Row#1");
+    badMutation.put("Colf$2", "Colq%3", new Value("value".getBytes()));
     assertEquals(
         ImmutableList.of(AlphaNumKeyConstraint.NON_ALPHA_NUM_ROW,
             AlphaNumKeyConstraint.NON_ALPHA_NUM_COLF, AlphaNumKeyConstraint.NON_ALPHA_NUM_COLQ),
