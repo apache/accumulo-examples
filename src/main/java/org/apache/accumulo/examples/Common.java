@@ -37,7 +37,8 @@ public class Common {
   }
 
   public static void createTableWithNamespace(final AccumuloClient client, final String table,
-      final NewTableConfiguration ntc) throws AccumuloException, AccumuloSecurityException {
+      final NewTableConfiguration newTableConfig)
+      throws AccumuloException, AccumuloSecurityException {
     String[] name = table.split("\\.");
     if (name.length == 2 && !name[0].isEmpty()) {
       try {
@@ -47,7 +48,7 @@ public class Common {
       }
     }
     try {
-      client.tableOperations().create(table, ntc);
+      client.tableOperations().create(table, newTableConfig);
     } catch (TableExistsException e) {
       log.warn(TABLE_EXISTS_MSG + table);
     }

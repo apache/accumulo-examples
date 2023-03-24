@@ -61,8 +61,8 @@ public final class BloomFilters {
       final String tableName) throws AccumuloException, AccumuloSecurityException {
     log.info("Creating {}", tableName);
     Map<String,String> props = Map.of("table.compaction.major.ratio", "7");
-    var ntc = new NewTableConfiguration().setProperties(props);
-    Common.createTableWithNamespace(client, tableName, ntc);
+    var newTableConfig = new NewTableConfiguration().setProperties(props);
+    Common.createTableWithNamespace(client, tableName, newTableConfig);
   }
 
   // Write a million rows 3 times flushing files to disk separately

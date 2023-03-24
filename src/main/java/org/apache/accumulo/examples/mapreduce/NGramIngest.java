@@ -99,10 +99,10 @@ public class NGramIngest {
         SortedSet<Text> splits = Stream.of(numbers, lower, upper).flatMap(Stream::of).map(Text::new)
             .collect(Collectors.toCollection(TreeSet::new));
 
-        var ntc = new NewTableConfiguration().withSplits(splits);
+        var newTableConfig = new NewTableConfiguration().withSplits(splits);
 
         log.info("Creating table " + opts.tableName);
-        Common.createTableWithNamespace(client, opts.tableName, ntc);
+        Common.createTableWithNamespace(client, opts.tableName, newTableConfig);
       }
     }
 

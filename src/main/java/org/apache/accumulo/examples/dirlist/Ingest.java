@@ -161,12 +161,12 @@ public final class Ingest {
     opts.parseArgs(Ingest.class.getName(), args, bwOpts);
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      var ntc = new NewTableConfiguration()
+      var newTableConfig = new NewTableConfiguration()
           .attachIterator(new IteratorSetting(1, ChunkCombiner.class));
 
       Common.createTableWithNamespace(client, opts.dirTable);
       Common.createTableWithNamespace(client, opts.indexTable);
-      Common.createTableWithNamespace(client, opts.dataTable, ntc);
+      Common.createTableWithNamespace(client, opts.dataTable, newTableConfig);
 
       BatchWriter dirBW = client.createBatchWriter(opts.dirTable, bwOpts.getBatchWriterConfig());
       BatchWriter indexBW = client.createBatchWriter(opts.indexTable,

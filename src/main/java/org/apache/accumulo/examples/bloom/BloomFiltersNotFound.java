@@ -42,10 +42,10 @@ public class BloomFiltersNotFound {
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
       Map<String,String> props = Map.of(BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
-      var ntc = new NewTableConfiguration().setProperties(props);
+      var newTableConfig = new NewTableConfiguration().setProperties(props);
 
       Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST3_TABLE);
-      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST4_TABLE, ntc);
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST4_TABLE, newTableConfig);
 
       writeAndFlush(BloomCommon.BLOOM_TEST3_TABLE, client);
       writeAndFlush(BloomCommon.BLOOM_TEST4_TABLE, client);
