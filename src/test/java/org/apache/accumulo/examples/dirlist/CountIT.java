@@ -57,21 +57,23 @@ public class CountIT extends ConfigurableMacBase {
     tableName = getUniqueNames(1)[0];
     client = Accumulo.newClient().from(getClientProperties()).build();
     client.tableOperations().create(tableName);
-    BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
-    ColumnVisibility cv = new ColumnVisibility();
-    // / has 1 dir
-    // /local has 2 dirs 1 file
-    // /local/user1 has 2 files
-    bw.addMutation(Ingest.buildMutation(cv, "/local", true, false, true, 272, 12345, null));
-    bw.addMutation(Ingest.buildMutation(cv, "/local/user1", true, false, true, 272, 12345, null));
-    bw.addMutation(Ingest.buildMutation(cv, "/local/user2", true, false, true, 272, 12345, null));
-    bw.addMutation(Ingest.buildMutation(cv, "/local/file", false, false, false, 1024, 12345, null));
-    bw.addMutation(Ingest.buildMutation(cv, "/local/file", false, false, false, 1024, 23456, null));
-    bw.addMutation(
-        Ingest.buildMutation(cv, "/local/user1/file1", false, false, false, 2024, 12345, null));
-    bw.addMutation(
-        Ingest.buildMutation(cv, "/local/user1/file2", false, false, false, 1028, 23456, null));
-    bw.close();
+    try (BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig())) {
+      ColumnVisibility cv = new ColumnVisibility();
+      // / has 1 dir
+      // /local has 2 dirs 1 file
+      // /local/user1 has 2 files
+      bw.addMutation(Ingest.buildMutation(cv, "/local", true, false, true, 272, 12345, null));
+      bw.addMutation(Ingest.buildMutation(cv, "/local/user1", true, false, true, 272, 12345, null));
+      bw.addMutation(Ingest.buildMutation(cv, "/local/user2", true, false, true, 272, 12345, null));
+      bw.addMutation(
+          Ingest.buildMutation(cv, "/local/file", false, false, false, 1024, 12345, null));
+      bw.addMutation(
+          Ingest.buildMutation(cv, "/local/file", false, false, false, 1024, 23456, null));
+      bw.addMutation(
+          Ingest.buildMutation(cv, "/local/user1/file1", false, false, false, 2024, 12345, null));
+      bw.addMutation(
+          Ingest.buildMutation(cv, "/local/user1/file2", false, false, false, 1028, 23456, null));
+    }
   }
 
   @AfterEach
@@ -81,15 +83,11 @@ public class CountIT extends ConfigurableMacBase {
 
   @Test
   public void test() throws Exception {
-    Scanner scanner = client.createScanner(tableName, new Authorizations());
-    scanner.fetchColumn("dir", "counts");
-    assertFalse(scanner.iterator().hasNext());
 
     ScannerOpts scanOpts = new ScannerOpts();
     BatchWriterOpts bwOpts = new BatchWriterOpts();
     FileCount fc = new FileCount(client, tableName, Authorizations.EMPTY, new ColumnVisibility(),
         scanOpts, bwOpts);
-    fc.run();
 
     ArrayList<Pair<String,String>> expected = new ArrayList<>();
     expected.add(new Pair<>(QueryUtil.getRow("").toString(), "1,0,3,3"));
@@ -97,12 +95,19 @@ public class CountIT extends ConfigurableMacBase {
     expected.add(new Pair<>(QueryUtil.getRow("/local/user1").toString(), "0,2,0,2"));
     expected.add(new Pair<>(QueryUtil.getRow("/local/user2").toString(), "0,0,0,0"));
 
-    int i = 0;
-    for (Entry<Key,Value> e : scanner) {
-      assertEquals(e.getKey().getRow().toString(), expected.get(i).getFirst());
-      assertEquals(e.getValue().toString(), expected.get(i).getSecond());
-      i++;
+    int actualCount = 0;
+    try (Scanner scanner = client.createScanner(tableName, new Authorizations())) {
+      scanner.fetchColumn("dir", "counts");
+      assertFalse(scanner.iterator().hasNext());
+
+      fc.run();
+
+      for (Entry<Key,Value> e : scanner) {
+        assertEquals(e.getKey().getRow().toString(), expected.get(actualCount).getFirst());
+        assertEquals(e.getValue().toString(), expected.get(actualCount).getSecond());
+        actualCount++;
+      }
     }
-    assertEquals(i, expected.size());
+    assertEquals(expected.size(), actualCount);
   }
 }

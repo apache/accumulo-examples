@@ -84,20 +84,14 @@ public class FileDataIngest {
 
     // read through file once, calculating hashes
     md5digest.reset();
-    InputStream fis = null;
     int numRead = 0;
-    try {
-      fis = new FileInputStream(filename);
+    try (InputStream fis = new FileInputStream(filename)) {
       numRead = fis.read(buf);
       while (numRead >= 0) {
         if (numRead > 0) {
           md5digest.update(buf, 0, numRead);
         }
         numRead = fis.read(buf);
-      }
-    } finally {
-      if (fis != null) {
-        fis.close();
       }
     }
 
@@ -114,8 +108,7 @@ public class FileDataIngest {
 
     // read through file again, writing chunks to accumulo
     int chunkCount = 0;
-    try {
-      fis = new FileInputStream(filename);
+    try (InputStream fis = new FileInputStream(filename)) {
       numRead = fis.read(buf);
       while (numRead >= 0) {
         while (numRead < buf.length) {
@@ -135,10 +128,6 @@ public class FileDataIngest {
               "too many chunks for file " + filename + ", try raising chunk size");
         chunkCount++;
         numRead = fis.read(buf);
-      }
-    } finally {
-      if (fis != null) {
-        fis.close();
       }
     }
     m = new Mutation(row);

@@ -65,9 +65,10 @@ public class ContinuousQuery {
     opts.parseArgs(ContinuousQuery.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-
-      ArrayList<Text[]> randTerms = findRandomTerms(
-          client.createScanner(opts.doc2Term, Authorizations.EMPTY), opts.numTerms);
+      ArrayList<Text[]> randTerms;
+      try (Scanner scanner = client.createScanner(opts.doc2Term, Authorizations.EMPTY)) {
+        randTerms = findRandomTerms(scanner, opts.numTerms);
+      }
 
       Random rand = new Random();
 

@@ -260,31 +260,30 @@ public class FileCount {
     entriesScanned = 0;
     inserts = 0;
 
-    Scanner scanner = client.createScanner(tableName, auths);
-    scanner.setBatchSize(scanOpts.scanBatchSize);
-    BatchWriter bw = client.createBatchWriter(tableName, bwOpts.getBatchWriterConfig());
+    try (Scanner scanner = client.createScanner(tableName, auths);
+        BatchWriter bw = client.createBatchWriter(tableName, bwOpts.getBatchWriterConfig())) {
+      scanner.setBatchSize(scanOpts.scanBatchSize);
 
-    long t1 = System.currentTimeMillis();
+      long t1 = System.currentTimeMillis();
 
-    int depth = findMaxDepth(scanner);
+      int depth = findMaxDepth(scanner);
 
-    long t2 = System.currentTimeMillis();
+      long t2 = System.currentTimeMillis();
 
-    for (int d = depth; d > 0; d--) {
-      calculateCounts(scanner, d, bw);
-      // must flush so next depth can read what prev depth wrote
-      bw.flush();
+      for (int d = depth; d > 0; d--) {
+        calculateCounts(scanner, d, bw);
+        // must flush so next depth can read what prev depth wrote
+        bw.flush();
+      }
+
+      long t3 = System.currentTimeMillis();
+
+      System.out.printf("Max depth              : %d%n", depth);
+      System.out.printf("Time to find max depth : %,d ms%n", (t2 - t1));
+      System.out.printf("Time to compute counts : %,d ms%n", (t3 - t2));
+      System.out.printf("Entries scanned        : %,d %n", entriesScanned);
+      System.out.printf("Counts inserted        : %,d %n", inserts);
     }
-
-    bw.close();
-
-    long t3 = System.currentTimeMillis();
-
-    System.out.printf("Max depth              : %d%n", depth);
-    System.out.printf("Time to find max depth : %,d ms%n", (t2 - t1));
-    System.out.printf("Time to compute counts : %,d ms%n", (t3 - t2));
-    System.out.printf("Entries scanned        : %,d %n", entriesScanned);
-    System.out.printf("Counts inserted        : %,d %n", inserts);
   }
 
   public static class Opts extends ClientOnRequiredTable {

@@ -77,17 +77,18 @@ public class Index {
         }
       }
     } else {
-      FileReader fr = new FileReader(src);
 
       StringBuilder sb = new StringBuilder();
 
-      char[] data = new char[4096];
-      int len;
-      while ((len = fr.read(data)) != -1) {
-        sb.append(data, 0, len);
-      }
+      try (FileReader fr = new FileReader(src)) {
 
-      fr.close();
+        char[] data = new char[4096];
+        int len;
+        while ((len = fr.read(data)) != -1) {
+          sb.append(data, 0, len);
+        }
+
+      }
 
       index(numPartitions, src.getAbsolutePath(), sb.toString(), splitRegex, bw);
     }

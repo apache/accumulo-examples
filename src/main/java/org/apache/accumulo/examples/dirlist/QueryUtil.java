@@ -142,14 +142,15 @@ public class QueryUtil {
   public Map<String,String> getData(String path) throws TableNotFoundException {
     if (path.endsWith("/"))
       path = path.substring(0, path.length() - 1);
-    Scanner scanner = client.createScanner(tableName, auths);
-    scanner.setRange(new Range(getRow(path)));
     Map<String,String> data = new TreeMap<>();
-    for (Entry<Key,Value> e : scanner) {
-      String type = getType(e.getKey().getColumnFamily());
-      data.put("fullname", e.getKey().getRow().toString().substring(3));
-      data.put(type + e.getKey().getColumnQualifier().toString() + ":"
-          + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
+    try (Scanner scanner = client.createScanner(tableName, auths)) {
+      scanner.setRange(new Range(getRow(path)));
+      for (Entry<Key,Value> e : scanner) {
+        String type = getType(e.getKey().getColumnFamily());
+        data.put("fullname", e.getKey().getRow().toString().substring(3));
+        data.put(type + e.getKey().getColumnQualifier().toString() + ":"
+            + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
+      }
     }
     return data;
   }
@@ -164,18 +165,19 @@ public class QueryUtil {
     if (!path.endsWith("/"))
       path = path + "/";
     Map<String,Map<String,String>> fim = new TreeMap<>();
-    Scanner scanner = client.createScanner(tableName, auths);
-    scanner.setRange(Range.prefix(getRow(path)));
-    for (Entry<Key,Value> e : scanner) {
-      String name = e.getKey().getRow().toString();
-      name = name.substring(name.lastIndexOf("/") + 1);
-      String type = getType(e.getKey().getColumnFamily());
-      if (!fim.containsKey(name)) {
-        fim.put(name, new TreeMap<>());
-        fim.get(name).put("fullname", e.getKey().getRow().toString().substring(3));
+    try (Scanner scanner = client.createScanner(tableName, auths)) {
+      scanner.setRange(Range.prefix(getRow(path)));
+      for (Entry<Key,Value> e : scanner) {
+        String name = e.getKey().getRow().toString();
+        name = name.substring(name.lastIndexOf("/") + 1);
+        String type = getType(e.getKey().getColumnFamily());
+        if (!fim.containsKey(name)) {
+          fim.put(name, new TreeMap<>());
+          fim.get(name).put("fullname", e.getKey().getRow().toString().substring(3));
+        }
+        fim.get(name).put(type + e.getKey().getColumnQualifier().toString() + ":"
+            + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
       }
-      fim.get(name).put(type + e.getKey().getColumnQualifier().toString() + ":"
-          + e.getKey().getColumnVisibility().toString(), new String(e.getValue().get()));
     }
     return fim;
   }
