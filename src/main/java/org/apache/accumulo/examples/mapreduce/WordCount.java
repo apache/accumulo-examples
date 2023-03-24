@@ -23,6 +23,7 @@ import java.util.Date;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.iterators.user.SummingCombiner;
 import org.apache.accumulo.examples.Common;
@@ -81,14 +82,14 @@ public final class WordCount {
     Opts opts = new Opts();
     opts.parseArgs(WordCount.class.getName(), args);
 
-    // Create Accumulo table and attach Summing iterator
+    // Create Accumulo table with Summing iterator attached
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      Common.createTableWithNamespace(client, opts.tableName);
       IteratorSetting is = new IteratorSetting(10, SummingCombiner.class);
       SummingCombiner.setColumns(is,
           Collections.singletonList(new IteratorSetting.Column("count")));
       SummingCombiner.setEncodingType(is, SummingCombiner.Type.STRING);
-      client.tableOperations().attachIterator(opts.tableName, is);
+      Common.createTableWithNamespace(client, opts.tableName,
+          new NewTableConfiguration().attachIterator(is));
     }
 
     // Create M/R job

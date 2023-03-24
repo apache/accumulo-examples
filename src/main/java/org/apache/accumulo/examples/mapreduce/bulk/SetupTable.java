@@ -17,12 +17,15 @@
 package org.apache.accumulo.examples.mapreduce.bulk;
 
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
@@ -36,19 +39,16 @@ public final class SetupTable {
   public static void main(String[] args)
       throws AccumuloSecurityException, TableNotFoundException, AccumuloException {
 
-    final String[] splits = {"row_00000333", "row_00000666"};
+    final Stream<String> splits = Stream.of("row_00000333", "row_00000666");
     ClientOpts opts = new ClientOpts();
     opts.parseArgs(SetupTable.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      Common.createTableWithNamespace(client, BULK_INGEST_TABLE);
-
       // create a table with initial partitions
-      TreeSet<Text> initialPartitions = new TreeSet<>();
-      for (String split : splits) {
-        initialPartitions.add(new Text(split));
-      }
-      client.tableOperations().addSplits(BULK_INGEST_TABLE, initialPartitions);
+      TreeSet<Text> initialPartitions = splits.map(Text::new)
+          .collect(Collectors.toCollection(TreeSet::new));
+      Common.createTableWithNamespace(client, BULK_INGEST_TABLE,
+          new NewTableConfiguration().withSplits(initialPartitions));
     }
   }
 }
