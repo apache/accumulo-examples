@@ -63,9 +63,6 @@ public class VisibilityCombiner {
   }
 
   private void insert(ByteSequence cv) {
-    for (int i = 0; i < cv.length(); i++) {
-
-    }
 
     String cvs = cv.toString();
 

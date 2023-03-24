@@ -122,6 +122,9 @@ public class ExamplesIT extends AccumuloClusterHarness {
 
   @AfterEach
   public void teardownTest() throws Exception {
+    if (bw != null) {
+      bw.close();
+    }
     if (null != origAuths) {
       c.securityOperations().changeUserAuthorizations(getAdminPrincipal(), origAuths);
     }

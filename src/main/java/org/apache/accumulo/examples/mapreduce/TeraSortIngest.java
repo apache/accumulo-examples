@@ -87,12 +87,12 @@ public class TeraSortIngest {
       }
 
       @Override
-      public long getLength() throws IOException {
+      public long getLength() {
         return 0;
       }
 
       @Override
-      public String[] getLocations() throws IOException {
+      public String[] getLocations() {
         return new String[] {};
       }
 
@@ -113,9 +113,9 @@ public class TeraSortIngest {
      * A record reader that will generate a range of numbers.
      */
     static class RangeRecordReader extends RecordReader<LongWritable,NullWritable> {
-      long startRow;
+      final long startRow;
       long finishedRows;
-      long totalRows;
+      final long totalRows;
 
       public RangeRecordReader(RangeInputSplit split) {
         startRow = split.firstRow;
@@ -127,26 +127,25 @@ public class TeraSortIngest {
       public void close() throws IOException {}
 
       @Override
-      public float getProgress() throws IOException {
+      public float getProgress() {
         return finishedRows / (float) totalRows;
       }
 
       @Override
-      public LongWritable getCurrentKey() throws IOException, InterruptedException {
+      public LongWritable getCurrentKey() {
         return new LongWritable(startRow + finishedRows);
       }
 
       @Override
-      public NullWritable getCurrentValue() throws IOException, InterruptedException {
+      public NullWritable getCurrentValue() {
         return NullWritable.get();
       }
 
       @Override
-      public void initialize(InputSplit split, TaskAttemptContext context)
-          throws IOException, InterruptedException {}
+      public void initialize(InputSplit split, TaskAttemptContext context) {}
 
       @Override
-      public boolean nextKeyValue() throws IOException, InterruptedException {
+      public boolean nextKeyValue() {
         if (finishedRows < totalRows) {
           ++finishedRows;
           return true;
@@ -157,7 +156,7 @@ public class TeraSortIngest {
 
     @Override
     public RecordReader<LongWritable,NullWritable> createRecordReader(InputSplit split,
-        TaskAttemptContext context) throws IOException {
+        TaskAttemptContext context) {
       return new RangeRecordReader((RangeInputSplit) split);
     }
 
@@ -188,7 +187,7 @@ public class TeraSortIngest {
 
   static class RandomGenerator {
     private long seed = 0;
-    private static final long mask32 = (1l << 32) - 1;
+    private static final long mask32 = (1L << 32) - 1;
     /**
      * The number of iterations separating the precomputed seeds.
      */
@@ -240,7 +239,6 @@ public class TeraSortIngest {
     private final Text key = new Text();
     private final Text value = new Text();
     private RandomGenerator rand;
-    private byte[] keyBytes; // = new byte[12];
     private final String spaces = "          ";
     private final byte[][] filler = new byte[26][];
     {
@@ -261,7 +259,7 @@ public class TeraSortIngest {
       int range = random.nextInt(maxkeylength - minkeylength + 1);
       int keylen = range + minkeylength;
       int keyceil = keylen + (4 - (keylen % 4));
-      keyBytes = new byte[keyceil];
+      byte[] keyBytes = new byte[keyceil];
 
       long temp = 0;
       for (int i = 0; i < keyceil / 4; i++) {
@@ -338,7 +336,7 @@ public class TeraSortIngest {
 
       context.setStatus("About to add to accumulo");
       context.write(tableName, m);
-      context.setStatus("Added to accumulo " + key.toString());
+      context.setStatus("Added to accumulo " + key);
     }
 
     @Override

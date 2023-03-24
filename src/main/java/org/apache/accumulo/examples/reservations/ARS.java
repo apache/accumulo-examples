@@ -54,8 +54,8 @@ public class ARS {
 
   private static final Logger log = LoggerFactory.getLogger(ARS.class);
 
-  private AccumuloClient client;
-  private String rTable;
+  private final AccumuloClient client;
+  private final String rTable;
 
   public enum ReservationResult {
     RESERVED, WAIT_LISTED
@@ -268,15 +268,12 @@ public class ARS {
         ArrayList<Thread> threads = new ArrayList<>();
         for (int i = 3; i < tokens.length; i++) {
           final int whoIndex = i;
-          Runnable reservationTask = new Runnable() {
-            @Override
-            public void run() {
-              try {
-                out.println("  " + String.format("%20s", tokens[whoIndex]) + " : "
-                    + fars.reserve(tokens[1], tokens[2], tokens[whoIndex]));
-              } catch (Exception e) {
-                log.warn("Could not write to the ConsoleReader.", e);
-              }
+          Runnable reservationTask = () -> {
+            try {
+              out.println("  " + String.format("%20s", tokens[whoIndex]) + " : "
+                  + fars.reserve(tokens[1], tokens[2], tokens[whoIndex]));
+            } catch (Exception e) {
+              log.warn("Could not write to the ConsoleReader.", e);
             }
           };
 

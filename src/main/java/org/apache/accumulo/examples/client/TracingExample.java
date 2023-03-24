@@ -18,18 +18,14 @@
 package org.apache.accumulo.examples.client;
 
 import java.time.Instant;
-import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.examples.Common;
 import org.apache.accumulo.examples.cli.ClientOnDefaultTable;
@@ -76,8 +72,8 @@ public class TracingExample {
     this.tracer = GlobalOpenTelemetry.get().getTracer(TracingExample.class.getSimpleName());
   }
 
-  private void execute(Opts opts) throws TableNotFoundException, AccumuloException,
-      AccumuloSecurityException, TableExistsException {
+  private void execute(Opts opts)
+      throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
 
     Span span = tracer.spanBuilder("trace example").startSpan();
     try (Scope scope = span.makeCurrent()) {
@@ -131,11 +127,8 @@ public class TracingExample {
       // Trace the read operation.
       Span span = tracer.spanBuilder("readEntries").startSpan();
       try (Scope scope = span.makeCurrent()) {
-        int numberOfEntriesRead = 0;
-        for (Entry<Key,Value> entry : scanner) {
-          System.out.println(entry.getKey().toString() + " -> " + entry.getValue().toString());
-          ++numberOfEntriesRead;
-        }
+        long numberOfEntriesRead = scanner.stream().peek(entry -> System.out
+            .println(entry.getKey().toString() + " -> " + entry.getValue().toString())).count();
         // You can add additional metadata (key, values) to Spans
         span.setAttribute("Number of Entries Read", numberOfEntriesRead);
       } finally {

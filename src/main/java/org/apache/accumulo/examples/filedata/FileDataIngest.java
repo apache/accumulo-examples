@@ -58,9 +58,9 @@ public class FileDataIngest {
   public static final String TABLE_EXISTS_MSG = "Table already exists. User may wish to delete existing "
       + "table and re-run example. Table name: ";
 
-  int chunkSize;
-  byte[] chunkSizeBytes;
-  byte[] buf;
+  final int chunkSize;
+  final byte[] chunkSizeBytes;
+  final byte[] buf;
   MessageDigest md5digest;
   ColumnVisibility cv;
 
@@ -142,9 +142,8 @@ public class FileDataIngest {
   public static int bytesToInt(byte[] b, int offset) {
     if (b.length <= offset + 3)
       throw new NumberFormatException("couldn't pull integer from bytes at offset " + offset);
-    int i = (((b[offset] & 255) << 24) + ((b[offset + 1] & 255) << 16)
-        + ((b[offset + 2] & 255) << 8) + ((b[offset + 3] & 255) << 0));
-    return i;
+    return (((b[offset] & 255) << 24) + ((b[offset + 1] & 255) << 16) + ((b[offset + 2] & 255) << 8)
+        + ((b[offset + 3] & 255)));
   }
 
   public static byte[] intToBytes(int l) {
@@ -152,12 +151,12 @@ public class FileDataIngest {
     b[0] = (byte) (l >>> 24);
     b[1] = (byte) (l >>> 16);
     b[2] = (byte) (l >>> 8);
-    b[3] = (byte) (l >>> 0);
+    b[3] = (byte) (l);
     return b;
   }
 
   private static String getExt(String filename) {
-    if (filename.indexOf(".") == -1)
+    if (!filename.contains("."))
       return null;
     return filename.substring(filename.lastIndexOf(".") + 1);
   }

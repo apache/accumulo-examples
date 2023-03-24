@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
@@ -39,12 +37,12 @@ import com.google.common.collect.PeekingIterator;
  * {@link org.apache.accumulo.examples.dirlist.Viewer}. See README.dirlist for instructions.
  */
 public class FileDataQuery {
-  List<Entry<Key,Value>> lastRefs;
+  final List<Entry<Key,Value>> lastRefs;
   private final ChunkInputStream cis;
   Scanner scanner;
 
   public FileDataQuery(AccumuloClient client, String tableName, Authorizations auths)
-      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+      throws TableNotFoundException {
     lastRefs = new ArrayList<>();
     cis = new ChunkInputStream();
     scanner = client.createScanner(tableName, auths);

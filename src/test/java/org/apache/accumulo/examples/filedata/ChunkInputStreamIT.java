@@ -64,8 +64,6 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
   private AccumuloClient client;
   private String tableName;
   private List<Entry<Key,Value>> data;
-  private List<Entry<Key,Value>> baddata;
-  private List<Entry<Key,Value>> multidata;
 
   @BeforeEach
   public void setupInstance() throws Exception {
@@ -99,7 +97,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
     addData(data, "d", "~chunk", 100, 0, "A&B", "");
     addData(data, "e", "~chunk", 100, 0, "A&B", "asdfjkl;");
     addData(data, "e", "~chunk", 100, 1, "A&B", "");
-    baddata = new ArrayList<>();
+    List<Entry<Key,Value>> baddata = new ArrayList<>();
     addData(baddata, "a", "~chunk", 100, 0, "A", "asdfjkl;");
     addData(baddata, "b", "~chunk", 100, 0, "B", "asdfjkl;");
     addData(baddata, "b", "~chunk", 100, 2, "C", "");
@@ -113,7 +111,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
     addData(baddata, "e", "~chunk", 100, 2, "I", "asdfjkl;");
     addData(baddata, "f", "~chunk", 100, 2, "K", "asdfjkl;");
     addData(baddata, "g", "~chunk", 100, 0, "L", "");
-    multidata = new ArrayList<>();
+    List<Entry<Key,Value>> multidata = new ArrayList<>();
     addData(multidata, "a", "~chunk", 100, 0, "A&B", "asdfjkl;");
     addData(multidata, "a", "~chunk", 100, 1, "A&B", "");
     addData(multidata, "a", "~chunk", 200, 0, "B&C", "asdfjkl;");

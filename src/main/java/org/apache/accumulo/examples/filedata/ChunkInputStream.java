@@ -143,8 +143,7 @@ public class ChunkInputStream extends InputStream {
     }
 
     if (gotEndMarker) {
-      log.debug("got another chunk after end marker: " + currentKey.toString() + " "
-          + thisKey.toString());
+      log.debug("got another chunk after end marker: " + currentKey.toString() + " " + thisKey);
       clear();
       throw new IOException("found extra chunk after end marker");
     }
@@ -152,8 +151,8 @@ public class ChunkInputStream extends InputStream {
     // got new chunk of the same file, check that it's the next chunk
     int thisChunk = FileDataIngest.bytesToInt(thisKey.getColumnQualifier().getBytes(), 4);
     if (thisChunk != currentChunk + 1) {
-      log.debug("new chunk same file, unexpected chunkID: " + currentKey.toString() + " "
-          + thisKey.toString());
+      log.debug(
+          "new chunk same file, unexpected chunkID: " + currentKey.toString() + " " + thisKey);
       clear();
       throw new IOException("missing chunks between " + currentChunk + " and " + thisChunk);
     }
@@ -226,7 +225,7 @@ public class ChunkInputStream extends InputStream {
         avail = count - pos;
       }
 
-      int cnt = (avail < len - total) ? avail : len - total;
+      int cnt = Math.min(avail, len - total);
       log.debug("copying from local buffer: local pos " + pos + " into pos " + off + " len " + cnt);
       System.arraycopy(buf, pos, b, off, cnt);
       pos += cnt;

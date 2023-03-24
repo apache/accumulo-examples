@@ -129,8 +129,8 @@ public class QueryUtil {
    */
   public static String getType(Text colf) {
     if (colf.equals(DIR_COLF))
-      return colf.toString() + ":";
-    return Long.toString(Ingest.encoder.decode(colf.getBytes())) + ":";
+      return colf + ":";
+    return Ingest.encoder.decode(colf.getBytes()) + ":";
   }
 
   /**

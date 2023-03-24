@@ -34,7 +34,7 @@ class CountingVerifyingReceiver {
 
   long count = 0;
   int expectedValueSize = 0;
-  HashMap<String,Boolean> expectedRows;
+  final HashMap<String,Boolean> expectedRows;
 
   CountingVerifyingReceiver(HashMap<String,Boolean> expectedRows, int expectedValueSize) {
     this.expectedRows = expectedRows;

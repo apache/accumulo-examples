@@ -58,7 +58,7 @@ public class FileCount {
     int recusiveFileCount = 0;
 
     void set(Value val) {
-      String sa[] = val.toString().split(",");
+      String[] sa = val.toString().split(",");
       dirCount = Integer.parseInt(sa[0]);
       fileCount = Integer.parseInt(sa[1]);
       recursiveDirCount = Integer.parseInt(sa[2]);
@@ -246,7 +246,7 @@ public class FileCount {
   }
 
   public FileCount(AccumuloClient client, String tableName, Authorizations auths,
-      ColumnVisibility cv, ScannerOpts scanOpts, BatchWriterOpts bwOpts) throws Exception {
+      ColumnVisibility cv, ScannerOpts scanOpts, BatchWriterOpts bwOpts) {
     this.client = client;
     this.tableName = tableName;
     this.auths = auths;
