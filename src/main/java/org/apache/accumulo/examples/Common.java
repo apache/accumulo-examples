@@ -5,6 +5,7 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,12 @@ public class Common {
    */
   public static void createTableWithNamespace(final AccumuloClient client, final String table)
       throws AccumuloException, AccumuloSecurityException {
+    createTableWithNamespace(client, table, new NewTableConfiguration());
+  }
+
+  public static void createTableWithNamespace(final AccumuloClient client, final String table,
+      final NewTableConfiguration newTableConfig)
+      throws AccumuloException, AccumuloSecurityException {
     String[] name = table.split("\\.");
     if (name.length == 2 && !name[0].isEmpty()) {
       try {
@@ -41,7 +48,7 @@ public class Common {
       }
     }
     try {
-      client.tableOperations().create(table);
+      client.tableOperations().create(table, newTableConfig);
     } catch (TableExistsException e) {
       log.warn(TABLE_EXISTS_MSG + table);
     }

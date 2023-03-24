@@ -28,6 +28,7 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.data.ArrayByteSequence;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Mutation;
@@ -187,9 +188,8 @@ public class FileDataIngest {
     opts.parseArgs(FileDataIngest.class.getName(), args, bwOpts);
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
-      Common.createTableWithNamespace(client, opts.getTableName());
-      client.tableOperations().attachIterator(opts.getTableName(),
-          new IteratorSetting(1, ChunkCombiner.class));
+      Common.createTableWithNamespace(client, opts.getTableName(),
+          new NewTableConfiguration().attachIterator(new IteratorSetting(1, ChunkCombiner.class)));
 
       try (BatchWriter bw = client.createBatchWriter(opts.getTableName(),
           bwOpts.getBatchWriterConfig())) {

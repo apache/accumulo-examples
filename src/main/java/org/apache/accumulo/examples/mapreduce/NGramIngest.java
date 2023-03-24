@@ -19,8 +19,11 @@ package org.apache.accumulo.examples.mapreduce;
 import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.examples.Common;
@@ -89,18 +92,17 @@ public class NGramIngest {
 
     try (AccumuloClient client = opts.createAccumuloClient()) {
       if (!client.tableOperations().exists(opts.tableName)) {
-        log.info("Creating table " + opts.tableName);
-        Common.createTableWithNamespace(client, opts.tableName);
-        SortedSet<Text> splits = new TreeSet<>();
         String[] numbers = "1 2 3 4 5 6 7 8 9".split("\\s");
         String[] lower = "a b c d e f g h i j k l m n o p q r s t u v w x y z".split("\\s");
         String[] upper = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split("\\s");
-        for (String[] array : new String[][] {numbers, lower, upper}) {
-          for (String s : array) {
-            splits.add(new Text(s));
-          }
-        }
-        client.tableOperations().addSplits(opts.tableName, splits);
+
+        SortedSet<Text> splits = Stream.of(numbers, lower, upper).flatMap(Stream::of).map(Text::new)
+            .collect(Collectors.toCollection(TreeSet::new));
+
+        var newTableConfig = new NewTableConfiguration().withSplits(splits);
+
+        log.info("Creating table " + opts.tableName);
+        Common.createTableWithNamespace(client, opts.tableName, newTableConfig);
       }
     }
 
