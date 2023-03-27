@@ -16,6 +16,7 @@
  */
 package org.apache.accumulo.examples.bloom;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -48,21 +49,19 @@ public final class BloomFilters {
     opts.parseArgs(BloomFilters.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientPropsPath()).build()) {
-      createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST1_TABLE);
-      createTableAndSetCompactionRatio(client, BloomCommon.BLOOM_TEST2_TABLE);
-      client.tableOperations().setProperty(BloomCommon.BLOOM_TEST2_TABLE,
-          BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
+      Map<String,String> table1props = Map.of("table.compaction.major.ratio", "7");
+
+      Map<String,String> table2props = new HashMap<>(table1props);
+      table2props.put(BloomCommon.BLOOM_ENABLED_PROPERTY, "true");
+
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST1_TABLE,
+          new NewTableConfiguration().setProperties(table1props));
+      Common.createTableWithNamespace(client, BloomCommon.BLOOM_TEST2_TABLE,
+          new NewTableConfiguration().setProperties(table2props));
+
       writeAndFlushData(BloomCommon.BLOOM_TEST1_TABLE, client);
       writeAndFlushData(BloomCommon.BLOOM_TEST2_TABLE, client);
     }
-  }
-
-  private static void createTableAndSetCompactionRatio(AccumuloClient client,
-      final String tableName) throws AccumuloException, AccumuloSecurityException {
-    log.info("Creating {}", tableName);
-    Map<String,String> props = Map.of("table.compaction.major.ratio", "7");
-    var newTableConfig = new NewTableConfiguration().setProperties(props);
-    Common.createTableWithNamespace(client, tableName, newTableConfig);
   }
 
   // Write a million rows 3 times flushing files to disk separately
