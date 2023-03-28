@@ -54,8 +54,8 @@ public class ARS {
 
   private static final Logger log = LoggerFactory.getLogger(ARS.class);
 
-  private AccumuloClient client;
-  private String rTable;
+  private final AccumuloClient client;
+  private final String rTable;
 
   public enum ReservationResult {
     RESERVED, WAIT_LISTED
@@ -93,7 +93,8 @@ public class ARS {
     try (
         ConditionalWriter cwriter = client.createConditionalWriter(rTable,
             new ConditionalWriterConfig());
-        Scanner scanner = new IsolatedScanner(client.createScanner(rTable, Authorizations.EMPTY))) {
+        Scanner scanner = client.createScanner(rTable, Authorizations.EMPTY);
+        Scanner isolatedScanner = new IsolatedScanner(scanner)) {
       while (true) {
         Status status = cwriter.write(update).getStatus();
         switch (status) {
@@ -115,12 +116,12 @@ public class ARS {
         // sub-queues within the row that approximately maintain arrival order and use exponential
         // back off to fairly merge the sub-queues into the main queue.
 
-        scanner.setRange(new Range(row));
+        isolatedScanner.setRange(new Range(row));
 
         int seq = -1;
         int maxReservation = -1;
 
-        for (Entry<Key,Value> entry : scanner) {
+        for (Entry<Key,Value> entry : isolatedScanner) {
           String cf = entry.getKey().getColumnFamilyData().toString();
           String cq = entry.getKey().getColumnQualifierData().toString();
           String val = entry.getValue().toString();
@@ -176,14 +177,15 @@ public class ARS {
     try (
         ConditionalWriter cwriter = client.createConditionalWriter(rTable,
             new ConditionalWriterConfig());
-        Scanner scanner = new IsolatedScanner(client.createScanner(rTable, Authorizations.EMPTY))) {
+        Scanner scanner = client.createScanner(rTable, Authorizations.EMPTY);
+        Scanner isolatedScanner = new IsolatedScanner(scanner)) {
       while (true) {
-        scanner.setRange(new Range(row));
+        isolatedScanner.setRange(new Range(row));
 
         int seq = -1;
         String reservation = null;
 
-        for (Entry<Key,Value> entry : scanner) {
+        for (Entry<Key,Value> entry : isolatedScanner) {
           String cf = entry.getKey().getColumnFamilyData().toString();
           String cq = entry.getKey().getColumnQualifierData().toString();
           String val = entry.getValue().toString();
@@ -230,14 +232,14 @@ public class ARS {
     String row = what + ":" + when;
 
     // its important to use an isolated scanner so that only whole mutations are seen
-    try (
-        Scanner scanner = new IsolatedScanner(client.createScanner(rTable, Authorizations.EMPTY))) {
-      scanner.setRange(new Range(row));
-      scanner.fetchColumnFamily("res");
+    try (Scanner scanner = client.createScanner(rTable, Authorizations.EMPTY);
+        Scanner isolatedScanner = new IsolatedScanner(scanner)) {
+      isolatedScanner.setRange(new Range(row));
+      isolatedScanner.fetchColumnFamily("res");
 
       List<String> reservations = new ArrayList<>();
 
-      for (Entry<Key,Value> entry : scanner) {
+      for (Entry<Key,Value> entry : isolatedScanner) {
         String val = entry.getValue().toString();
         reservations.add(val);
       }
@@ -266,15 +268,12 @@ public class ARS {
         ArrayList<Thread> threads = new ArrayList<>();
         for (int i = 3; i < tokens.length; i++) {
           final int whoIndex = i;
-          Runnable reservationTask = new Runnable() {
-            @Override
-            public void run() {
-              try {
-                out.println("  " + String.format("%20s", tokens[whoIndex]) + " : "
-                    + fars.reserve(tokens[1], tokens[2], tokens[whoIndex]));
-              } catch (Exception e) {
-                log.warn("Could not write to the ConsoleReader.", e);
-              }
+          Runnable reservationTask = () -> {
+            try {
+              out.println("  " + String.format("%20s", tokens[whoIndex]) + " : "
+                  + fars.reserve(tokens[1], tokens[2], tokens[whoIndex]));
+            } catch (Exception e) {
+              log.warn("Could not write to the ConsoleReader.", e);
             }
           };
 

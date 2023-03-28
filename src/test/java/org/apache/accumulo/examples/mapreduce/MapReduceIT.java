@@ -73,26 +73,27 @@ public class MapReduceIT extends ConfigurableMacBase {
     ExamplesIT.writeClientPropsFile(confFile, instance, keepers, "root", ROOT_PASSWORD);
     try (AccumuloClient client = Accumulo.newClient().from(props).build()) {
       client.tableOperations().create(tablename);
-      BatchWriter bw = client.createBatchWriter(tablename);
-      for (int i = 0; i < 10; i++) {
-        Mutation m = new Mutation("" + i);
-        m.put(input_cf, input_cq, "row" + i);
-        bw.addMutation(m);
+      try (BatchWriter bw = client.createBatchWriter(tablename)) {
+        for (int i = 0; i < 10; i++) {
+          Mutation m = new Mutation("" + i);
+          m.put(input_cf, input_cq, "row" + i);
+          bw.addMutation(m);
+        }
       }
-      bw.close();
       MiniAccumuloClusterImpl.ProcessInfo hash = getCluster().exec(RowHash.class,
           Collections.singletonList(hadoopTmpDirArg), "-c", confFile, "-t", tablename, "--column",
           input_cfcq);
       assertEquals(0, hash.getProcess().waitFor());
 
-      Scanner s = client.createScanner(tablename, Authorizations.EMPTY);
-      s.fetchColumn(input_cf, output_cq);
-      int i = 0;
-      for (Entry<Key,Value> entry : s) {
+      try (Scanner s = client.createScanner(tablename, Authorizations.EMPTY)) {
+        s.fetchColumn(input_cf, output_cq);
+        int i = 0;
         MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] check = Base64.getEncoder().encode(md.digest(("row" + i).getBytes()));
-        assertEquals(entry.getValue().toString(), new String(check));
-        i++;
+        for (Entry<Key,Value> entry : s) {
+          byte[] check = Base64.getEncoder().encode(md.digest(("row" + i).getBytes()));
+          assertEquals(entry.getValue().toString(), new String(check));
+          i++;
+        }
       }
     }
   }

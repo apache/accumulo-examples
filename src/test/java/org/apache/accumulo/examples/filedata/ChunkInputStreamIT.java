@@ -64,8 +64,6 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
   private AccumuloClient client;
   private String tableName;
   private List<Entry<Key,Value>> data;
-  private List<Entry<Key,Value>> baddata;
-  private List<Entry<Key,Value>> multidata;
 
   @BeforeEach
   public void setupInstance() throws Exception {
@@ -99,7 +97,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
     addData(data, "d", "~chunk", 100, 0, "A&B", "");
     addData(data, "e", "~chunk", 100, 0, "A&B", "asdfjkl;");
     addData(data, "e", "~chunk", 100, 1, "A&B", "");
-    baddata = new ArrayList<>();
+    List<Entry<Key,Value>> baddata = new ArrayList<>();
     addData(baddata, "a", "~chunk", 100, 0, "A", "asdfjkl;");
     addData(baddata, "b", "~chunk", 100, 0, "B", "asdfjkl;");
     addData(baddata, "b", "~chunk", 100, 2, "C", "");
@@ -113,7 +111,7 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
     addData(baddata, "e", "~chunk", 100, 2, "I", "asdfjkl;");
     addData(baddata, "f", "~chunk", 100, 2, "K", "asdfjkl;");
     addData(baddata, "g", "~chunk", 100, 0, "L", "");
-    multidata = new ArrayList<>();
+    List<Entry<Key,Value>> multidata = new ArrayList<>();
     addData(multidata, "a", "~chunk", 100, 0, "A&B", "asdfjkl;");
     addData(multidata, "a", "~chunk", 100, 1, "A&B", "");
     addData(multidata, "a", "~chunk", 200, 0, "B&C", "asdfjkl;");
@@ -141,54 +139,54 @@ public class ChunkInputStreamIT extends AccumuloClusterHarness {
   public void testWithAccumulo() throws AccumuloException, AccumuloSecurityException,
       TableExistsException, TableNotFoundException, IOException {
     client.tableOperations().create(tableName);
-    BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
-
-    for (Entry<Key,Value> e : data) {
-      Key k = e.getKey();
-      Mutation m = new Mutation(k.getRow());
-      m.put(k.getColumnFamily(), k.getColumnQualifier(),
-          new ColumnVisibility(k.getColumnVisibility()), e.getValue());
-      bw.addMutation(m);
+    try (BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig())) {
+      for (Entry<Key,Value> e : data) {
+        Key k = e.getKey();
+        Mutation m = new Mutation(k.getRow());
+        m.put(k.getColumnFamily(), k.getColumnQualifier(),
+            new ColumnVisibility(k.getColumnVisibility()), e.getValue());
+        bw.addMutation(m);
+      }
     }
-    bw.close();
 
-    Scanner scan = client.createScanner(tableName, AUTHS);
+    try (Scanner scan = client.createScanner(tableName, AUTHS)) {
 
-    ChunkInputStream cis = new ChunkInputStream();
-    byte[] b = new byte[20];
-    int read;
-    PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(scan.iterator());
+      byte[] b = new byte[20];
+      int read;
+      PeekingIterator<Entry<Key,Value>> pi = Iterators.peekingIterator(scan.iterator());
 
-    cis.setSource(pi);
-    assertEquals(read = cis.read(b), 8);
-    assertEquals(new String(b, 0, read), "asdfjkl;");
-    assertEquals(read = cis.read(b), -1);
+      try (ChunkInputStream cis = new ChunkInputStream(pi)) {
+        assertEquals(8, read = cis.read(b));
+        assertEquals("asdfjkl;", new String(b, 0, read));
+        assertEquals(-1, cis.read(b));
+      }
 
-    cis.setSource(pi);
-    assertEquals(read = cis.read(b), 10);
-    assertEquals(new String(b, 0, read), "qwertyuiop");
-    assertEquals(read = cis.read(b), -1);
-    assertEquals(cis.getVisibilities().toString(), "[A&B, B&C, D]");
-    cis.close();
+      try (ChunkInputStream cis = new ChunkInputStream(pi)) {
+        assertEquals(10, read = cis.read(b));
+        assertEquals("qwertyuiop", new String(b, 0, read));
+        assertEquals(-1, cis.read(b));
+        assertEquals("[A&B, B&C, D]", cis.getVisibilities().toString());
+      }
 
-    cis.setSource(pi);
-    assertEquals(read = cis.read(b), 16);
-    assertEquals(new String(b, 0, read), "asdfjkl;asdfjkl;");
-    assertEquals(read = cis.read(b), -1);
-    assertEquals(cis.getVisibilities().toString(), "[A&B]");
-    cis.close();
+      try (ChunkInputStream cis = new ChunkInputStream(pi)) {
+        assertEquals(16, read = cis.read(b));
+        assertEquals("asdfjkl;asdfjkl;", new String(b, 0, read));
+        assertEquals(-1, cis.read(b));
+        assertEquals("[A&B]", cis.getVisibilities().toString());
+      }
 
-    cis.setSource(pi);
-    assertEquals(read = cis.read(b), -1);
-    cis.close();
+      try (ChunkInputStream cis = new ChunkInputStream(pi)) {
+        assertEquals(-1, cis.read(b));
+      }
 
-    cis.setSource(pi);
-    assertEquals(read = cis.read(b), 8);
-    assertEquals(new String(b, 0, read), "asdfjkl;");
-    assertEquals(read = cis.read(b), -1);
-    cis.close();
+      try (ChunkInputStream cis = new ChunkInputStream(pi)) {
+        assertEquals(8, read = cis.read(b));
+        assertEquals("asdfjkl;", new String(b, 0, read));
+        assertEquals(-1, cis.read(b));
+      }
 
-    assertFalse(pi.hasNext());
+      assertFalse(pi.hasNext());
+    }
   }
 
 }

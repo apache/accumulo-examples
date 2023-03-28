@@ -168,26 +168,27 @@ public final class Ingest {
       Common.createTableWithNamespace(client, opts.indexTable);
       Common.createTableWithNamespace(client, opts.dataTable, newTableConfig);
 
-      BatchWriter dirBW = client.createBatchWriter(opts.dirTable, bwOpts.getBatchWriterConfig());
-      BatchWriter indexBW = client.createBatchWriter(opts.indexTable,
-          bwOpts.getBatchWriterConfig());
-      BatchWriter dataBW = client.createBatchWriter(opts.dataTable, bwOpts.getBatchWriterConfig());
-      FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
-      for (String dir : opts.directories) {
-        recurse(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
+      try (
+          BatchWriter dirBW = client.createBatchWriter(opts.dirTable,
+              bwOpts.getBatchWriterConfig());
+          BatchWriter indexBW = client.createBatchWriter(opts.indexTable,
+              bwOpts.getBatchWriterConfig());
+          BatchWriter dataBW = client.createBatchWriter(opts.dataTable,
+              bwOpts.getBatchWriterConfig())) {
+        FileDataIngest fdi = new FileDataIngest(opts.chunkSize, opts.visibility);
+        for (String dir : opts.directories) {
+          recurse(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
 
-        // fill in parent directory info
-        int slashIndex;
-        while ((slashIndex = dir.lastIndexOf('/')) > 0) {
-          dir = dir.substring(0, slashIndex);
-          ingest(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
+          // fill in parent directory info
+          int slashIndex;
+          while ((slashIndex = dir.lastIndexOf('/')) > 0) {
+            dir = dir.substring(0, slashIndex);
+            ingest(new File(dir), opts.visibility, dirBW, indexBW, fdi, dataBW);
+          }
         }
-      }
-      ingest(new File("/"), opts.visibility, dirBW, indexBW, fdi, dataBW);
+        ingest(new File("/"), opts.visibility, dirBW, indexBW, fdi, dataBW);
 
-      dirBW.close();
-      indexBW.close();
-      dataBW.close();
+      }
     }
   }
 }

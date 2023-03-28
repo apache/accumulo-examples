@@ -43,6 +43,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.conf.Property;
@@ -80,8 +81,6 @@ import org.apache.hadoop.fs.Path;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Iterators;
 
 public class ExamplesIT extends AccumuloClusterHarness {
   private static final BatchWriterConfig bwc = new BatchWriterConfig();
@@ -123,6 +122,9 @@ public class ExamplesIT extends AccumuloClusterHarness {
 
   @AfterEach
   public void teardownTest() throws Exception {
+    if (bw != null) {
+      bw.close();
+    }
     if (null != origAuths) {
       c.securityOperations().changeUserAuthorizations(getAdminPrincipal(), origAuths);
     }
@@ -163,7 +165,9 @@ public class ExamplesIT extends AccumuloClusterHarness {
     bw.addMutation(m);
     bw.close();
     sleepUninterruptibly(1, TimeUnit.SECONDS);
-    assertEquals(0, Iterators.size(c.createScanner(tableName, Authorizations.EMPTY).iterator()));
+    try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {
+      assertTrue(scanner.stream().findAny().isEmpty());
+    }
   }
 
   @Test
@@ -186,22 +190,26 @@ public class ExamplesIT extends AccumuloClusterHarness {
     bw.addMutation(m);
     bw.flush();
 
-    Iterator<Entry<Key,Value>> iter = c.createScanner(table, Authorizations.EMPTY).iterator();
-    assertTrue(iter.hasNext(), "Iterator had no results");
-    Entry<Key,Value> e = iter.next();
-    assertEquals("1,3,4,2", e.getValue().toString(), "Results ");
-    assertFalse(iter.hasNext(), "Iterator had additional results");
+    try (Scanner scanner = c.createScanner(table, Authorizations.EMPTY)) {
+      Iterator<Entry<Key,Value>> iter = scanner.iterator();
+      assertTrue(iter.hasNext(), "Iterator had no results");
+      Entry<Key,Value> e = iter.next();
+      assertEquals("1,3,4,2", e.getValue().toString(), "Results ");
+      assertFalse(iter.hasNext(), "Iterator had additional results");
 
-    m = new Mutation("foo");
-    m.put("a", "b", "0,20,20,2");
-    bw.addMutation(m);
-    bw.close();
+      m = new Mutation("foo");
+      m.put("a", "b", "0,20,20,2");
+      bw.addMutation(m);
+      bw.close();
+    }
 
-    iter = c.createScanner(table, Authorizations.EMPTY).iterator();
-    assertTrue(iter.hasNext(), "Iterator had no results");
-    e = iter.next();
-    assertEquals("0,20,24,4", e.getValue().toString(), "Results ");
-    assertFalse(iter.hasNext(), "Iterator had additional results");
+    try (Scanner scanner = c.createScanner(table, Authorizations.EMPTY)) {
+      Iterator<Entry<Key,Value>> iter = scanner.iterator();
+      assertTrue(iter.hasNext(), "Iterator had no results");
+      Entry<Key,Value> e = iter.next();
+      assertEquals("0,20,24,4", e.getValue().toString(), "Results ");
+      assertFalse(iter.hasNext(), "Iterator had additional results");
+    }
   }
 
   @Test
@@ -215,18 +223,12 @@ public class ExamplesIT extends AccumuloClusterHarness {
     bw = c.createBatchWriter(shard, bwc);
     Index.index(30, src, "\\W+", bw);
     bw.close();
-    BatchScanner bs = c.createBatchScanner(shard, Authorizations.EMPTY, 4);
-    List<String> found = Query.query(bs, Arrays.asList("foo", "bar"), null);
-    bs.close();
-    // should find ourselves
-    boolean thisFile = false;
-    for (String file : found) {
-      if (file.endsWith("/ExamplesIT.java")) {
-        thisFile = true;
-        break;
-      }
+    List<String> found;
+    try (BatchScanner bs = c.createBatchScanner(shard, Authorizations.EMPTY, 4)) {
+      found = Query.query(bs, Arrays.asList("foo", "bar"), null);
     }
-    assertTrue(thisFile);
+    // should find ourselves
+    assertTrue(found.stream().anyMatch(file -> file.endsWith("/ExamplesIT.java")));
 
     String[] args = new String[] {"-c", getClientPropsFile(), "--shardTable", shard, "--doc2Term",
         index};

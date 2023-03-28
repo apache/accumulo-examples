@@ -53,7 +53,7 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
 
   JTree tree;
   DefaultTreeModel treeModel;
-  QueryUtil q;
+  final QueryUtil q;
   FileDataQuery fdq;
   String topPath;
   Map<String,DefaultMutableTreeNode> nodeNameMap;
@@ -120,7 +120,6 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
   }
 
   public void populateChildren(DefaultMutableTreeNode node) throws TableNotFoundException {
-    @SuppressWarnings("unchecked")
     Enumeration<TreeNode> children = node.children();
     while (children.hasMoreElements()) {
       populate((DefaultMutableTreeNode) children.nextElement());
@@ -176,7 +175,6 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
   @Override
   public void treeCollapsed(TreeExpansionEvent event) {
     DefaultMutableTreeNode node = (DefaultMutableTreeNode) event.getPath().getLastPathComponent();
-    @SuppressWarnings("unchecked")
     Enumeration<TreeNode> children = node.children();
     while (children.hasMoreElements()) {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode) children.nextElement();

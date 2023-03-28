@@ -58,9 +58,9 @@ public class FileDataIngest {
   public static final String TABLE_EXISTS_MSG = "Table already exists. User may wish to delete existing "
       + "table and re-run example. Table name: ";
 
-  int chunkSize;
-  byte[] chunkSizeBytes;
-  byte[] buf;
+  final int chunkSize;
+  final byte[] chunkSizeBytes;
+  final byte[] buf;
   MessageDigest md5digest;
   ColumnVisibility cv;
 
@@ -85,20 +85,14 @@ public class FileDataIngest {
 
     // read through file once, calculating hashes
     md5digest.reset();
-    InputStream fis = null;
     int numRead = 0;
-    try {
-      fis = new FileInputStream(filename);
+    try (InputStream fis = new FileInputStream(filename)) {
       numRead = fis.read(buf);
       while (numRead >= 0) {
         if (numRead > 0) {
           md5digest.update(buf, 0, numRead);
         }
         numRead = fis.read(buf);
-      }
-    } finally {
-      if (fis != null) {
-        fis.close();
       }
     }
 
@@ -115,8 +109,7 @@ public class FileDataIngest {
 
     // read through file again, writing chunks to accumulo
     int chunkCount = 0;
-    try {
-      fis = new FileInputStream(filename);
+    try (InputStream fis = new FileInputStream(filename)) {
       numRead = fis.read(buf);
       while (numRead >= 0) {
         while (numRead < buf.length) {
@@ -137,10 +130,6 @@ public class FileDataIngest {
         chunkCount++;
         numRead = fis.read(buf);
       }
-    } finally {
-      if (fis != null) {
-        fis.close();
-      }
     }
     m = new Mutation(row);
     Text chunkCQ = new Text(chunkSizeBytes);
@@ -153,9 +142,8 @@ public class FileDataIngest {
   public static int bytesToInt(byte[] b, int offset) {
     if (b.length <= offset + 3)
       throw new NumberFormatException("couldn't pull integer from bytes at offset " + offset);
-    int i = (((b[offset] & 255) << 24) + ((b[offset + 1] & 255) << 16)
-        + ((b[offset + 2] & 255) << 8) + ((b[offset + 3] & 255) << 0));
-    return i;
+    return (((b[offset] & 255) << 24) + ((b[offset + 1] & 255) << 16) + ((b[offset + 2] & 255) << 8)
+        + ((b[offset + 3] & 255)));
   }
 
   public static byte[] intToBytes(int l) {
@@ -163,12 +151,12 @@ public class FileDataIngest {
     b[0] = (byte) (l >>> 24);
     b[1] = (byte) (l >>> 16);
     b[2] = (byte) (l >>> 8);
-    b[3] = (byte) (l >>> 0);
+    b[3] = (byte) (l);
     return b;
   }
 
   private static String getExt(String filename) {
-    if (filename.indexOf(".") == -1)
+    if (!filename.contains("."))
       return null;
     return filename.substring(filename.lastIndexOf(".") + 1);
   }

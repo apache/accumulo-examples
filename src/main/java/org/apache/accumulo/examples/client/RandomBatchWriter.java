@@ -125,10 +125,10 @@ public class RandomBatchWriter {
     opts.parseArgs(RandomBatchWriter.class.getName(), args, bwOpts);
     if ((opts.max - opts.min) < 1L * opts.num) { // right-side multiplied by 1L to convert to long
                                                  // in a way that doesn't trigger FindBugs
-      System.err.println(String.format(
+      System.err.printf(
           "You must specify a min and a max that allow for at least num possible values. "
-              + "For example, you requested %d rows, but a min of %d and a max of %d (exclusive), which only allows for %d rows.",
-          opts.num, opts.min, opts.max, (opts.max - opts.min)));
+              + "For example, you requested %d rows, but a min of %d and a max of %d (exclusive), which only allows for %d rows.%n",
+          opts.num, opts.min, opts.max, (opts.max - opts.min));
       System.exit(1);
     }
     Random r;
@@ -158,11 +158,7 @@ public class RandomBatchWriter {
         HashMap<String,Set<SecurityErrorCode>> tables = new HashMap<>();
         for (Entry<TabletId,Set<SecurityErrorCode>> ke : e.getSecurityErrorCodes().entrySet()) {
           String tableId = ke.getKey().getTable().toString();
-          Set<SecurityErrorCode> secCodes = tables.get(tableId);
-          if (secCodes == null) {
-            secCodes = new HashSet<>();
-            tables.put(tableId, secCodes);
-          }
+          Set<SecurityErrorCode> secCodes = tables.computeIfAbsent(tableId, k -> new HashSet<>());
           secCodes.addAll(ke.getValue());
         }
         System.err.println("ERROR : Not authorized to write to tables : " + tables);
