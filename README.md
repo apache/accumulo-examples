@@ -41,9 +41,10 @@ Follow the steps below to run the Accumulo examples:
    Accumulo has an [accumulo-client.properties] in `conf/` that must be configured as
    the examples will use this file to connect to your instance.
 
-3. Review [env.sh.example] in to see if you need to customize it. If `ACCUMULO_HOME` & `HADOOP_HOME`
-   are set in your shell, you may be able skip this step. Make sure `ACCUMULO_CLIENT_PROPS` is
-   set to the location of your [accumulo-client.properties].
+3. Review [env.sh.example] and [accumulo-env.sh] (within your accumulo installation) to see if you 
+   need to customize them. If `ACCUMULO_HOME` & `HADOOP_HOME` are set in your shell, you may be 
+   able skip this step. Make sure `ACCUMULO_CLIENT_PROPS` is set to the location of your 
+   [accumulo-client.properties].
 
         cp conf/env.sh.example conf/env.sh
         vim conf/env.sh
