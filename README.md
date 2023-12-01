@@ -111,6 +111,7 @@ This repository can be used to test Accumulo release candidates.  See
 
 [quickstart]: https://accumulo.apache.org/docs/2.x/getting-started/quickstart
 [accumulo-client.properties]: https://accumulo.apache.org/docs/2.x/configuration/files#accumulo-clientproperties
+[accumulo-env.sh]: https://accumulo.apache.org/docs/2.x/configuration/files#accumulo-envsh
 [env.sh.example]: conf/env.sh.example
 [manual]: https://accumulo.apache.org/latest/accumulo_user_manual/
 [batch]: docs/batch.md
