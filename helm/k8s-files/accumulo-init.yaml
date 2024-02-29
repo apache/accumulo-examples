@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job
+  namespace: accumulo
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: accumulo-init
+        image: accumulo-s3-fs:2.1.0
+        imagePullPolicy: Never
+        command: ["/bin/bash", "-c"]
+        args: ["accumulo init --clear-instance-name --instance-name ${ACCUMULO_INSTANCE} --user ${ACCUMULO_USERNAME} --password ${ACCUMULO_PASSWORD}" ]
+        env:
+          - name: ACCUMULO_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: accumulo-secrets
+                key: accumulo-username
+                optional: false
+          - name: ACCUMULO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: accumulo-secrets
+                key: accumulo-password
+                optional: false
+          - name: ACCUMULO_INSTANCE
+            valueFrom:
+              secretKeyRef:
+                name: accumulo-secrets
+                key: accumulo-instance-name
+                optional: false
+        volumeMounts:
+        - name: "client-config"
+          mountPath: "/opt/accumulo/conf/accumulo-client.properties"
+          subPath: "accumulo-client.properties"
+        - name: "config"
+          mountPath: "/opt/accumulo/conf/accumulo.properties"
+          subPath: "accumulo.properties"
+        - name: "logging"
+          mountPath: "/opt/accumulo/conf/log4j2-service.properties"
+          subPath: "log4j2-service.properties"
+        - name: "core-site"
+          mountPath: "/opt/accumulo/conf/core-site.xml"
+          subPath: "core-site.xml"
+      volumes:
+      - name: "client-config"
+        configMap:
+          name: "accumulo-client-properties"
+      - name: "config"
+        configMap:
+          name: "accumulo-properties"
+      - name: "logging"
+        configMap:
+          name: "accumulo-logging"
+      - name: "core-site"
+        configMap:
+          name: "core-site"
+

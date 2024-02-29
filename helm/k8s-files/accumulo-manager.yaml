@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: accumulo-manager
+  namespace: accumulo
+  labels:
+    app: accumulo-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: accumulo-manager
+  template:
+    metadata:
+      labels:
+        app: accumulo-manager
+    spec:
+      containers:
+      - name: accumulo-manager
+        image: accumulo-s3-fs:2.1.0
+        imagePullPolicy: Never
+        command: ["/bin/bash", "-c"]
+        args: ["accumulo manager -o general.process.bind.addr=$(hostname -i)" ]
+        ports:
+        - containerPort: 9999
+        resources:
+          requests:
+            cpu: 100m
+            memory: "2048Mi"
+          limits:
+            cpu: 200m
+            memory: "4096Mi"
+        env:
+        - name: ACCUMULO_JAVA_OPTS
+          value: "-Xmx2g"
+        volumeMounts:
+        - name: "client-config"
+          mountPath: "/opt/accumulo/conf/accumulo-client.properties"
+          subPath: "accumulo-client.properties"
+        - name: "config"
+          mountPath: "/opt/accumulo/conf/accumulo.properties"
+          subPath: "accumulo.properties"
+        - name: "logging"
+          mountPath: "/opt/accumulo/conf/log4j2-service.properties"
+          subPath: "log4j2-service.properties"
+        - name: "core-site"
+          mountPath: "/opt/accumulo/conf/core-site.xml"
+          subPath: "core-site.xml"
+      terminationGracePeriodSeconds: 300  # Time to wait before moving from a TERM signal to the pod's main process to a KILL signal.
+      volumes:
+      - name: "client-config"
+        configMap:
+          name: "accumulo-client-properties"
+      - name: "config"
+        configMap:
+          name: "accumulo-properties"
+      - name: "logging"
+        configMap:
+          name: "accumulo-logging"
+      - name: "core-site"
+        configMap:
+          name: "core-site"
+

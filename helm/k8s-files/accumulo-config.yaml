@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: accumulo-client-properties
+  namespace: accumulo
+data:
+  accumulo-client.properties: |
+    auth.type=password
+    auth.principal=root
+    instance.name=s3test
+    instance.zookeepers=bitnami-zookeeper.zookeeper.svc.cluster.local:2181
+    rpc.transport.idle.timeout=60s
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: accumulo-properties
+  namespace: accumulo
+data:
+  accumulo.properties: |
+    general.rpc.timeout=240s
+    instance.secret=s3test
+    instance.zookeeper.host=bitnami-zookeeper.zookeeper.svc.cluster.local:2181
+    manager.wal.closer.implementation=org.apache.accumulo.server.manager.recovery.NoOpLogCloser
+    table.durability=sync
+    tserver.memory.maps.native.enabled=false
+    tserver.walog.max.size=512M
+    tserver.port.search=true
+    ## For S3 you must define volumes for accumulo and its write ahead logs. Replace the defaule instance volumes at the top
+    ## with the example below. Make sure the volumes match the general.custom.volume.preferred.default, and
+    ## general.custom.volume.preferred.logger property values below
+    instance.volumes=s3a://accumulo/database,s3a://accumulo/wal
+    ## The default deployment will use a RandomVolumeChooser and HadoopLogCloser and neither of which work when deploying to
+    ## S3. Remove the comments below to use the volume chooser and log closer that are compatible with S3
+    general.volume.chooser=org.apache.accumulo.core.spi.fs.PreferredVolumeChooser
+    ## Define the S3 objects to use for recording accumulo and write ahead log data
+    general.custom.volume.preferred.default=s3a://accumulo/database
+    general.custom.volume.preferred.logger=s3a://accumulo/wal
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: accumulo-logging
+  namespace: accumulo
+data:
+  log4j2-service.properties: |
+    status = info
+    dest = err
+    name = AccumuloCompactorLoggingProperties
+    appender.console.type = Console
+    appender.console.name = STDOUT
+    appender.console.target = SYSTEM_OUT
+    appender.console.layout.type = PatternLayout
+    appender.console.layout.pattern = %d{ISO8601} [%-8c{2}] %-5p: %m%n
+    appender.console.filter.threshold.type = ThresholdFilter
+    appender.console.filter.threshold.level = debug
+    logger.hadoop.name = org.apache.hadoop
+    logger.zookeeper.level = warn
+    logger.zookeeper.name = org.apache.zookeeper
+    logger.zookeeper.level = error
+    logger.accumulo.name = org.apache.accumulo
+    logger.accumulo.level = debug
+    rootLogger.level = debug
+    rootLogger.appenderRef.console.ref = STDOUT
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: core-site
+  namespace: accumulo
+data:
+  core-site.xml: |
+    <configuration>
+      <property>
+        <name>fs.defaultFS</name>
+        <value>s3a://accumulo/database</value>
+      </property>
+      <property>
+        <name>fs.s3a.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+        <description>The implementation class of the S3A Filesystem</description>
+      </property>
+      <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+      </property>
+      <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://minio.minio-dev.svc.cluster.local:9000</value>
+      </property>
+      <property>
+        <name>fs.s3a.access.key</name>
+        <value>accumulo</value>
+      </property>
+      <property>
+        <name>fs.s3a.secret.key</name>
+        <value>changeme</value>
+      </property>
+      <property>
+        <name>fs.s3a.connection.ssl.enabled</name>
+        <value>false</value>
+      </property>
+          <!--
+          <property>
+            <name>fs.AbstractFileSystem.s3a.impl</name>
+            <value>org.apache.hadoop.fs.s3a.S3A</value>
+            <description>The implementation class of the S3A AbstractFileSystem.</description>
+          </property>
+          <property>
+            <name>fs.s3a.aws.credentials.provider</name>
+            <value>org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider</value>
+          </property>
+          // OPTIONAL REGION PROPERTY
+          <property>
+              <name>fs.s3.region</name>
+              <value>{{ YOUR_S3_REGION }}</value>
+          </property>
+          -->
+    </configuration>
+---
