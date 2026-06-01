@@ -20,24 +20,24 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>31</version>
+    <version>37</version>
   </parent>
   <groupId>org.apache.accumulo</groupId>
   <artifactId>accumulo-examples</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>4.0.0-SNAPSHOT</version>
   <name>Apache Accumulo Examples</name>
   <description>Example code and corresponding documentation for using Apache Accumulo</description>
   <properties>
-    <accumulo.version>3.1.0-SNAPSHOT</accumulo.version>
+    <accumulo.version>4.0.0-SNAPSHOT</accumulo.version>
     <eclipseFormatterStyle>contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
-    <hadoop.version>3.3.6</hadoop.version>
-    <maven.compiler.release>11</maven.compiler.release>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <minimalJavaBuildVersion>11</minimalJavaBuildVersion>
+    <hadoop.version>3.4.2</hadoop.version>
+    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <minimalJavaBuildVersion>21</minimalJavaBuildVersion>
     <!-- timestamp for reproducible outputs, updated on release by the release plugin -->
     <project.build.outputTimestamp>2020-12-17T22:06:50Z</project.build.outputTimestamp>
-    <zookeeper.version>3.8.3</zookeeper.version>
+    <zookeeper.version>3.9.5</zookeeper.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -185,7 +185,7 @@
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>10.12.2</version>
+            <version>11.0.1</version>
           </dependency>
         </dependencies>
         <executions>
@@ -200,7 +200,7 @@
       <plugin>
         <groupId>net.revelc.code</groupId>
         <artifactId>impsort-maven-plugin</artifactId>
-        <version>1.9.0</version>
+        <version>1.13.0</version>
         <configuration>
           <removeUnused>true</removeUnused>
           <groups>java.,javax.,jakarta.,org.,com.</groups>
@@ -238,7 +238,7 @@
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
         <artifactId>formatter-maven-plugin</artifactId>
-        <version>2.23.0</version>
+        <version>2.29.0</version>
         <configuration>
           <configFile>${eclipseFormatterStyle}</configFile>
           <lineEnding>LF</lineEnding>
