@@ -39,11 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 17
+    - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
         distribution: adopt
-        java-version: 17
+        java-version: 21
         cache: 'maven'
     - name: Build with Maven (${{ matrix.profile.name }})
       run: mvn -B -V -e -ntp "-Dstyle.color=always" ${{ matrix.profile.args }}
@@ -70,4 +70,3 @@ jobs:
         name: mini-tests-logs-${{ matrix.profile.name }}
         path: ./**/target/**/mini-tests/**/logs/
         if-no-files-found: ignore
-

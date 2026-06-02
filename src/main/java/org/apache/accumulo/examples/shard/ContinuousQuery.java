@@ -79,7 +79,7 @@ public class ContinuousQuery {
           bs.clearScanIterators();
           bs.clearColumns();
 
-          IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
+          IteratorSetting ii = new IteratorSetting(30, "ii", IntersectingIterator.class);
           IntersectingIterator.setColumnFamilies(ii, columns);
           bs.addScanIterator(ii);
           bs.setRanges(Collections.singleton(new Range()));

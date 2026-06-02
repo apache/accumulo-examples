@@ -70,10 +70,10 @@ public class Query {
     IteratorSetting ii;
 
     if (cutoff != null) {
-      ii = new IteratorSetting(20, "ii", CutoffIntersectingIterator.class);
+      ii = new IteratorSetting(30, "ii", CutoffIntersectingIterator.class);
       CutoffIntersectingIterator.setCutoff(ii, cutoff);
     } else {
-      ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
+      ii = new IteratorSetting(30, "ii", IntersectingIterator.class);
     }
 
     IntersectingIterator.setColumnFamilies(ii, columns);
