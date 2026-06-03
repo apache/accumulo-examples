@@ -49,7 +49,7 @@ likely contain entries for the query, all files will be interrogated.
 You can verify the table has three or more r-files by looking in HDFS. To look in HDFS
 you will need the table ID, which can be found with the following shell command.
 
-    $ accumulo shell -u username -p password -e 'tables -l'
+    $ accumulo shell --user root --password secret -e 'tables -l'
     accumulo.metadata    =>        !0
     accumulo.root        =>        +r
     examples.bloom_test1 =>         2
@@ -68,7 +68,7 @@ table has in HDFS. This assumes Accumulo is at the default location in HDFS.
 Running the rfile-info command shows that one of the files has a bloom filter
 and its 1.5MB.
 
-    $ accumulo rfile-info /accumulo/tables/3/default_tablet/F00000dj.rf
+    $ accumulo file rfile-info /accumulo/tables/3/default_tablet/F00000dj.rf
     Locality group         : <DEFAULT>
 	Start block          : 0
 	Num   blocks         : 752
