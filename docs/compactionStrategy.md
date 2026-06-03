@@ -108,7 +108,7 @@ View the `tserver` log in <accumulo_home>/logs for the compaction and find the n
 compacted for your table. Print info about this file using the `rfile-info` tool. Replace the TableID with
 the TableID from above. Note, your filenames will differ from the ones within this example.
 
-    accumulo file rfile-info hdfs:///accumulo/tables/2/default_tablet/A000000a.rf
+    $ accumulo file rfile-info hdfs:///accumulo/tables/2/default_tablet/A000000a.rf
 
 Details about the rfile will be printed. The compression type should match the type used in the compaction.
 In this case, `snappy` is used since the size is less than 100M.
@@ -136,7 +136,7 @@ Continue to add additional data.
 Again, view the tserver log in <accumulo_home>/logs for the compaction and find the name of the `rfile` that was
 compacted for your table. Print info about this file using the `rfile-info` tool:
 
-    accumulo file rfile-info hdfs:///accumulo/tables/2/default_tablet/A000000o.rf
+    $ accumulo file rfile-info hdfs:///accumulo/tables/2/default_tablet/A000000o.rf
 
 In this case, the compression type should be `gz`. 
 
