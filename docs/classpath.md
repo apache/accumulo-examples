@@ -19,14 +19,15 @@ limitations under the License.
 This example shows how to use per table classpaths. The example leverages a
 test jar which contains a Filter that suppresses rows containing "foo". The
 example shows configuring a table to reference the jar using the built-in
-URL-based context class loader.
+URL-based context class loader. Note that the `FooFilter.jar`
+is located within the Accumulo source distribution.
 
 Create a namespace and table
 
     root@uno> createnamespace examples
     root@uno> createtable examples.nofoo
 
-The following command makes this table use the configured classpath context to `FooFilter.jar`
+The following command makes this table use the jar URL as its class loader context.
 
     root@uno examples.nofoo> config -t examples.nofoo -s table.class.loader.context=file:///path/to/github/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar
 
