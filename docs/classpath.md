@@ -17,10 +17,8 @@ limitations under the License.
 # Apache Accumulo Classpath Example
 
 This example shows how to use per table classpaths. The example leverages a
-test jar which contains a Filter that suppresses rows containing "foo". The
-example shows copying the FooFilter.jar into HDFS and then making an Accumulo
-table reference that jar. For this example.
-   
+test jar which contains a Filter that suppresses rows containing "foo". 
+
 Create a namespace and table
 
     root@uno> createnamespace examples
