@@ -29,7 +29,7 @@ Create a namespace and table
 
 The following command makes this table use the jar URL as its class loader context.
 
-    root@uno examples.nofoo> config -t examples.nofoo -s table.class.loader.context=file:///path/to/github/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar
+    root@uno examples.nofoo> config -t examples.nofoo -s table.class.loader.context=file:///path/to/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar
 
 The following command configures an iterator that's in FooFilter.jar
 
@@ -53,7 +53,7 @@ use the jar URL.
     root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
         2013-05-03 12:49:35,943 [shell.Shell] ERROR: org.apache.accumulo.shell.ShellCommandException: Command could 
     not be initialized (Unable to load org.apache.accumulo.test.FooFilter; class not found.)
-    root@uno examples.nofootwo> config -t examples.nofootwo -s table.class.loader.context=file:///path/to/github/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar
+    root@uno examples.nofootwo> config -t examples.nofootwo -s table.class.loader.context=file:///path/to/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar
 
     root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
     Filter accepts or rejects each Key/Value pair
