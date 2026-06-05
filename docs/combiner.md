@@ -22,14 +22,15 @@ This tutorial uses the following Java class, which can be found in org.apache.ac
 
 This is a simple combiner example. To build this example run maven and then
 copy the produced jar into the accumulo lib dir. This is already done in the
-tar distribution.
+tar distribution. Restart your Accumulo instance to ensure the .jar is 
+picked up by the tservers.
 
     $ accumulo shell -u root
     Enter current password for 'username'@'instance': ***
 
     Shell - Apache Accumulo Interactive Shell
     -
-    - version: 2.1.0-SNAPSHOT
+    - version: 4.0.0-SNAPSHOT
     - instance name: instance
     - instance id: 00000000-0000-0000-0000-000000000000
     -
