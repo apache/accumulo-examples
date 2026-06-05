@@ -24,7 +24,7 @@ This is a simple combiner example. To build this example run maven and then
 copy the produced jar into the accumulo lib dir. This is already done in the
 tar distribution.
 
-    $ bin/accumulo shell -u username
+    $ accumulo shell -u root
     Enter current password for 'username'@'instance': ***
 
     Shell - Apache Accumulo Interactive Shell
@@ -37,6 +37,7 @@ tar distribution.
     -
     username@instance> createnamespace examples
     username@instance> createtable examples.runners
+    username@instance examples.runners> config -t examples.runners -s table.class.loader.context=file:///path/to/accumulo-examples/target/accumulo-examples.jar
     username@instance examples.runners> setiter -t examples.runners -p 10 -scan -minc -majc -n decStats -class org.apache.accumulo.examples.combiner.StatsCombiner
     Combiner that keeps track of min, max, sum, and count
     ----------> set StatsCombiner parameter all, set to true to apply Combiner to every column, otherwise leave blank. if true, columns option will be ignored.: 

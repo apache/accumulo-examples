@@ -19,7 +19,7 @@ limitations under the License.
 This example shows how Accumulo internals handle removing a key-value pair
 
 ```
-$ /path/to/accumulo shell -u username -p secret
+$ accumulo shell --user root --password secret
 username@instance> createnamespace examples
 username@instance> createtable examples.deleteKeyValuePair
 username@instance examples.deleteKeyValuePair> insert 567890 name first Joe
@@ -59,7 +59,7 @@ username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file
 View the contents of RFile and verify each key-value pair's deletion flag is false.
 
 ```
-$ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007em.rf
+$ accumulo file rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007em.rf
 RFile Version            : 8
 
 Locality group           : <DEFAULT>
@@ -87,7 +87,7 @@ Meta block     : RFile.index
 Delete a key-value pair and view a newly created RFile to verify the deletion flag is true.
 
 ```
-$ /path/to/accumulo shell -u username -p secret
+$ accumulo shell --user root --password secret
 username@instance> table examples.deleteKeyValuePair
 username@instance examples.deleteKeyValuePair> delete 567890 name first
 username@instance examples.deleteKeyValuePair> flush -w
@@ -100,7 +100,7 @@ username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file
 ```
 
 ```
-$ /path/to/accumulo rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007fq.rf
+$ accumulo file rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007fq.rf
 RFile Version            : 8
 
 Locality group           : <DEFAULT>
@@ -127,7 +127,7 @@ Meta block     : RFile.index
 Compact the RFiles and verify the key-value pair was removed.  The new RFile will start with 'A'.
 
 ```
-$ /path/to/accumulo shell -u username -p secret
+$ accumulo shell --user root --password secret
 username@instance> compact -t examples.deleteKeyValuePair -w
 2019-04-17 08:17:15,468 [shell.Shell] INFO : Compacting table ...
 2019-04-17 08:17:16,143 [shell.Shell] INFO : Compaction of table examples.deleteKeyValuePair 
@@ -140,7 +140,7 @@ lt< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf
 ```
 
  ```
-$ /path/to/accumulo rfile-info -v hdfs://localhost/accumulo/tables/1t/default_tablet/A00007g1.rf
+$ accumulo file rfile-info -v hdfs://localhost/accumulo/tables/1t/default_tablet/A00007g1.rf
 RFile Version            : 8
 
 Locality group           : <DEFAULT>
