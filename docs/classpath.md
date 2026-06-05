@@ -18,16 +18,16 @@ limitations under the License.
 
 This example shows how to use per table classpaths. The example leverages a
 test jar which contains a Filter that suppresses rows containing "foo". The
-example shows configuring a table to reference the jar using the built-in
-URL-based context class loader. Note that the `FooFilter.jar`
-is located within the Accumulo source distribution.
+example shows configuring a table to load classes from the jar using the
+URL-based context class loader. Note that the `FooFilter.jar` is located within
+the Accumulo source distribution.
 
 Create a namespace and table
 
     root@uno> createnamespace examples
     root@uno> createtable examples.nofoo
 
-The following command makes this table use the jar URL as its class loader context.
+The following command configures the table to load classes from the jar URL.
 
     root@uno examples.nofoo> config -t examples.nofoo -s table.class.loader.context=file:///path/to/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar
 
@@ -46,17 +46,15 @@ The commands below show the filter is working.
     root@uno examples.nofoo>
 
 Below, an attempt is made to add the FooFilter to a table that's not configured
-to use the jar URL as its classpath context. This fails until the table is configured to
-use the jar URL.
+to load classes from the jar URL. This fails until the table is configured with
+the jar URL.
 
     root@uno examples.nofoo> createtable examples.nofootwo
     root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
         2013-05-03 12:49:35,943 [shell.Shell] ERROR: org.apache.accumulo.shell.ShellCommandException: Command could 
     not be initialized (Unable to load org.apache.accumulo.test.FooFilter; class not found.)
     root@uno examples.nofootwo> config -t examples.nofootwo -s table.class.loader.context=file:///path/to/accumulo/test/src/main/resources/org/apache/accumulo/test/FooFilter.jar
-
     root@uno examples.nofootwo> setiter -n foofilter -p 10 -scan -minc -majc -class org.apache.accumulo.test.FooFilter
     Filter accepts or rejects each Key/Value pair
     ----------> set FooFilter parameter negate, default false keeps k/v that pass accept method, true rejects k/v that pass accept method: false
-
 
