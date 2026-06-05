@@ -53,7 +53,8 @@ Scan accumulo.metadata table to see the list of RFiles Accumulo is currently usi
 
 ```
 username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
-1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf
+1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf","startRow":"","endRow":""} []	311,3
+
 ```
 
 View the contents of RFile and verify each key-value pair's deletion flag is false.
@@ -95,8 +96,9 @@ username@instance examples.deleteKeyValuePair> flush -w
 
 ```
 username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
-1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf
-1t< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007fq.rf
+1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf","startRow":"","endRow":""} []	311,3
+1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007fg.rf","startRow":"","endRow":""} []	311,3
+
 ```
 
 ```
@@ -136,7 +138,8 @@ completed for given range
 
 ```
 username@instance> scan -t accumulo.metadata -c file -r 1t<
-lt< file:hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf
+1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf","startRow":"","endRow":""} []	311,3
+
 ```
 
  ```
