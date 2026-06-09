@@ -60,7 +60,7 @@ username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file
 View the contents of RFile and verify each key-value pair's deletion flag is false.
 
 ```
-$ accumulo file rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007em.rf
+$ accumulo file rfile-info -d hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf
 RFile Version            : 8
 
 Locality group           : <DEFAULT>
@@ -97,12 +97,12 @@ username@instance examples.deleteKeyValuePair> flush -w
 ```
 username@instance examples.deleteKeyValuePair> scan -t accumulo.metadata -c file -r 1t<
 1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007em.rf","startRow":"","endRow":""} []	311,3
-1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007fg.rf","startRow":"","endRow":""} []	311,3
+1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007fg.rf","startRow":"","endRow":""} []	230,1
 
 ```
 
 ```
-$ accumulo file rfile-info -d hdfs://localhost/accumulo/tables/1t/default_tablet/F00007fq.rf
+$ accumulo file rfile-info -d hdfs://localhost:8020/accumulo/tables/1t/default_tablet/F00007fq.rf
 RFile Version            : 8
 
 Locality group           : <DEFAULT>
@@ -138,12 +138,12 @@ completed for given range
 
 ```
 username@instance> scan -t accumulo.metadata -c file -r 1t<
-1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf","startRow":"","endRow":""} []	311,3
+1t< file:{"path":"hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf","startRow":"","endRow":""} []	293,2
 
 ```
 
  ```
-$ accumulo file rfile-info -v hdfs://localhost/accumulo/tables/1t/default_tablet/A00007g1.rf
+$ accumulo file rfile-info -v hdfs://localhost:8020/accumulo/tables/1t/default_tablet/A00007g1.rf
 RFile Version            : 8
 
 Locality group           : <DEFAULT>
