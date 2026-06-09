@@ -37,21 +37,24 @@ After creating the tables, index some files. The following command indexes all t
 The following command queries the index to find all files containing 'foo' and 'bar'.
 
     $ ./bin/runex shard.Query -t examples.shard foo bar
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/spi/balancer/BaseHostRegexTableLoadBalancerTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/iterators/user/WholeRowIteratorTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/iteratorsImpl/IteratorConfigUtilTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/data/KeyBuilderTest.java
       /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/spi/balancer/HostRegexTableLoadBalancerReconfigurationTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/security/ColumnVisibilityTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/summary/SummaryCollectionTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/spi/balancer/HostRegexTableLoadBalancerTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/client/IteratorSettingTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/data/KeyExtentTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/security/VisibilityEvaluatorTest.java
       /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/iterators/user/TransformingIteratorTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/client/admin/NewTableConfigurationTest.java
-      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/conf/HadoopCredentialProviderTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/conf/PropertyTypeTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/iterators/user/WholeRowIteratorTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/security/VisibilityEvaluatorTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/data/KeyBuilderTest.java
       /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/clientImpl/TableOperationsHelperTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/conf/PropertyTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/client/admin/NewTableConfigurationTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/summary/SummaryCollectionTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/data/KeyExtentTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/spi/compaction/RatioBasedCompactionPlannerTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/client/IteratorSettingTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/spi/balancer/HostRegexTableLoadBalancerTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/conf/HadoopCredentialProviderTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/spi/balancer/BaseHostRegexTableLoadBalancerTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/iteratorsImpl/IteratorConfigUtilTest.java
+      /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/security/ColumnVisibilityTest.java
       /path/to/accumulo/core/src/test/java/org/apache/accumulo/core/iterators/user/WholeColumnFamilyIteratorTest.java
 
 In order to run ContinuousQuery, we need to run Reverse.java to populate the `examples.doc2term` table.

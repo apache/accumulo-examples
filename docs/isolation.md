@@ -31,7 +31,7 @@ Below, Interference Test is run without isolation enabled for 5000 iterations
 and it reports problems.
 
 
-    $ accumulo shell -u <username> -p <password> -e 'createnamespace examples' 
+    $ accumulo shell --user root --password secret --execute-command 'createnamespace examples' 
     $ ./bin/runex isolation.InterferenceTest -t examples.isotest --iterations 50000
     ERROR Columns in row 053 had multiple values [53, 4553]
     ERROR Columns in row 061 had multiple values [561, 61]

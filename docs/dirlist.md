@@ -34,12 +34,12 @@ To begin, ingest some data with Ingest.java.
     $ ./bin/runex dirlist.Ingest --vis exampleVis --chunkSize 100000 /local/username/workspace
 
 This may take some time if there are large files in the /local/username/workspace directory. If you use 0 instead of 100000 as the `chunkSize`, the ingest will run much faster, but it will not put any file data into Accumulo (the dataTable will be empty).
-Note that running this example will create tables `examples.dirTable`, `examples.indexTable`, and `examples.dataTable` in Accumulo that you should delete when you have completed the example.
+Note that running this example will create tables `examples.dirTable`, `examples.indexTable`, and `examples.dataTable` in Accumulo that you should delete when you have completed this example (dirlist.md) and the File System Archive Example Data Only (filedata.md).
 If you modify a file or add new files in the directory ingested (e.g. /local/username/workspace), you can run Ingest again to add new information into the Accumulo tables.
 
 To browse the data ingested, use Viewer.java. Be sure to give the "username" user the authorizations to see the data (in this case, run
 
-    $ accumulo shell -u root -e 'setauths -u username -s exampleVis'
+    $ accumulo shell -u root -e 'setauths -u root -s exampleVis'
 
 then run the Viewer:
 

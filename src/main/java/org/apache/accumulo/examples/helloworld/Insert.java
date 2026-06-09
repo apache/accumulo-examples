@@ -60,6 +60,7 @@ public class Insert {
           }
         }
       }
+      client.tableOperations().flush(HELLO_TABLE, null, null, true);
     }
   }
 }
