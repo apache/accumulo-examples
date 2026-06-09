@@ -101,16 +101,17 @@ feature works.  The commands determine what files the sampex table is using.
     examples.sampex      =>         2
     trace                =>         1
     root@instance sampex> scan -t accumulo.metadata -c file -b 2 -e 2<
-    2< file:hdfs://localhost:10000/accumulo/tables/2/default_tablet/A000000s.rf []    702,8
+    2< file:{"path":"hdfs://localhost:8020/accumulo/tables/2/default_tablet/A000000s.rf","startRow":"","endRow":""} []  702,8
+    2< file:{"path":"hdfs://localhost:8020/accumulo/tables/2/default_tablet/F000009w.rf","startRow":"","endRow":""} []	439,1
 
-Below shows running `accumulo rfile-info` on the file above.  This shows the
+Below shows running `accumulo file rfile-info` on the file above.  This shows the
 rfile has a normal default locality group and a sample default locality group.
 The output also shows the configuration used to create the sample locality
 group.  The sample configuration within a rfile must match the tables sample
 configuration for sample scan to work.
 
-    $ accumulo rfile-info hdfs://localhost:10000/accumulo/tables/2/default_tablet/A000000s.rf
-    Reading file: hdfs://localhost:10000/accumulo/tables/2/default_tablet/A000000s.rf
+    $ accumulo file rfile-info hdfs://localhost:8020/accumulo/tables/2/default_tablet/A000000s.rf
+    Reading file: hdfs://localhost:8020/accumulo/tables/2/default_tablet/A000000s.rf
     RFile Version            : 8
     
     Locality group           : <DEFAULT>

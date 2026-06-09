@@ -29,7 +29,7 @@ On the accumulo status page at the URL below (you may need to replace 'localhost
 
     http://localhost:9995/
 
-To view the entries, use the shell (run `accumulo shell -u username -p password` to access it) to scan the table:
+To view the entries, use the shell (run `accumulo shell --user root --password secret` to access it) to scan the table:
 
     username@instance> table examples.hellotable
     username@instance examples.hellotable> scan
