@@ -17,6 +17,8 @@
 package org.apache.accumulo.examples.dirlist;
 
 import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Map;
@@ -210,10 +212,21 @@ public class Viewer extends JFrame implements TreeSelectionListener, TreeExpansi
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(Viewer.class.getName(), args);
-    try (AccumuloClient client = opts.createAccumuloClient()) {
+    AccumuloClient client = opts.createAccumuloClient();
+    try {
       Viewer v = new Viewer(client, opts);
+      v.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+      v.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosed(WindowEvent e) {
+          client.close();
+        }
+      });
       v.init();
       v.setVisible(true);
+    } catch (Exception e) {
+      client.close();
+      throw e;
     }
   }
 }

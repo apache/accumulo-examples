@@ -47,10 +47,10 @@ import com.google.common.collect.ImmutableMap;
  */
 public class SampleExample {
 
-  // a compaction strategy that only selects files for compaction that have no sample data or sample
-  // data created in a different way than the tables
+  // A compaction selector that only selects files with no sample data or sample data created with
+  // a different configuration than the table.
   static final PluginConfig selectorCfg = new PluginConfig(
-      "org.apache.accumulo.tserver.compaction.strategies.ConfigurableCompactionStrategy",
+      "org.apache.accumulo.core.compaction.ShellCompactCommandSelector",
       Map.of("SF_NO_SAMPLE", ""));
   static final CompactionConfig NO_SAMPLE_STRATEGY = new CompactionConfig()
       .setSelector(selectorCfg);

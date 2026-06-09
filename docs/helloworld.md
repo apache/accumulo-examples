@@ -25,7 +25,9 @@ Inserts data with a BatchWriter:
 
     $ ./bin/runex helloworld.Insert
 
-On the accumulo status page at the URL below (you may need to replace 'localhost' with the name or IP of your server), you should see 50K entries
+Open the Accumulo Monitor, navigate to the `examples.hellotable` table, and
+verify that it shows 50K entries. You may need to replace `localhost` with the
+name or IP address of your server.
 
     http://localhost:9995/
 
