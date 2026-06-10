@@ -23,7 +23,7 @@ hadoop terasort benchmark.
 First, make sure the 'examples' namespace exists. If it already exists, the error message can be 
 ignored.
 
-    $ accumulo shell -u root -p secret -e 'createnamespace examples'   
+    $ accumulo shell --user root --password secret --execute-command 'createnamespace examples'   
 
 This example is run with arguments describing the amount of data:
 

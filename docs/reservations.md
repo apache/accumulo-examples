@@ -25,14 +25,14 @@ and trent to reserve room06 on 20140101. Bob ends up getting the reservation
 and everyone else is put on a wait list. The example code will take any string
 for what, when and who.
     
-    $ /path/to/accumulo org.apache.accumulo.server.util.ListInstances
+    $ accumulo inst list-instances
     
     Instance Name       | Instance ID                          | Master                        
     ---------------------+--------------------------------------+-------------------------------
         <instance name> | 9f8f2a97-432f-4e66-b153-861e2a1ca246 |                localhost:9999
     
-    $ /path/to/accumulo shell -u root -p secret -e "createnamespace examples"
-    $ /path/to/accumulo shell -u root -p secret -e "createtable examples.ars"
+    $ accumulo shell --user root --password secret --execute-command "createnamespace examples"
+    $ accumulo shell --user root --password secret --execute-command "createtable examples.ars"
     $ ./bin/runex reservations.ARS
     >connect <instance name> localhost root secret examples.ars
       connected
