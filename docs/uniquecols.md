@@ -24,7 +24,7 @@ Create a table and add rows that all have identical column family and column
 qualifiers.
 
 ```
-$ /path/to/accumulo shell -u username -p secret
+$ accumulo shell --user root --password secret
 username@instance> createnamespace examples
 username@instance> createtable examples.unique
 username@instance examples.unique> insert row1 fam1 qual1 v1
@@ -58,15 +58,15 @@ will be spread among various `part-r-xxxxx` files.
 Go back to the shell and add some additional entries.
 
 ```text
-$ /path/to/accumulo shell -u username -p secret
-username@instance> table unique
-username@instance example.unique> insert row1 fam2 qual2 v2
-username@instance example.unique> insert row1 fam3 qual2 v2
-username@instance example.unique> insert row1 fam2 qual2 v2
-username@instance example.unique> insert row2 fam2 qual2 v2
-username@instance example.unique> insert row3 fam2 qual2 v2
-username@instance example.unique> insert row3 fam3 qual3 v2
-username@instance example.unique> insert row3 fam3 qual4 v2
+$ accumulo shell --user root --password secret
+username@instance> table examples.unique
+username@instance examples.unique> insert row1 fam2 qual2 v2
+username@instance examples.unique> insert row1 fam3 qual2 v2
+username@instance examples.unique> insert row1 fam2 qual2 v2
+username@instance examples.unique> insert row2 fam2 qual2 v2
+username@instance examples.unique> insert row3 fam2 qual2 v2
+username@instance examples.unique> insert row3 fam3 qual3 v2
+username@instance examples.unique> insert row3 fam3 qual4 v2
 ```
 
 Re-running the command will now find any additional unique column values.
