@@ -62,7 +62,7 @@ Configurations can be verified for correctness with the  `check-compaction-confi
 Accumulo. Place your compaction configuration into a file and run the tool. For example, if you create a file
 `myconfig` that contains the following:
 
-    tserver.compaction.major.service.cs1.planner=org.apache.accumulo.core.spi.compaction2.DefaultCompactionPlanner
+    tserver.compaction.major.service.cs1.planner=org.apache.accumulo.core.spi.compaction.DefaultCompactionPlanner
     tserver.compaction.major.service.cs1.planner.opts.executors=[{"name":"small","type":"internal","maxSize":"16M","numThreads":8},{"name":"medium","type":"internal","maxSize":"128M","numThreads":4},{"name":"large","type":"internal","numThreads":2}]
     tserver.compaction.major.service.cs2.planner=org.apache.accumulo.core.spi.compaction.DefaultCompactionPlanner
     tserver.compaction.major.service.cs2.planner.opts.executors=[{"name":"small","type":"internal","maxSize":"16M","numThreads":4},{"name":"medium","type":"internal","maxSize":"128M","numThreads":2},{"name":"large","type":"internal","maxSize":"250M","numThreads":1}]
