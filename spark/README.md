@@ -36,9 +36,8 @@ a Spark application that does following:
      bulk import to Accumulo table
   2. **Batchwriter** - Creates a `BatchWriter` in Spark code to write to the table. 
 
-This application can be run using the following commands:
+This application can be run using the command:
 
-    $ cd /path/to/accumulo-examples/spark
     $ ./run.sh batch /path/to/accumulo-client.properties
 
 Change `batch` to `bulk` to use Bulk import method.

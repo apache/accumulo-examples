@@ -24,7 +24,7 @@ Create a table and add rows that all have identical column family and column
 qualifiers.
 
 ```
-$ accumulo shell --user root --password secret
+$ accumulo shell --user <username> --password <password>
 username@instance> createnamespace examples
 username@instance> createtable examples.unique
 username@instance examples.unique> insert row1 fam1 qual1 v1

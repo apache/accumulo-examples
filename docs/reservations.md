@@ -31,8 +31,8 @@ for what, when and who.
     ---------------------+--------------------------------------+-------------------------------
         <instance name> | 9f8f2a97-432f-4e66-b153-861e2a1ca246 |                localhost:9999
     
-    $ accumulo shell --user root --password secret --execute-command "createnamespace examples"
-    $ accumulo shell --user root --password secret --execute-command "createtable examples.ars"
+    $ accumulo shell --user <username> --password <password> -e "createnamespace examples"
+    $ accumulo shell --user <username> --password <password> -e "createtable examples.ars"
     $ ./bin/runex reservations.ARS
     >connect <instance name> localhost root secret examples.ars
       connected
