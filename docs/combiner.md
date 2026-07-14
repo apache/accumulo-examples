@@ -25,7 +25,7 @@ This is a simple combiner example. Before running it, follow the
 available to Accumulo. Restart your Accumulo instance to ensure the jar is
 picked up by the servers.
 
-    $ accumulo shell -u root
+    $ accumulo shell -u <username>
     Enter current password for 'username'@'instance': ***
 
     Shell - Apache Accumulo Interactive Shell

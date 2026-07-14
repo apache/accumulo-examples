@@ -38,7 +38,7 @@ a Spark application that does following:
 
 This application can be run using the command:
 
-    ./run.sh batch /path/to/accumulo-client.properties
+    $ ./run.sh batch /path/to/accumulo-client.properties
 
 Change `batch` to `bulk` to use Bulk import method.
 
