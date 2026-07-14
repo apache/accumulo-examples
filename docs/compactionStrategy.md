@@ -97,12 +97,12 @@ If needed, `chop` compactions can be configured also.
 Generate some data and files in order to test the strategy:
 
     $ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 1000 --size 50
-    $ accumulo shell --user root --password secret -e "flush -t examples.test1" 
+    $ accumulo shell --user <username> --password <password> -e "flush -t examples.test1" 
 
     $ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 2000 --size 50
-    $ accumulo shell --user root --password secret -e "flush -t examples.test1" 
+    $ accumulo shell --user <username> --password <password> -e "flush -t examples.test1" 
 
-    $ accumulo shell --user root --password secret -e "compact -t examples.test1 -w"
+    $ accumulo shell --user <username> --password <password> -e "compact -t examples.test1 -w"
 
 View the `tserver` log in <accumulo_home>/logs for the compaction and find the name of the `rfile` that was
 compacted for your table. Print info about this file using the `rfile-info` tool. Replace the TableID with
@@ -123,15 +123,15 @@ Meta block     : RFile.index
 Continue to add additional data.
 
     $ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 0 --num 1000000 --size 50
-    $ accumulo shell --user root --password secret -e "flush -t examples.test1"
+    $ accumulo shell --user <username> --password <password> -e "flush -t examples.test1"
 
     $ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 1000000 --num 1000000 --size 50
-    $ accumulo shell --user root --password secret -e "flush -t examples.test1"
+    $ accumulo shell --user <username> --password <password> -e "flush -t examples.test1"
 
     $ ./bin/runex client.SequentialBatchWriter -t examples.test1 --start 2000000 --num 1000000 --size 50
-    $ accumulo shell --user root --password secret -e "flush -t examples.test1"
+    $ accumulo shell --user <username> --password <password> -e "flush -t examples.test1"
 
-    $ accumulo shell --user root --password secret -e "compact -t examples.test1 -w"
+    $ accumulo shell --user <username> --password <password> -e "compact -t examples.test1 -w"
 
 Again, view the tserver log in <accumulo_home>/logs for the compaction and find the name of the `rfile` that was
 compacted for your table. Print info about this file using the `rfile-info` tool:

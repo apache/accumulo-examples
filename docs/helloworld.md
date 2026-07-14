@@ -31,7 +31,7 @@ name or IP address of your server.
 
     http://localhost:9995/
 
-To view the entries, use the shell (run `accumulo shell --user root --password secret` to access it) to scan the table:
+To view the entries, use the shell (run `accumulo shell --user <username> --password <password>` to access it) to scan the table:
 
     username@instance> table examples.hellotable
     username@instance examples.hellotable> scan

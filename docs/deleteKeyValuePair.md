@@ -19,7 +19,7 @@ limitations under the License.
 This example shows how Accumulo internals handle removing a key-value pair
 
 ```
-$ accumulo shell --user root --password secret
+$ accumulo shell --user <username> --password <password>
 username@instance> createnamespace examples
 username@instance> createtable examples.deleteKeyValuePair
 username@instance examples.deleteKeyValuePair> insert 567890 name first Joe
@@ -88,7 +88,7 @@ Meta block     : RFile.index
 Delete a key-value pair and view a newly created RFile to verify the deletion flag is true.
 
 ```
-$ accumulo shell --user root --password secret
+$ accumulo shell --user <username> --password <password>
 username@instance> table examples.deleteKeyValuePair
 username@instance examples.deleteKeyValuePair> delete 567890 name first
 username@instance examples.deleteKeyValuePair> flush -w
@@ -129,7 +129,7 @@ Meta block     : RFile.index
 Compact the RFiles and verify the key-value pair was removed.  The new RFile will start with 'A'.
 
 ```
-$ accumulo shell --user root --password secret
+$ accumulo shell --user <username> --password <password>
 username@instance> compact -t examples.deleteKeyValuePair -w
 2019-04-17 08:17:15,468 [shell.Shell] INFO : Compacting table ...
 2019-04-17 08:17:16,143 [shell.Shell] INFO : Compaction of table examples.deleteKeyValuePair 

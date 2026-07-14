@@ -39,7 +39,7 @@ If you modify a file or add new files in the directory ingested (e.g. /local/use
 
 To browse the data ingested, use Viewer.java. Be sure to give the "username" user the authorizations to see the data (in this case, run
 
-    $ accumulo shell -u root -e 'setauths -u root -s exampleVis'
+    $ accumulo shell -u <username> -e 'setauths -u <username> -s exampleVis'
 
 then run the Viewer:
 

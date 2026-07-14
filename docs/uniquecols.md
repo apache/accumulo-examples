@@ -58,7 +58,7 @@ will be spread among various `part-r-xxxxx` files.
 Go back to the shell and add some additional entries.
 
 ```text
-$ accumulo shell --user root --password secret
+$ accumulo shell --user <username> --password <password>
 username@instance> table examples.unique
 username@instance examples.unique> insert row1 fam2 qual2 v2
 username@instance examples.unique> insert row1 fam3 qual2 v2
